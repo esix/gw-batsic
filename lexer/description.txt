@@ -1,0 +1,17 @@
+Unsing state machine
+
+
+Each character is event, so, string is event queue for state machine
+
+After line ends, special character with code 10 (EOL) is simulated and queued
+
+
+To simplify, state machine is given an ability to repeat current character within the next event ('back' operation)
+
+For example, 
+when we are in state "1" (no semantic, waithing for any token to start) and got a character <, 
+we go to state "2" to select between "<, "<=" and "<>"
+If we the next character is other than "=" or ">" - that means that the token was just "<" and the next token started
+So we have to implement everything that was in state "1". 
+To reduce amount of code, we put this unknown character back to character queue, push token "<" to the list of tokens and
+continue in state "1". Next step willbe that character in state "1"

@@ -1,0 +1,134 @@
+_PROGRAM_               ::= I16 _STATEMENTS_
+_PROGRAM_               ::= _STATEMENTS_
+
+
+_STATEMENTS_            ::= _STATEMENT_ : _STATEMENTS_
+_STATEMENTS_            ::= _STATEMENT_
+
+
+_STATEMENT_ ::= BEEP 
+
+
+_STATEMENT_             ::= CLOSE '#' Integer
+_STATEMENT_             ::= DATA <Constant List> 
+_STATEMENT_             ::= DIM ID '(' <Integer List> ')'
+_STATEMENT_             ::= END          
+_STATEMENT_             ::= FOR ID '=' <Expression> TO <Expression>     
+_STATEMENT_             ::= FOR ID '=' <Expression> TO <Expression> STEP Integer      
+_STATEMENT_             ::= GOTO <Expression> 
+_STATEMENT_             ::= GOSUB <Expression> 
+_STATEMENT_             ::= IF <Expression> THEN <Statement>         
+_STATEMENT_             ::= INPUT <ID List>       
+_STATEMENT_             ::= INPUT '#' Integer ',' <ID List>       
+_STATEMENT_             ::= LET Id '=' <Expression> 
+_STATEMENT_             ::= NEXT <ID List>               
+_STATEMENT_             ::= OPEN <Value> FOR <Access> AS '#' Integer
+_STATEMENT_             ::= POKE <Value List>
+_STATEMENT_             ::= PRINT <Print list>
+_STATEMENT_             ::= PRINT '#' Integer ',' <Print List>
+_STATEMENT_             ::= READ <ID List>           
+_STATEMENT_             ::= RETURN
+_STATEMENT_             ::= RESTORE
+_STATEMENT_             ::= RUN
+_STATEMENT_             ::= STOP
+_STATEMENT_             ::= SYS <Value>
+_STATEMENT_             ::= WAIT <Value List>
+_STATEMENT_             ::= Remark
+_STATEMENT_             ::= VAR_ = <Expression>
+
+
+
+;  
+;   Commands are like statements and can be used instead with some exceptions
+;   LIST : LIST : LIST : ANYTHING      - lists only once and ignores anything
+;
+
+_STATEMENT_             ::-= _COMMAND_
+
+_COMMAND_               ::= LIST
+_COMMAND_               ::= RUN
+
+
+
+
+<Access>          ::= INPUT
+                    | OUPUT
+
+<ID List>         ::= ID ',' <ID List> 
+                    | ID 
+
+<Value List>      ::= <Value> ',' <Value List> 
+                    | <Value> 
+
+_CONSTANT_LIST_    ::= _CONSTANT_ COMMA _CONSTANT_LIST_
+_CONSTANT_LIST_    ::= _CONSTANT_
+
+<Integer List>    ::= Integer ',' <Integer List>
+                    | Integer
+
+<Print List>      ::= <Expression> ';' <Print List>
+                    | <Expression> 
+                    |  
+
+
+
+
+
+
+
+
+
+_EXPRESSION_LIST_       ::= _EXPRESSION_ ',' _EXPRESSION_LIST_
+_EXPRESSION_LIST_       ::= _EXPRESSION_
+
+_EXPRESSION_            ::= _AND_EXPRESSION_ OR _EXPRESSION_
+_EXPRESSION_            ::= _AND_EXPRESSION_
+
+_AND_EXPRESSION_        ::= _NOT_EXPRESSION_ AND _AND_EXPRESSION_
+_AND_EXPRESSION_        ::= _NOT_EXPRESSION_
+ 
+_NOT_EXPRESSION_        ::= NOT _COMPARE_EXPRESSION_
+_NOT_EXPRESSION_        ::= _COMPARE_EXPRESSION_
+
+_COMPARE_EXPRESSION_    ::= _ADD_EXPRESSION_ = _COMPARE_EXPRESSION_
+_COMPARE_EXPRESSION_    ::= _ADD_EXPRESSION_ '<>' <Compare Exp>
+_COMPARE_EXPRESSION_    ::= _ADD_EXPRESSION_ '><' <Compare Exp>
+_COMPARE_EXPRESSION_    ::= _ADD_EXPRESSION_ '>'  <Compare Exp>
+_COMPARE_EXPRESSION_    ::= _ADD_EXPRESSION_ '>=' <Compare Exp>
+_COMPARE_EXPRESSION_    ::= _ADD_EXPRESSION_ '<'  <Compare Exp>
+_COMPARE_EXPRESSION_    ::= _ADD_EXPRESSION_ '<=' <Compare Exp>
+_COMPARE_EXPRESSION_    ::= _ADD_EXPRESSION_
+
+_ADD_EXPRESSION_        ::= _MULT_EXPRESSION_ '+' _ADD_EXPRESSION_
+_ADD_EXPRESSION_        ::= _MULT_EXPRESSION_ '-' _ADD_EXPRESSION_
+_ADD_EXPRESSION_        ::= _MULT_EXPRESSION_
+
+_MULT_EXPRESSION_       ::= _NEGATE_EXPRESSION_ '*' _MULT_EXPRESSION_
+_MULT_EXPRESSION_       ::= _NEGATE_EXPRESSION_ '/' _MULT_EXPRESSION_
+_MULT_EXPRESSION_       ::= _NEGATE_EXPRESSION_
+
+_NEGATE_EXPRESSION_     ::= '-' _POWER_EXPRESSION_
+_NEGATE_EXPRESSION_     ::= _POWER_EXPRESSION_
+
+_POWER_EXPRESSION_      ::= _POWER_EXPRESSION_ '^' _VALUE_
+_POWER_EXPRESSION_      ::= _VALUE_
+
+_VALUE_                 ::= _CONSTANT_
+_VALUE_                 ::= OPEN_PAR _EXPRESSION_ CLOSE_PAR
+_VALUE_                 ::= VAR_
+_VALUE_                 ::= VAR_ OPEN_PAR _EXPRESSION_LIST_ CLOSE_PAR
+_VALUE_                 ::= _FUNCTION_CALL_
+
+_CONSTANT_              ::= I16_
+_CONSTANT_              ::= STR_
+_CONSTANT_              ::= F32_
+_CONSTANT_              ::= F64_
+
+
+_FUNCTION_CALL_         ::= _FUNCTION_NAME_ OPEN_PAR _EXPRESSION_LIST_ CLOSE_PAR
+
+_FUNCTION_NAME_         ::= FN_
+_FUNCTION_NAME_         ::= ABS
+_FUNCTION_NAME_         ::= ASC
+; ...
+

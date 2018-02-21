@@ -1,0 +1,39 @@
+hex
+&HFFFF = -1
+&H1 = 1
+
+oct
+&O347 = &o347 = 231
+&1234 = 668
+
+
+single       double precision
+46.8         345692811
+-1.09E-06    -1.09432D-06
+3489.0       3490.0#
+22.5!        7654321.1234
+
+
+
+CharacterType of Variable
+$ String variable
+% Integer variable
+! Single-precision variable
+# Double-precision variable
+
+
+Variable Required Bytes of Storage
+Integer              2
+Single-precision     4
+Double-precision     8
+
+
+Arrays Required Bytes of Storage
+Integer              2 per element
+Single-precision     4 per element
+Double-precision     8 per element
+
+
+
+' = REM
+? = PRINT
