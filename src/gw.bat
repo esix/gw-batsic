@@ -18,7 +18,7 @@ exit /b
 
 
 
-:AddTxtLine
+:AddTxtLine buffer
   setlocal DisableDelayedExpansion
   call gwlexer ParseTxt tokens %~1
   @REM set "line=%~1"
