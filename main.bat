@@ -7,11 +7,11 @@ goto start
   set PATH=%~dp0\src;%~dp0\lib;%PATH%
 
   call gw Init
-  call gw LoadFile test\1.bas
+  call gw LoadFile examples\1.bas
 
   exit /b
 
-  call txt ReadLines lines test\1.bas
+  call txt ReadLines lines examples\1.bas
   set numLines=%ERRORLEVEL%
   call iter range 0 %numLines%
   echo RANGE=%range%
