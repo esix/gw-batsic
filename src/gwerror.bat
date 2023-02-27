@@ -1,6 +1,6 @@
 @echo off
 if not "%~1"=="" shift & goto :%~1
-goto :_test
+goto :_start
 
 :ErrorCodeToString code result
   setlocal EnableDelayedExpansion
@@ -284,16 +284,35 @@ goto :_test
   if "!code!"=="76" set "result=Path not found"
   :: During an OPEN, MKDIR, CHDIR, or RMDIR operation, MS-DOS is unable to find
   :: the path specified. The operation is not completed.
-  
+
+  if "!result!"=="" (
+    endlocal && exit /b 1
+  )
+
   endlocal && if "%~2"=="" (
     echo %result%
   ) else (
     set "%~2=%result%"
-  )  
+  )
 exit /b 0
 
 
-rem ----------------------------------------------------------------------------
+:: -----------------------------------------------------------------------------
 
-:_test
-echo tests!
+:_start
+setlocal EnableDelayedExpansion
+  set PATH=%~dp0..\tests;%~dp0..\src;%PATH%
+  set "numTests=0"
+  set "passedTests=0"
+  set "failedTests=0"
+
+  call expect "gwerror ErrorCodeToString 27 __" "Out of Paper"
+  call expect "gwerror ErrorCodeToString 5 __" "Illegal function call"
+  call expecterr "gwerror ErrorCodeToString 0 __" 1
+
+
+  echo Ran %numTests% tests
+  echo      FAILED: %failedTests%
+  echo      PASSED: %passedTests%
+
+endlocal
