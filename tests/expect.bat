@@ -11,7 +11,7 @@ if "%~2" neq "%__%" (
   echo FAILED: "%operation%"
   echo   Expected result = "%~2"
   echo                __ = "%__%"   err=%e%
-  echo ^^
+  echo.
   set /a failedTests+=1
 ) else set /a passedTests+=1
 
