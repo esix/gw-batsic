@@ -31,9 +31,8 @@ goto :_start
   if "%hex%"=="f" set "ret=15"
 
   :_HexCharToDec__end
-  if "%ret%"=="" (
-    endlocal && exit /b 1
-  )
+  if "%ret%"=="" endlocal && exit /b 1
+  
   endlocal && if "%~2"=="" (
     echo %ret%
   ) else (
@@ -45,13 +44,15 @@ exit /b 0
 :ByteToDec hex ret
   setlocal DisableDelayedExpansion
   set "hex=%1"
-  set "ret=0"
+  set "ret="
+
+  if "%hex:~1,2%"=="" endlocal && exit /b 1
 
   call :_HexCharToDec %hex:~0,1% c1
-  if not ERRORLEVEL 0 endlocal && exit /b 1 
+  if ERRORLEVEL 1 endlocal && exit /b 1
 
   call :_HexCharToDec %hex:~1,2% c2
-  if not ERRORLEVEL 0 endlocal && exit /b 1 
+  if ERRORLEVEL 1 endlocal && exit /b 1 
 
   if not "%hex:~2,3%"=="" endlocal && exit /b 1
 
