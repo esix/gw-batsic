@@ -1,7 +1,7 @@
 @echo off
 
 set "operation=%~1"
-set "__="
+:: set "__="
 set /a numTests+=1
 
 call %operation%
@@ -16,3 +16,4 @@ if "%~2" neq "%__%" (
 ) else set /a passedTests+=1
 
 exit /B
+

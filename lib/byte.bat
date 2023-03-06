@@ -72,7 +72,14 @@ exit /b
   set "numTests=0"
   set "passedTests=0"
   set "failedTests=0"
+  call:_test
+  echo Total tests: %numTests%
+  echo      FAILED: %failedTests%
+  echo      PASSED: %passedTests%
+  endlocal
+exit /b
 
+:_test
   call expect "byte _HexCharToDec 0 __" "0"
   call expect "byte _HexCharToDec 1 __" "1
   call expect "byte _HexCharToDec a __" "10"
@@ -84,9 +91,4 @@ exit /b
   call expect "byte ByteToDec Ff __" "255"
   call expecterr "byte ByteToDec 100 __" 1
   call expecterr "byte ByteToDec 0 __" 1
-
-  echo Ran %numTests% tests
-  echo      FAILED: %failedTests%
-  echo      PASSED: %passedTests%
-
-  endlocal
+exit /b

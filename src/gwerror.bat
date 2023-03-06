@@ -300,7 +300,7 @@ exit /b 0
 :: -----------------------------------------------------------------------------
 
 :_start
-setlocal EnableDelayedExpansion
+  setlocal DisableDelayedExpansion
   set PATH=%~dp0..\tests;%~dp0..\src;%PATH%
   set "numTests=0"
   set "passedTests=0"
@@ -315,4 +315,5 @@ setlocal EnableDelayedExpansion
   echo      FAILED: %failedTests%
   echo      PASSED: %passedTests%
 
-endlocal
+  endlocal
+exit /B
