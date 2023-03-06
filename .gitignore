@@ -1,3 +1,4 @@
 *.js
 dummy.txt
 *.zip
+temp/*.tmp

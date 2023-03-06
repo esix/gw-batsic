@@ -24,3 +24,5 @@ shift & goto :%~1
   :FromAscii__Result 
   endlocal && set "%~1=%ret%"
 exit /b 0
+
+

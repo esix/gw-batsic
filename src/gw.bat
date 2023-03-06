@@ -7,19 +7,19 @@ exit /b
 
 
 :LoadFile filename
-  call buffer ReadFile content %~1
+  call buffer ReadFile "%~1" "temp\hex.tmp"
   rem TODO: check if binary file and parse other way
   call buffer SplitLines lines !content!
 
   for %%a in (!lines!) do (
+    echo %%a
     call:AddTxtLine %%a
   )
 exit /b
 
 
-
 :AddTxtLine buffer
-  setlocal DisableDelayedExpansion
+  setlocal EnableDelayedExpansion
   call gwlexer ParseTxt tokens %~1
   @REM set "line=%~1"
   @REM echo line=%line%
