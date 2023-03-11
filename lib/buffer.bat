@@ -1,52 +1,6 @@
 @echo off
 shift & goto :%~1
 
-:ReadFile file output
-  setlocal EnableDelayedExpansion
-  set "file=%~1"
-  set "output=%~2"
-  echo !output!
-  echo. > !output!
-  FOR /F "usebackq" %%A IN ('%file%') DO set filesize=%%~zA
-  :: echo filesize=%filesize%
-
-  set "hexVal=41"
-  set "x10=AAAAAAAAAA"
-
-  set /a chunks=1+filesize / 10
-
-  del dummy.txt 2>nul > nul
-  for /L %%n in (0,1,%chunks%) DO (
-    <nul >> dummy.txt set /p ".=%x10%"
-  )
-
-  set "ret="
-
-  set /a expectedNum=0
-  for /F "eol=F usebackq tokens=1,2 skip=1 delims=:[] " %%A in (`fc /b "%file%" dummy.txt`) DO (
-    set /a num=0x%%A && (
-      set /a numDec=num-1
-      set "hex=%%B"
-
-      for /L %%n in (!expectedNum!=,=1 !numDec!) DO (
-        call strdeq push ret !hexVal!
-      )
-      set /a expectedNum=num+1
-      call strdeq push ret !hex!
-      echo ret="!ret!"
-      if not "!ret:~46,46!"=="" (
-        echo !ret:~0,47! >> !output!
-        set "ret=!ret:~48!"
-      )
-    )
-  )
-
-  if not "!ret!"=="" echo !ret:~0,47! >> !output!
-
-  endlocal && set "%~2=%ret%"
-exit /b 0
-
-
 :ToString buffer ret
   setlocal EnableDelayedExpansion
   set "buffer=%~1"
