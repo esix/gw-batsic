@@ -13,6 +13,7 @@ goto :_start
   :: 00 means last char
   set "buffer=%~100"
   set "tokens="
+  set "error="
   set "i=0"
   set "state=Start"
   set "acc="
@@ -28,6 +29,7 @@ goto :_start
     call:isSpace !c!
     call:isNumber !c!
     call:isLetter !c!
+    set "isEol="
     if "!c!"=="00" set "isEol=T"
     rem echo State=!state! char=!c! isNumber=!isNumber! isSpace=!isSpace!
 
@@ -45,7 +47,7 @@ goto :_start
       if "!isEol!"=="T" goto ParseTxt__Loop
       if "!isSpace!"=="T" goto ParseTxt__Loop 
       if "!isNumber!"=="T" (
-          set state=LineNumber
+          set "state=LineNumber"
           set "acc="
           goto :ParseTxt__State__LineNumber
       )
