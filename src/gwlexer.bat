@@ -83,6 +83,14 @@ goto :_start
         set "tokens=!tokens! COMA"
         goto :ParseTxt__Loop  
       )
+      if "!c!"=="3A" (
+        set "tokens=!tokens! COLON"
+        goto :ParseTxt__Loop  
+      )
+      if "!c!"=="3D" (
+        set "tokens=!tokens! EQ"
+        goto :ParseTxt__Loop  
+      )
       goto :ParseTxt__Error
 
     :ParseTxt__State__Number0
@@ -143,7 +151,11 @@ goto :_start
 
     :ParseTxt__Error
       echo "tokens=%tokens%"
-      echo "ERROR: state=%state%: undefined char !c! at index !i!"
+      call buffer toString !buffer! wholeLine
+      echo "LEXER ERROR:
+      echo "LEXER ERROR: !wholeLine!"
+      echo "LEXER ERROR: state=%state%: undefined char !c! at index !i!"
+      echo "LEXER ERROR:
       exit /b 1
 
   :ParseTxt__LoopEnd
