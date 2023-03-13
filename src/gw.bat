@@ -13,8 +13,14 @@ exit /b
   goto :LoadFile.start
 
   :LoadFile.onNextBuffer
-    for %%b in (%*) do call :LoadFile.onNextChar %%b
-  exit /b
+    for %%b in (%*) do (
+      call :LoadFile.onNextChar %%b
+      if ERRORLEVEL 1 (
+        echo "onNextBuffer - got error"
+        exit /b 
+      )
+    )
+  exit /b 0
 
   :LoadFile.onNextChar
     set isEol=
@@ -22,43 +28,52 @@ exit /b
     if %~1==0D set "isEol=T"
     if %~1==0A set "isEol=T"
 
+    if NOT "%isEol%"=="T" (
+      if "%line%"=="" (
+        set "line=%~1"
+      ) else (
+        set "line=%line%%~1"
+      )
+      exit /b 0
+    )
+
     if "%isEol%"=="T" (
-      if "%line%"=="" exit /b
-      call :LoadFile.onNextLine %line%
-      set line=
-      exit /b
+      if "%line%"=="" exit /b 0
     )
-    if "%line%"=="" (
-      set "line=%~1"
-    ) else (
-      set "line=%line%%~1"
+    call :LoadFile.onNextLine %line%
+    if ERRORLEVEL 1 (
+      echo "Error occured %ERRORLEVEL%"
+      exit /b %ERRORLEVEL%
     )
-  exit /b
+    set line=
+  exit /b 0
 
   :LoadFile.onNextLine
     echo line=%*
     call gwlexer ParseTxt %* tokens
     if ERRORLEVEL 1 (
-      echo "ERROR"
+      echo "Lexer ERROR %ERRORLEVEL%"
+      echo "Saved tokens=%tokens%"
+      exit /b %ERRORLEVEL%
     ) else (
       echo TOKENS=%tokens%
+      echo.
     )
-
   exit /b
 
-
-
   :LoadFile.start
-  for /f "tokens=* usebackq delims= " %%a in (`hexDump "%~1"`) do call :LoadFile.onNextBuffer %%a
-  call :LoadFile.onNextChar 0D
+    for /f "tokens=* usebackq delims= " %%a in (`hexDump "%~1"`) do (
+      call :LoadFile.onNextBuffer %%a
+      if ERRORLEVEL 1 (
+        echo "LoadFile: error"
+        goto:LoadFile.Finished 
+      )
+    )
+    call :LoadFile.onNextChar 0D
+    rem TODO: check if binary file and parse other way
 
-  rem TODO: check if binary file and parse other way
-  :: call buffer SplitLines lines !content!
-
-  :: for %%a in (!lines!) do (
-  ::  echo %%a
-  ::  call:AddTxtLine %%a
-  ::)
+    :LoadFile.Finished
+    echo "Finished"
   endlocal
 exit /b
 
