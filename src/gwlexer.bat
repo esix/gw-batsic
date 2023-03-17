@@ -12,11 +12,11 @@ goto :_start
   setlocal EnableDelayedExpansion
   :: 00 means last char
   set "buffer=%~100"
-  set "tokens="
-  set "error="
-  set "i=0"
-  set "state=Start"
-  set "acc="
+  set tokens=
+  set error=
+  set i=0
+  set state=Start
+  set acc=
 
   goto :ParseTxt__Loop
 
@@ -29,8 +29,8 @@ goto :_start
     call:isSpace !c!
     call:isNumber !c!
     call:isLetter !c!
-    set "isEol="
-    if "!c!"=="00" set "isEol=T"
+    set isEol=
+    if !c!==00 set isEol=T
     rem echo State=!state! char=!c! isNumber=!isNumber! isSpace=!isSpace!
 
     if "!state!"=="Start" goto :ParseTxt__State__Start
@@ -39,17 +39,19 @@ goto :_start
     if "!state!"=="LineNumber" goto :ParseTxt__State__LineNumber
     if "!state!"=="Number0" goto :ParseTxt__State__Number0
     if "!state!"=="Number1" goto :ParseTxt__State__Number1
+    if "!state!"=="Quote" goto :ParseTxt__State__Quote
+    if "!state!"=="Rem" goto :ParseTxt__State__Rem
 
     echo "Unknown state !state!: exit"
-    goto :ParseTxt__LoopEnd
+    goto :ParseTxt__Error
 
     :ParseTxt__State__Start
-      if "!isEol!"=="T" goto ParseTxt__Loop
-      if "!isSpace!"=="T" goto ParseTxt__Loop 
-      if "!isNumber!"=="T" (
-          set "state=LineNumber"
-          set "acc="
-          goto :ParseTxt__State__LineNumber
+      if defined isEol goto ParseTxt__Loop
+      if defined isSpace goto ParseTxt__Loop 
+      if defined isNumber (
+        set state=LineNumber
+        set acc=
+        goto :ParseTxt__State__LineNumber
       )
       ( :: else
         set state=Normal
@@ -57,115 +59,164 @@ goto :_start
       )
 
     :ParseTxt__State__Normal
-      if "!isEol!"=="T" goto ParseTxt__Loop
-      if "!isSpace!"=="T" goto ParseTxt__Loop
-      if "!isLetter!"=="T" (
-        set "state=Id"
+      if defined isEol goto ParseTxt__Loop
+      if defined isSpace goto ParseTxt__Loop
+      if defined isLetter (
+        set state=Id
         goto :ParseTxt__State__Id
       )
-      if "!isNumber!"=="T" (
-        set "state=Number0"
+      if defined isNumber (
+        set state=Number0
         goto :ParseTxt__State__Number0
       )
-      if "!c!"=="28" (
-        set "tokens=!tokens! OPAR"
-        goto :ParseTxt__Loop  
+      if !c!==22 (
+        set state=Quote
+        set acc=
+        goto :ParseTxt__Loop
       )
-      if "!c!"=="29" (
-        set "tokens=!tokens! CPAR"
-        goto :ParseTxt__Loop  
+      if !c!==28 (
+        set tokens=!tokens! OPAR
+        goto :ParseTxt__Loop
       )
-      if "!c!"=="2B" (
-        set "tokens=!tokens! PLUS"
-        goto :ParseTxt__Loop  
+      if !c!==29 (
+        set tokens=!tokens! CPAR
+        goto :ParseTxt__Loop
       )
-      if "!c!"=="2C" (
-        set "tokens=!tokens! COMA"
-        goto :ParseTxt__Loop  
+      if !c!==2A (
+        set tokens=!tokens! MUL
+        goto :ParseTxt__Loop
       )
-      if "!c!"=="3A" (
-        set "tokens=!tokens! COLON"
-        goto :ParseTxt__Loop  
+      if !c!==2B (
+        set tokens=!tokens! PLUS
+        goto :ParseTxt__Loop
       )
-      if "!c!"=="3D" (
-        set "tokens=!tokens! EQ"
-        goto :ParseTxt__Loop  
+      if !c!==2C (
+        set tokens=!tokens! COMA
+        goto :ParseTxt__Loop
+      )
+      if !c!==3A (
+        set tokens=!tokens! COLON
+        goto :ParseTxt__Loop
+      )
+      if !c!==3D (
+        set tokens=!tokens! EQ
+        goto :ParseTxt__Loop
       )
       goto :ParseTxt__Error
 
     :ParseTxt__State__Number0
-      if "!c!"=="2B" (
-        set "acc=!acc!!c!"
-        set "state=Number1"
+      if !c!==2B (
+        set acc=+
+        set state=Number1
         goto :ParseTxt__Loop  
       )
-      if "!c!"=="2D" (
-        set "acc=!acc!!c!"
-        set "state=Number1"
+      if !c!==2D (
+        set acc=-
+        set state=Number1
         goto :ParseTxt__Loop  
       )
-      if "!isNumber!"=="T" (
-        set "state=Number1"
+      if defined isNumber (
+        set acc=
+        set state=Number1
         goto :ParseTxt__State__Number1  
       )
       goto :ParseTxt__Error
 
     :ParseTxt__State__Number1
-      if "!isNumber!"=="T" (
-        set "acc=!acc!!c!"
+      if defined isNumber (
+        call byte ByteToDec !c! dec
+        call chr FromAscii !dec! digit
+        set acc=!acc!!digit!
         goto :ParseTxt__Loop  
       )
       ( :: else
-        call buffer toString !acc! id
-        set "acc="
-        set "tokens=!tokens! NUM_!id!"
-        set "state=Normal"
+        set tokens=!tokens! NUM_!acc!
+        set acc=
+        set state=Normal
         goto :ParseTxt__State__Normal
       )
 
     :ParseTxt__State__Id
-      if "!isLetter!"=="T" (
-        set "acc=!acc!!c!"
+      if defined isLetter (
+        set acc=!acc!!c!
         goto :ParseTxt__Loop
       )
       ( :: else
         call buffer toString !acc! id
-        set "acc="
-        set "tokens=!tokens! ID__!id!"
-        set "state=Normal"
+        set tokens=!tokens! ID__!id!
+        set acc=
+        if "!id!"=="REM" (
+          set state=Rem
+        ) else ( 
+          set state=Normal
+        )
         goto :ParseTxt__State__Normal
       )
 
     :ParseTxt__State__LineNumber
-      if "!isNumber!"=="T" (
+      if defined isNumber (
         set "acc=!acc!!c!"
-        goto ParseTxt__Loop
+        goto :ParseTxt__Loop
       )
       ( :: else
         call buffer toString !acc! lineNumber
-        set "acc="
-        set "tokens=!tokens! LN__!lineNumber!"
-        set "state=Normal"
+        set tokens=!tokens! LN__!lineNumber!
+        set acc=
+        set state=Normal
         goto :ParseTxt__State__Normal
       )
 
-    :ParseTxt__Error
-      echo "tokens=%tokens%"
-      call buffer toString !buffer! wholeLine
-      echo "LEXER ERROR:
-      echo "LEXER ERROR: !wholeLine!"
-      echo "LEXER ERROR: state=%state%: undefined char !c! at index !i!"
-      echo "LEXER ERROR:
-      exit /b 1
+    :ParseTxt__State__Quote
+      if !c!==22 (
+        set tokens=!tokens! STR_!acc!
+        set acc=
+        set state=Normal
+        goto :ParseTxt__Loop
+      )
+      if defined isEol (
+        set tokens=!tokens! STR_!acc!
+        set acc=
+        set state=Normal
+        goto :ParseTxt__Loop
+      ) 
+      ( :: else
+        set acc=!acc!!c!
+        goto :ParseTxt__Loop  
+      )
+
+    :ParseTxt__State__Rem
+      if defined isEol (
+        set tokens=!tokens! REM_!acc!
+        set acc=
+        set state=Normal
+        goto :ParseTxt__Loop
+      ) 
+      ( :: else
+        set acc=!acc!!c!
+        goto :ParseTxt__Loop  
+      )
 
   :ParseTxt__LoopEnd
+
+  if "!state!" NEQ "Normal" goto :ParseTxt__Error
 
   endlocal && if "%~2"=="" (
     echo tokens=%tokens:~1%
   ) else (
     set "%~2=%tokens:~1%"
   )
-exit /b
+  exit /b 0
+
+  :ParseTxt__Error
+    echo "tokens=%tokens%"
+    call buffer toString !buffer! wholeLine
+    echo "LEXER ERROR:
+    echo "LEXER ERROR: !wholeLine!"
+    echo "LEXER ERROR: state=%state%: undefined char !c! at index !i!"
+    echo "LEXER ERROR:
+    endlocal && set "%~2=%tokens:~1%"
+  exit /b 2
+
 
 
 :isNumber c
@@ -219,7 +270,7 @@ exit /b
 
 :isSpace c
   setlocal EnableDelayedExpansion
-  set "isSpace="
-  if "!c!"=="20" set "isSpace=T"
+  set isSpace=
+  if "!c!"=="20" set isSpace=T
   endlocal && set "isSpace=%isSpace%"
 exit /b
