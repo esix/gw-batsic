@@ -8,7 +8,7 @@ goto _start
 
   call gw Init
   :: call gw LoadFile "examples\1.bas"
-  call gw LoadFile "examples\1.bas" 
+  call gw LoadFile "examples\G3D.bas" 
 
   endlocal && exit /b
 

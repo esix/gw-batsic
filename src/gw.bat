@@ -50,6 +50,7 @@ exit /b
 
   :LoadFile.onNextLine
     echo line=%*
+    set tokens=
     call gwlexer ParseTxt %* tokens
     if ERRORLEVEL 1 (
       echo "Lexer ERROR %ERRORLEVEL%"

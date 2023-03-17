@@ -35,7 +35,7 @@ exit /b 0
 
 
 :_start
-  setlocal EnableDelayedExpansion
+  setlocal DisableDelayedExpansion
   set PATH=%~dp0..\tests;%~dp0;%PATH%
   set "numTests=0"
   set "passedTests=0"
