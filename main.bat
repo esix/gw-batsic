@@ -4,7 +4,8 @@ goto _start
 
 :_start
   setlocal EnableDelayedExpansion
-  set PATH=%~dp0\src;%~dp0\lib;%PATH%
+  set PATH=%~dp0src;%~dp0lib;%PATH%
+  set GWSRC=%~dp0src
 
   call gw Init
   :: call gw LoadFile "examples\1.bas"
