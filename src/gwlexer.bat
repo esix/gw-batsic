@@ -10,6 +10,7 @@ goto :_start
 
 :ParseTxt buffer tokens
   setlocal EnableDelayedExpansion
+  
   :: 00 means last char
   set "buffer=%~100"
   set tokens=
@@ -39,6 +40,9 @@ goto :_start
     if "!state!"=="LineNumber" goto :ParseTxt__State__LineNumber
     if "!state!"=="Number0" goto :ParseTxt__State__Number0
     if "!state!"=="Number1" goto :ParseTxt__State__Number1
+    if "!state!"=="Number2" goto :ParseTxt__State__Number2
+    if "!state!"=="Less" goto :ParseTxt__State__Less
+    if "!state!"=="More" goto :ParseTxt__State__More
     if "!state!"=="Quote" goto :ParseTxt__State__Quote
     if "!state!"=="Rem" goto :ParseTxt__State__Rem
 
@@ -46,8 +50,8 @@ goto :_start
     goto :ParseTxt__Error
 
     :ParseTxt__State__Start
-      if defined isEol goto ParseTxt__Loop
-      if defined isSpace goto ParseTxt__Loop 
+      if defined isEol goto :ParseTxt__Loop
+      if defined isSpace goto :ParseTxt__Loop
       if defined isNumber (
         set state=LineNumber
         set acc=
@@ -59,14 +63,16 @@ goto :_start
       )
 
     :ParseTxt__State__Normal
-      if defined isEol goto ParseTxt__Loop
-      if defined isSpace goto ParseTxt__Loop
+      if defined isEol goto :ParseTxt__Loop
+      if defined isSpace goto :ParseTxt__Loop
       if defined isLetter (
         set state=Id
+        set acc=
         goto :ParseTxt__State__Id
       )
       if defined isNumber (
         set state=Number0
+        set acc=
         goto :ParseTxt__State__Number0
       )
       if !c!==22 (
@@ -94,26 +100,101 @@ goto :_start
         set tokens=!tokens! COMA
         goto :ParseTxt__Loop
       )
+      if !c!==2D (
+        set tokens=!tokens! MINUS
+        goto :ParseTxt__Loop
+      )
+      if !c!==2E (
+        set acc=.
+        set state=Number2
+        goto :ParseTxt__Loop
+      )
+      if !c!==2F (
+        set tokens=!tokens! DIV
+        goto :ParseTxt__Loop
+      )
       if !c!==3A (
         set tokens=!tokens! COLON
+        goto :ParseTxt__Loop
+      )
+      if !c!==3B (
+        set tokens=!tokens! SEMICOLON
+        goto :ParseTxt__Loop
+      )
+      if !c!==3C (
+        set state=Less
         goto :ParseTxt__Loop
       )
       if !c!==3D (
         set tokens=!tokens! EQ
         goto :ParseTxt__Loop
       )
+      if !c!==3E (
+        set state=More
+        goto :ParseTxt__Loop
+      )
       goto :ParseTxt__Error
+
+    :ParseTxt__State__Id
+      if defined isLetter (
+        call byte ByteToDec !c! dec
+        call chr FromAscii !dec! char
+        set acc=!acc!!char!
+        goto :ParseTxt__Loop
+      )
+      if !c!==24 (
+        call %GWSRC%\lexer\keyword isKeywordStr !acc!
+        if ERRORLEVEL 1 (
+          set acc=VAR_STR_!acc!
+        ) else (
+          set acc=!acc!_STR
+        )
+        set tokens=!tokens! !acc!
+        set state=Normal
+        set acc=
+        goto :ParseTxt__Loop
+      )
+      ( :: else
+        call %GWSRC%\lexer\keyword isKeyword !acc!
+        if ERRORLEVEL 1 set acc=VAR_UNK_!acc!
+        set tokens=!tokens! !acc!
+        if "!acc!"=="REM" (
+          set state=Rem
+        ) else ( 
+          set state=Normal
+        )
+        set acc=
+        goto :ParseTxt__State__Normal
+      )
+
+    :ParseTxt__State__LineNumber
+      if defined isNumber (
+        set acc=!acc!!c!
+        goto :ParseTxt__Loop
+      )
+      ( :: else
+        call buffer toString !acc! lineNumber
+        set tokens=!tokens! LN__!lineNumber!
+        set acc=
+        set state=Normal
+        goto :ParseTxt__State__Normal
+      )
 
     :ParseTxt__State__Number0
       if !c!==2B (
-        set acc=+
+        set acc=!acc!+
         set state=Number1
-        goto :ParseTxt__Loop  
+        goto :ParseTxt__Loop
       )
       if !c!==2D (
-        set acc=-
+        set acc=!acc!-
         set state=Number1
-        goto :ParseTxt__Loop  
+        goto :ParseTxt__Loop
+      )
+      if !c!==2E (
+        set acc=!acc!.
+        set state=Number2
+        goto :ParseTxt__Loop
       )
       if defined isNumber (
         set acc=
@@ -127,7 +208,12 @@ goto :_start
         call byte ByteToDec !c! dec
         call chr FromAscii !dec! digit
         set acc=!acc!!digit!
-        goto :ParseTxt__Loop  
+        goto :ParseTxt__Loop
+      )
+      if !c!==2E (
+        set acc=!acc!.
+        set state=Number2
+        goto :ParseTxt__Loop
       )
       ( :: else
         set tokens=!tokens! NUM_!acc!
@@ -136,32 +222,45 @@ goto :_start
         goto :ParseTxt__State__Normal
       )
 
-    :ParseTxt__State__Id
-      if defined isLetter (
-        set acc=!acc!!c!
+    :ParseTxt__State__Number2
+      if defined isNumber (
+        call byte ByteToDec !c! dec
+        call chr FromAscii !dec! digit
+        set acc=!acc!!digit!
         goto :ParseTxt__Loop
       )
       ( :: else
-        call buffer toString !acc! id
-        set tokens=!tokens! ID__!id!
+        set tokens=!tokens! NUM_!acc!
         set acc=
-        if "!id!"=="REM" (
-          set state=Rem
-        ) else ( 
-          set state=Normal
-        )
+        set state=Normal
         goto :ParseTxt__State__Normal
       )
 
-    :ParseTxt__State__LineNumber
-      if defined isNumber (
-        set "acc=!acc!!c!"
+    :ParseTxt__State__Less
+      if !c!==3D (
+        set tokens=!tokens! LE
+        set state=Normal
+        goto :ParseTxt__Loop
+      )
+      if !c!==3E (
+        set tokens=!tokens! NE
+        set state=Normal
         goto :ParseTxt__Loop
       )
       ( :: else
-        call buffer toString !acc! lineNumber
-        set tokens=!tokens! LN__!lineNumber!
-        set acc=
+        set tokens=!tokens! LT
+        set state=Normal
+        goto :ParseTxt__State__Normal
+      )
+
+    :ParseTxt__State__More
+      if !c!==3D (
+        set tokens=!tokens! GE
+        set state=Normal
+        goto :ParseTxt__Loop
+      )
+      ( :: else
+        set tokens=!tokens! GT
         set state=Normal
         goto :ParseTxt__State__Normal
       )
@@ -181,7 +280,7 @@ goto :_start
       ) 
       ( :: else
         set acc=!acc!!c!
-        goto :ParseTxt__Loop  
+        goto :ParseTxt__Loop
       )
 
     :ParseTxt__State__Rem
@@ -193,7 +292,7 @@ goto :_start
       ) 
       ( :: else
         set acc=!acc!!c!
-        goto :ParseTxt__Loop  
+        goto :ParseTxt__Loop
       )
 
   :ParseTxt__LoopEnd
@@ -237,7 +336,7 @@ exit /b
 :isLetter c
   call:isUppercaseLetter %~1
   call:isLowercaseLetter %~1
-  set "isLetter="
+  set isLetter=
   if "!isUppercaseLetter!"=="T" set "isLetter=T"
   if "!isLowercaseLetter!"=="T" set "isLetter=T"
 exit /b
@@ -249,13 +348,13 @@ exit /b
   )
 exit /b
 
-
 :isLowercaseLetter
   set "isLowercaseLetter="
   if "%~1" GEQ "61" (
     if "%~1" LEQ "7A" set "isLowercaseLetter=T"
   )
 exit /b
+
 
 
 :_start
@@ -268,9 +367,3 @@ exit /b
   call:ParseTxt %buffer%
   endlocal
 
-:isSpace c
-  setlocal EnableDelayedExpansion
-  set isSpace=
-  if "!c!"=="20" set isSpace=T
-  endlocal && set "isSpace=%isSpace%"
-exit /b

@@ -49,7 +49,12 @@ exit /b
   exit /b 0
 
   :LoadFile.onNextLine
-    echo line=%*
+    setlocal EnableDelayedExpansion
+      echo bline=%*
+      call buffer toString %* wholeLine
+      echo _line=!wholeLine!
+    endlocal
+
     set tokens=
     call gwlexer ParseTxt %* tokens
     if ERRORLEVEL 1 (
@@ -77,6 +82,8 @@ exit /b
     echo "Finished"
   endlocal
 exit /b
+
+
 
 
 :AddTxtLine buffer
