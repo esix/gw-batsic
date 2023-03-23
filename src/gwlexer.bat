@@ -173,7 +173,7 @@ goto :_start
         goto :ParseTxt__Loop
       )
       ( :: else
-        call buffer toString !acc! lineNumber
+        call buffer decode !acc! lineNumber
         set tokens=!tokens! LN__!lineNumber!
         set acc=
         set state=Normal
@@ -308,7 +308,7 @@ goto :_start
 
   :ParseTxt__Error
     echo "tokens=%tokens%"
-    call buffer toString !buffer! wholeLine
+    call buffer decode !buffer! wholeLine
     echo "LEXER ERROR:
     echo "LEXER ERROR: !wholeLine!"
     echo "LEXER ERROR: state=%state%: undefined char !c! at index !i!"
