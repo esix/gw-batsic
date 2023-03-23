@@ -12,10 +12,8 @@ set line=
   if ERRORLEVEL 1 (
     set input=0A
   )
-  :: echo input=%input%
 
   for %%b in (%input%) do (
-    rem call :onNextChar %%b
     set isEol=
     if %%b==0D set isEol=T
     if %%b==0A set isEol=T

@@ -2,42 +2,24 @@
 shift & goto :%~1
 
 :LoadFile filename
-  setlocal DisableDelayedExpansion
-  set line=
-
-  goto :LoadFile.start
-
-  :LoadFile.onNextLine
-    setlocal EnableDelayedExpansion
-      echo bline=%*
-      call buffer decode %* wholeLine
-      echo _line=!wholeLine!
-    endlocal
-
+  setlocal EnableDelayedExpansion
+ 
+  for /f "tokens=* usebackq delims= " %%a in (`%GWSRC%\utils\hexDump.bat "%~1" ^| %GWSRC%\utils\gw.splitLines.bat`) do (
     set tokens=
-    call gwlexer ParseTxt %* tokens
+    call gwlexer ParseTxt %%a tokens
+    rem call :LoadFile.onNextLine %%a
     if ERRORLEVEL 1 (
-      echo "Lexer ERROR %ERRORLEVEL%"
-      echo "Saved tokens=%tokens%"
-      exit /b %ERRORLEVEL%
+      echo "Lexer ERROR !ERRORLEVEL!"
+      echo "Saved tokens=!tokens!"
+      exit /b !ERRORLEVEL!
     ) else (
-      echo TOKENS=%tokens%
+      echo TOKENS=!tokens!
       echo.
     )
-  exit /b
+  )
+  :: rem TODO: check if binary file and parse other way
 
-  :LoadFile.start
-    for /f "tokens=* usebackq delims= " %%a in (`%GWSRC%\utils\hexDump.bat "%~1" ^| %GWSRC%\utils\gw.splitLines.bat`) do (
-      call :LoadFile.onNextLine %%a
-      if ERRORLEVEL 1 (
-        echo "onNextLine - got error"
-        exit /b 
-      )
-    )
-    :: rem TODO: check if binary file and parse other way
-
-    :LoadFile.Finished
-    echo "Finished"
+  echo "Finished"
   endlocal
 exit /b
 
