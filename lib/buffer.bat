@@ -2,8 +2,7 @@
 if not "%~1"=="" shift & goto :%~1
 goto :_start
 
-
-:ToString buffer ret
+:decode buffer ret
   setlocal EnableDelayedExpansion
   set "buffer=%~1"
   set "i=0"
@@ -20,16 +19,16 @@ goto :_start
     call byte ByteToDec !c! n
     call chr FromAscii !n! ascii
 
-    ::echo "Next char=!c! -> !n! -> !ascii!"
-    ::echo "ret=!ret!!ascii!"
     set "ret=!ret!!ascii!"
 
     goto ToString__Loop
   :ToString__LoopEnd
 
-  ::echo ToString %buffer%=%ret%
-
   endlocal && set "%~2=%ret%"
+exit /b 0
+
+
+:encode str ret
 exit /b 0
 
 
@@ -49,5 +48,5 @@ exit /b
 :_test
   set __=
   :: 1090 print "                 HELLO WORLD!!!"
-  call expect "buffer ToString 31303930207072696E742022202020202020202020202020202020202048454C4C4F20574F524C4421212122 __" "1090 print ""                 HELLO WORLD""
+  call expect "buffer decode 31303930207072696E742022202020202020202020202020202020202048454C4C4F20574F524C4421212122 __" "1090 print ""                 HELLO WORLD""
 exit /b
