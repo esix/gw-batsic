@@ -7,7 +7,7 @@ goto _start
   set PATH=%~dp0src;%~dp0lib;%PATH%
   set GWSRC=%~dp0src
 
-  call gw LoadFile "examples\1.bas"
-  :: call gw LoadFile "examples\G3D.bas" 
+  call gw Load "examples\1.bas"
+  :: call gw Load "examples\G3D.bas" 
 
 endlocal && exit /b
