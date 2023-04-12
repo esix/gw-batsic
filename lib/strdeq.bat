@@ -5,7 +5,7 @@ goto :_start
 
 :push deq el
   setlocal EnableDelayedExpansion
-  set deq=%~1
+  set "deq=%~1"
   set "val=!%deq%!"
   if "!val!"=="" (
     set "val=%~2"
@@ -15,7 +15,33 @@ goto :_start
   endlocal && set "%~1=%val%"
 exit /b 0
 
+:pop
+  :: TODO
+exit /b 0
 
+:unshift
+  :: TODO
+exit /b
+
+:shift deq
+  setlocal EnableDelayedExpansion
+  set "deq=%~1"
+  set "val=!%deq%!"
+  if "!val!"=="" (
+    :: empty
+    exit /b 1
+  )
+  for /f "tokens=1*" %%a in ("!val!") do set "val=%%b"
+  endlocal && set "%~1=%val%"
+exit /b
+
+:front
+  :: TODO
+exit /b 0
+
+:back
+  :: TODO
+exit /b 0
 
 
 :_start
@@ -36,4 +62,9 @@ exit /b
   call expect "strdeq push __ xx" "xx"
   call expect "strdeq push __ yy" "xx yy"
   call expect "strdeq push __ zz" "xx yy zz"
+
+  call expect "strdeq shift __" "yy zz"
+  call expect "strdeq shift __" "zz"
+  call expect "strdeq shift __" ""
+
 exit /b

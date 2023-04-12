@@ -2,15 +2,6 @@
 shift & goto :%~1
 
 :Load filename
-
-  set "GW_LINE=10 20"
-  set "GW_LINE[10]=HELLO"
-  set "GW_LINE[20]=WORLD"
-  
-  set GW_LINE
-  call %GWSRC%\cmds\DELETE.bat
-  set GW_LINE
-
   setlocal EnableDelayedExpansion
   :: rem TODO: check if binary file and parse other way
 
@@ -25,6 +16,10 @@ shift & goto :%~1
     ) else (
       echo TOKENS=!tokens!
       echo.
+
+      :: First token is LN - skip
+      call strdeq shift tokens
+      call %GWSRC%\parser\parse "!tokens!" pTree 
     )
 
     @REM TODO:
