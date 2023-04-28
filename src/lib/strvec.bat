@@ -28,7 +28,8 @@ exit /b
   set "deq=%~1"
   set "val=!%deq%!"
   if "!val!"=="" (
-    :: empty
+    :: deq is empty
+    endlocal
     exit /b 1
   )
   for /f "tokens=1*" %%a in ("!val!") do set "val=%%b"
@@ -42,6 +43,33 @@ exit /b 0
 :back
   :: TODO
 exit /b 0
+
+
+:includes vec val
+  setlocal EnableDelayedExpansion
+  set "vec=%~1"
+  set "val=!%vec%!"
+  if "!val!"=="" (
+    endlocal
+    exit /b 1
+  )
+  for %%a in (!val!) do (
+    if "%~2"=="%%a" (
+      endlocal
+      exit /b 0
+    )
+  )
+  endlocal 
+exit /b 1
+
+:push_uniq vec val
+  call:includes "%~1" "%~2"
+  if ERRORLEVEL 1 (
+    call:push "%~1" "%~2"
+    exit /b 0
+  )
+exit /b 1
+
 
 
 :_start

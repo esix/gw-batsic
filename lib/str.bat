@@ -1,7 +1,7 @@
 @echo off
 shift & goto :%~1
 
-:len RtnVar StrVar
+:len ret str
   setlocal EnableDelayedExpansion
   set "s=A!%~2!"
   rem echo "%~1=STRLEN(%~2)"
