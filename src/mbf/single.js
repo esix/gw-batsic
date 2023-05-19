@@ -9,10 +9,10 @@ const toBytes = (n) => {
 
 const unpack = (n) => {
   const [a, b, c, d] = toBytes(n);
-  if (a === 0) return {Z: 1, S: 0, E: 0, M: 0, sign: 0, mantissa: 0, exponent: 0};
+  if (a === 0) return {Z: 1, S: 0, E: 0, M: 0 /*, sign: 0, mantissa: 0, exponent: 0*/};
   const exponent = a - 0x80;
   const sign = (b & 0x80) >> 7;
-  const mantissa = ((b & 0x7f) << 16) | (c << 8) | (d);
+  // const mantissa = ((b & 0x7f) << 16) | (c << 8) | (d);
   const Z = 0;
   const S = sign ? -1 : 1;
   const E = exponent - 24;
@@ -41,6 +41,23 @@ const toJSFloat = (n) => {
 }
 
 
+const fromJSFloat = (f) => {
+  let e = 0, s = 1;
+  if (f === 0) return 0x00000000;
+  if (f < 0) { s = -1; f = -f}
+  while (f > 1) { f /= 2; e++}
+  while (f < 0.5) { f *= 2; e--}
+  f -= 0.5;
+  f *= 2**24;
+  f = f & 0x7fffff;
+
+  console.log(e)
+  return (((e + 0x80) & 0xff) << 24);
+
+};
+
+
+
 // 0x81000000  1
 // 0x82000000  2
 // 0x82400000  3
@@ -48,9 +65,12 @@ const toJSFloat = (n) => {
 // 0x81400000  1.5
 // 0x82200000  2.5
 
-console.log('0.5', toJSFloat(0x80000000));
-console.log('1  ', toJSFloat(0x81000000));
-console.log('1.5', toJSFloat(0x81400000));
-console.log('2  ', toJSFloat(0x82000000));
-console.log('2.5', toJSFloat(0x82200000));
-console.log('3  ', toJSFloat(0x82400000));
+// console.log('0  ', toJSFloat(0x00FFFFFF));
+// console.log('0.5', toJSFloat(0x80000000));
+// console.log('1  ', toJSFloat(0x81000000));
+// console.log('1.5', toJSFloat(0x81400000));
+// console.log('2  ', toJSFloat(0x82000000));
+// console.log('2.5', toJSFloat(0x82200000));
+// console.log('3  ', toJSFloat(0x82400000));
+
+console.log('1.5', fromJSFloat(1.5).toString(16).padStart(8, '0'));
