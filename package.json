@@ -1,0 +1,22 @@
+{
+  "name": "gw-batsic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/esix/gw-batsic.git"
+  },
+  "author": "esix",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/esix/gw-batsic/issues"
+  },
+  "homepage": "https://github.com/esix/gw-batsic#readme",
+  "dependencies": {
+    "jest": "^29.5.0"
+  }
+}
