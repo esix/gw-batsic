@@ -4,30 +4,7 @@ function check(v) {
       ((v >= '0' && v <= '9') || (v >= 'a' && v <= 'f') || (v >= 'A' && v <= 'F'));
 }
 
-function fromDec(dec) {
-  let ret = '';
-  if (dec === '0') ret = '0';
-  if (dec === '1') ret = '1';
-  if (dec === '2') ret = '2';
-  if (dec === '3') ret = '3';
-  if (dec === '4') ret = '4';
-  if (dec === '5') ret = '5';
-  if (dec === '6') ret = '6';
-  if (dec === '7') ret = '7';
-  if (dec === '8') ret = '8';
-  if (dec === '9') ret = '9';
-  if (dec === '10') ret = 'A';
-  if (dec === '11') ret = 'B';
-  if (dec === '12') ret = 'C';
-  if (dec === '13') ret = 'D';
-  if (dec === '14') ret = 'E';
-  if (dec === '15') ret = 'F';
-
-  if (ret === '') throw new Error();
-  return ret;
-}
-
-function toDec(v) {
+function serialize(v) {
   if (!check(v)) throw new Error();
   let ret = '';
   if (v === '0') ret = '0';
@@ -56,16 +33,38 @@ function toDec(v) {
   if (ret === '') throw new Error();
   return ret;
 }
+function parse(dec) {
+  let ret = '';
+  if (dec === '0') ret = '0';
+  if (dec === '1') ret = '1';
+  if (dec === '2') ret = '2';
+  if (dec === '3') ret = '3';
+  if (dec === '4') ret = '4';
+  if (dec === '5') ret = '5';
+  if (dec === '6') ret = '6';
+  if (dec === '7') ret = '7';
+  if (dec === '8') ret = '8';
+  if (dec === '9') ret = '9';
+  if (dec === '10') ret = 'A';
+  if (dec === '11') ret = 'B';
+  if (dec === '12') ret = 'C';
+  if (dec === '13') ret = 'D';
+  if (dec === '14') ret = 'E';
+  if (dec === '15') ret = 'F';
+
+  if (ret === '') throw new Error();
+  return ret;
+}
 
 function inc(v) {
   if (!check(v)) throw new Error();
-  let d = toDec(v), c = '';
+  let d = serialize(v), c = '';
   d = String((+d) + 1);
   if (d === '16') {
     d = '0';
     c = '1';
   }
-  v = fromDec(d);
+  v = parse(d);
   return [v, c];
 }
 
@@ -78,12 +77,12 @@ function addc(v, c) {
 function add(v1, v2) {
   if (!check(v1)) throw new Error();
   if (!check(v2)) throw new Error();
-  let d1 = toDec(v1), d2 = toDec(v1), c = '';
+  let d1 = serialize(v1), d2 = serialize(v2), c = '';
   let d = String((+d1) + (+d2));
-  if ((+d) > 16) { d = String((+d) - 16); c = '1';}
-  let v = fromDec(d);
+  if ((+d) >= 16) { d = String((+d) - 16); c = '1';}
+  let v = parse(d);
   return [v, c];
 }
 
-module.exports = {check, fromDec, toDec, inc, addc, add};
+module.exports = {check, serialize, parse, inc, addc, add};
 

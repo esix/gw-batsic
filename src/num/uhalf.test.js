@@ -30,4 +30,8 @@ test('uhalf.add', () => {
   expect(uhalf.add('0', '0')).toEqual(['0', '']);
   expect(uhalf.add('1', '0')).toEqual(['1', '']);
   expect(uhalf.add('0', '1')).toEqual(['1', '']);
+  expect(uhalf.add('8', '7')).toEqual(['F', '']);
+  expect(uhalf.add('F', 'F')).toEqual(['E', '1']);
+  expect(uhalf.add('F', '1')).toEqual(['0', '1']);
+  expect(uhalf.add('F', '0')).toEqual(['F', '']);
 })

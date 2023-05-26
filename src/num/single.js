@@ -1,26 +1,17 @@
 
-const toBytes = (n) => {
+const unpack = (n) => {
   const a = n >> 24 & 0xff;
   const b = n >> 16 & 0xff;
   const c = n >> 8  & 0xff;
   const d = n >> 0  & 0xff;
-  return [a, b, c, d];
-}
-
-const unpack = (n) => {
-  const [a, b, c, d] = toBytes(n);
   if (a === 0) return {Z: 1, S: 0, E: 0, M: 0 /*, sign: 0, mantissa: 0, exponent: 0*/};
   const exponent = a - 0x80;
   const sign = (b & 0x80) >> 7;
-  // const mantissa = ((b & 0x7f) << 16) | (c << 8) | (d);
   const Z = 0;
   const S = sign ? -1 : 1;
   const E = exponent - 24;
   const M = ((b | 0x80) << 16) | (c << 8) | (d << 0);
   return {
-    // sign,
-    // mantissa,
-    // exponent,
     Z,
     S,
     E,
@@ -50,10 +41,7 @@ const fromJSFloat = (f) => {
   f -= 0.5;
   f *= 2**24;
   f = f & 0x7fffff;
-
-  console.log(e)
   return (((e + 0x80) & 0xff) << 24);
-
 };
 
 
