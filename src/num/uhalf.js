@@ -33,6 +33,7 @@ function serialize(v) {
   if (ret === '') throw new Error();
   return ret;
 }
+
 function parse(dec) {
   let ret = '';
   if (dec === '0') ret = '0';
@@ -52,7 +53,7 @@ function parse(dec) {
   if (dec === '14') ret = 'E';
   if (dec === '15') ret = 'F';
 
-  if (ret === '') throw new Error();
+  if (ret === '') throw new Error(`uhalf: parse '${dec}' error`);
   return ret;
 }
 
@@ -84,5 +85,14 @@ function add(v1, v2) {
   return [v, c];
 }
 
-module.exports = {check, serialize, parse, inc, addc, add};
+function mul(v1, v2) {
+  if (!check(v1)) throw new Error();
+  if (!check(v2)) throw new Error();
+  let d1 = serialize(v1), d2 = serialize(v2), c = '';
+  let d = String((+d1) * (+d2));
+  let h = parse(String(Math.floor((+d) / 16))), l = parse(String((+d) % 16));
+  return [h, l];
+}
+
+module.exports = {check, serialize, parse, inc, addc, add, mul};
 

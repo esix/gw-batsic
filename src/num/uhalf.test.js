@@ -35,3 +35,11 @@ test('uhalf.add', () => {
   expect(uhalf.add('F', '1')).toEqual(['0', '1']);
   expect(uhalf.add('F', '0')).toEqual(['F', '']);
 })
+
+test('uhalf.mul', () => {
+  expect(uhalf.mul('0', '0')).toEqual(['0', '0']);
+  expect(uhalf.mul('1', '0')).toEqual(['0', '0']);
+  expect(uhalf.mul('1', 'F')).toEqual(['0', 'F']);
+  expect(uhalf.mul('2', 'F')).toEqual(['1', 'E']);
+  expect(uhalf.mul('F', 'F')).toEqual(['E', '1']);
+})
