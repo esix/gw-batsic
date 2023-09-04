@@ -39,5 +39,14 @@ function add(v1, v2) {
   return [h + l, ch || c];
 }
 
-module.exports = {unpack, pack, check, serialize, parse, inc, addc, add};
+function mul(v1, v2) {
+  if (!check(v1)) throw new Error();
+  if (!check(v2)) throw new Error();
+  let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2), c = '';
+
+  // (10 * h1 + l1) * (10 * h2 + l2) =
+  //     100 * h1 * h2 + 10 * (h1*l2 + l2 * l1) + l1 * l2
+}
+
+module.exports = {unpack, pack, check, serialize, parse, inc, addc, add, mul};
 
