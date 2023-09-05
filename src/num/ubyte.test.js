@@ -25,6 +25,9 @@ test('ubyte.add', () => {
 });
 
 test('ubyte.mul', () => {
-  expect(ubyte.mul('ab', 'cd')).toEqual('88ef');
-
+  expect(ubyte.mul('ab', 'cd')).toEqual('88EF');
+  expect(ubyte.mul('ff', 'ff')).toEqual('FE01');
+  expect(ubyte.mul('10', '00')).toEqual('0000');
+  expect(ubyte.mul('00', '00')).toEqual('0000');
+  expect(ubyte.mul('08', '81')).toEqual('0408');
 });

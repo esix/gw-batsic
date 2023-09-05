@@ -91,7 +91,7 @@ function mul(v1, v2) {
   let d1 = serialize(v1), d2 = serialize(v2), c = '';
   let d = String((+d1) * (+d2));
   let h = parse(String(Math.floor((+d) / 16))), l = parse(String((+d) % 16));
-  return h + l;
+  return `${h}${l}`;
 }
 
 module.exports = {check, serialize, parse, inc, addc, add, mul};
