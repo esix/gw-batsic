@@ -1,4 +1,4 @@
-const uword = require('./uword');
+const uword = require('./_uword');
 
 const unpack = (v) => [v.substr(0, 4), v.substr(4, 4)];
 const pack = (h, l) => h + l;

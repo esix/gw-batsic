@@ -1,4 +1,4 @@
-const uhalf = require('./uhalf');
+const uhalf = require('./_uhalf');
 
 test('uhalf.check', () => {
   expect(uhalf.check('0')).toBe(true);

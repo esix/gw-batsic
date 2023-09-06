@@ -1,4 +1,4 @@
-const uword = require('./uword');
+const uword = require('./_uword');
 
 test('uword.check', () => {
   expect(uword.check('0000')).toBe(true);

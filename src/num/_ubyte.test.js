@@ -1,4 +1,4 @@
-const ubyte = require('./ubyte');
+const ubyte = require('./_ubyte');
 
 test('ubyte.check', () => {
   expect(ubyte.check('00')).toBe(true);

@@ -1,4 +1,4 @@
-const ubyte = require('./ubyte');
+const ubyte = require('./_ubyte');
 
 const unpack = (v) => [v.substr(0, 2), v.substr(2, 2)];
 const pack = (h, l) => h + l;
@@ -51,8 +51,8 @@ function mul(v1, v2) {
   } else {
     a2 = '00' + a2 + '00';
   }
-  let [r, c_r] = require('./udword').add(a1, a2);
-  [r, c_r] = require('./udword').add(r, a3);
+  let [r, c_r] = require('./_udword').add(a1, a2);
+  [r, c_r] = require('./_udword').add(r, a3);
   return r;
 }
 

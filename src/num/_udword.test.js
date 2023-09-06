@@ -1,4 +1,4 @@
-const udword = require('./udword');
+const udword = require('./_udword');
 
 test('ubyte.add', () => {
   expect(udword.add('00000000', '00000000')).toEqual(['00000000', '']);
