@@ -29,4 +29,10 @@ function isMinus(hexChar) {
   return '';
 }
 
-module.exports = {isValidChar, isDigit, isMinus};
+function chr(hexChar) {
+  if (!isValidChar(hexChar)) throw 1;
+  return String.fromCharCode(parseInt(hexChar, 16));
+}
+
+
+module.exports = {isValidChar, isDigit, isMinus, chr};
