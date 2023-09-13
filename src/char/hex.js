@@ -1,38 +1,44 @@
 
-function isValidHexSymbol(hex) {
-  if (hex.length !== 1) return '';
-  if ((hex >= '0' && hex <= '9') || (hex >= 'A' && hex <= 'F')) return 'T';
+function isValidHexSymbol(x) {
+  if (x.length !== 1) return '';
+  if ((x >= '0' && x <= '9') || (x >= 'A' && x <= 'F')) return 'T';
   return '';
 }
 
-function isValidChar(hexChar) {
-  if (hexChar[2] === undefined &&
-      isValidHexSymbol(hexChar.substr(0, 1)) &&
-      isValidHexSymbol(hexChar.substr(1, 1)))
+function isValidChar(xc) {
+  if (xc[2] === undefined &&
+      isValidHexSymbol(xc.substr(0, 1)) &&
+      isValidHexSymbol(xc.substr(1, 1)))
     return 'T';
   return '';
 }
 
-function isDigit(hexChar) {
-  if (!isValidChar(hexChar)) throw 1;
-  if (hexChar >= '30') {
-    if (hexChar <= '39') {
+function isDigit(xc) {
+  if (!isValidChar(xc)) throw 1;
+  if (xc >= '30') {
+    if (xc <= '39') {
       return 'T';
     }
   }
   return '';
 }
 
-function isMinus(hexChar) {
-  if (!isValidChar(hexChar)) throw 1;
-  if (hexChar === '2D') return 'T';
+function isZero(xc) {
+  if (!isValidChar(xc)) throw 1;
+  if (xc === '30') return 'T';
   return '';
 }
 
-function chr(hexChar) {
-  if (!isValidChar(hexChar)) throw 1;
-  return String.fromCharCode(parseInt(hexChar, 16));
+function isMinus(xc) {
+  if (!isValidChar(xc)) throw 1;
+  if (xc === '2D') return 'T';
+  return '';
+}
+
+function chr(xc) {
+  if (!isValidChar(xc)) throw 1;
+  return String.fromCharCode(parseInt(xc, 16));
 }
 
 
-module.exports = {isValidChar, isDigit, isMinus, chr};
+module.exports = {isValidChar, isDigit, isZero, isMinus, chr};

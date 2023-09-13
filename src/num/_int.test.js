@@ -1,4 +1,4 @@
-const integer = require('./int');
+const int = require('./int');
 
-test('integer.parse', () => {
+test('int.parse', () => {
 });
