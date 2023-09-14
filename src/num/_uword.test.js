@@ -23,8 +23,8 @@ test('uword.add', () => {
   expect(uword.add('0080', '0080')).toEqual(['0100', '']);
   expect(uword.add('0088', '0088')).toEqual(['0110', '']);
   expect(uword.add('0078', '0088')).toEqual(['0100', '']);
-  expect(uword.add('00ff', '00ff')).toEqual(['01FE', '']);
-  expect(uword.add('FFFF', 'ffff')).toEqual(['FFFE', '1']);
+  expect(uword.add('00FF', '00FF')).toEqual(['01FE', '']);
+  expect(uword.add('FFFF', 'FFFF')).toEqual(['FFFE', '1']);
   expect(uword.add('7FFF', '8000')).toEqual(['FFFF', '']);
   expect(uword.add('7FFF', '8001')).toEqual(['0000', '1']);
 });

@@ -1,7 +1,6 @@
 
 function check(v) {
-  return v.length === 1 &&
-      ((v >= '0' && v <= '9') || (v >= 'a' && v <= 'f') || (v >= 'A' && v <= 'F'));
+  return v.length === 1 && ((v >= '0' && v <= '9') || (v >= 'A' && v <= 'F'));
 }
 
 function serialize(v) {
@@ -18,17 +17,11 @@ function serialize(v) {
   if (v === '8') ret = '8';
   if (v === '9') ret = '9';
   if (v === 'A') ret = '10';
-  if (v === 'a') ret = '10';
   if (v === 'B') ret = '11';
-  if (v === 'b') ret = '11';
   if (v === 'C') ret = '12';
-  if (v === 'c') ret = '12';
   if (v === 'D') ret = '13';
-  if (v === 'd') ret = '13';
   if (v === 'E') ret = '14';
-  if (v === 'e') ret = '14';
   if (v === 'F') ret = '15';
-  if (v === 'f') ret = '15';
 
   if (ret === '') throw new Error();
   return ret;
@@ -70,14 +63,14 @@ function inc(v) {
 }
 
 function addc(v, c) {
-  if (!check(v)) throw new Error();
+  if (!check(v)) throw 1;
   if (c) [v, c] = inc(v);
   return [v, c];
 }
 
 function add(v1, v2) {
-  if (!check(v1)) throw new Error();
-  if (!check(v2)) throw new Error();
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
   let d1 = serialize(v1), d2 = serialize(v2), c = '';
   let d = String((+d1) + (+d2));
   if ((+d) >= 16) { d = String((+d) - 16); c = '1';}
@@ -86,13 +79,67 @@ function add(v1, v2) {
 }
 
 function mul(v1, v2) {
-  if (!check(v1)) throw new Error();
-  if (!check(v2)) throw new Error();
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
   let d1 = serialize(v1), d2 = serialize(v2), c = '';
   let d = String((+d1) * (+d2));
   let h = parse(String(Math.floor((+d) / 16))), l = parse(String((+d) % 16));
   return `${h}${l}`;
 }
 
-module.exports = {check, serialize, parse, inc, addc, add, mul};
+function toBin(v) {
+  let ret = '';
+  if (!check(v)) throw 1;
+  if (v === '0') ret = '0000';
+  if (v === '1') ret = '0001';
+  if (v === '2') ret = '0010';
+  if (v === '3') ret = '0011';
+  if (v === '4') ret = '0100';
+  if (v === '5') ret = '0101';
+  if (v === '6') ret = '0110';
+  if (v === '7') ret = '0111';
+  if (v === '8') ret = '1000';
+  if (v === '9') ret = '1001';
+  if (v === 'A') ret = '1010';
+  if (v === 'B') ret = '1011';
+  if (v === 'C') ret = '1100';
+  if (v === 'D') ret = '1101';
+  if (v === 'E') ret = '1110';
+  if (v === 'F') ret = '1111';
+  return ret;
+}
+
+function fromBin(b) {
+  let ret = '';
+  if (b === '0000') ret = '0';
+  if (b === '0001') ret = '1';
+  if (b === '0010') ret = '2';
+  if (b === '0011') ret = '3';
+  if (b === '0100') ret = '4';
+  if (b === '0101') ret = '5';
+  if (b === '0110') ret = '6';
+  if (b === '0111') ret = '7';
+  if (b === '1000') ret = '8';
+  if (b === '1001') ret = '9';
+  if (b === '1010') ret = 'A';
+  if (b === '1011') ret = 'B';
+  if (b === '1100') ret = 'C';
+  if (b === '1101') ret = 'D';
+  if (b === '1110') ret = 'E';
+  if (b === '1111') ret = 'F';
+  return ret;
+}
+
+function not(v) {
+  if (!check(v)) throw 1;
+  let bin = toBin(v);
+  let r = '';
+  if (bin.substr(0, 1) === '1') r += '0'; else r += '1';
+  if (bin.substr(1, 1) === '1') r += '0'; else r += '1';
+  if (bin.substr(2, 1) === '1') r += '0'; else r += '1';
+  if (bin.substr(3, 1) === '1') r += '0'; else r += '1';
+  return fromBin(r);
+}
+
+module.exports = {check, serialize, parse, inc, addc, add, mul, not};
 

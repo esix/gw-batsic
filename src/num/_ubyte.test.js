@@ -21,12 +21,12 @@ test('ubyte.add', () => {
   expect(ubyte.add('80', '80')).toEqual(['00', '1']);
   expect(ubyte.add('88', '88')).toEqual(['10', '1']);
   expect(ubyte.add('78', '88')).toEqual(['00', '1']);
-  expect(ubyte.add('ff', 'ff')).toEqual(['FE', '1']);
+  expect(ubyte.add('FF', 'FF')).toEqual(['FE', '1']);
 });
 
 test('ubyte.mul', () => {
-  expect(ubyte.mul('ab', 'cd')).toEqual('88EF');
-  expect(ubyte.mul('ff', 'ff')).toEqual('FE01');
+  expect(ubyte.mul('AB', 'CD')).toEqual('88EF');
+  expect(ubyte.mul('FF', 'FF')).toEqual('FE01');
   expect(ubyte.mul('10', '00')).toEqual('0000');
   expect(ubyte.mul('00', '00')).toEqual('0000');
   expect(ubyte.mul('08', '81')).toEqual('0408');
