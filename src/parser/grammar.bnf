@@ -1,0 +1,346 @@
+# https://jafma.net/software/ll1grammar/
+
+# program ::= listoflines
+
+# listoflines ::= line ENDOFLINE listoflines
+# listoflines ::= ε
+
+line ::= LINENUMBER statements
+
+statements ::= statementwithnormsep restofstatementsnorm
+statements ::= statementwiththensep restofstatementsthen
+# to allow for ": :"
+statements ::= restofstatementsnorm
+
+statementwithnormsep ::= statement0
+statementwithnormsep ::= statement01
+statementwithnormsep ::= statement1
+statementwithnormsep ::= statement2
+statementwithnormsep ::= statementcons
+statementwithnormsep ::= statementgraph
+statementwithnormsep ::= statementcass
+statementwithnormsep ::= statementflownext
+statementwithnormsep ::= statementdeclv
+statementwithnormsep ::= statementdefs
+
+statementwiththensep ::= statementflowif
+
+restofstatementsnorm ::= ENDOFSTAT statements
+restofstatementsnorm ::= ε
+
+restofstatementsthen ::= THEN statements
+# In BASIC, THEN can be followed by stat or by ':' or by nothing.
+
+statement0 ::= COPY
+statement0 ::= STOP
+statement0 ::= NEW
+statement0 ::= CONTINUE
+statement0 ::= CLS
+statement0 ::= RETURN
+# This terminal embeds the comment inside
+statement0 ::= REM
+
+statement01 ::= LLIST topleveloptexpr
+statement01 ::= LIST topleveloptexpr
+statement01 ::= RUN topleveloptexpr
+statement01 ::= RANDOMIZE topleveloptexpr
+statement01 ::= RESTORE topleveloptexpr
+statement01 ::= CLEAR topleveloptexpr
+
+statement1 ::= MERGE toplevelexpr
+statement1 ::= INK toplevelexpr
+statement1 ::= PAPER toplevelexpr
+statement1 ::= FLASH toplevelexpr
+statement1 ::= BRIGHT toplevelexpr
+statement1 ::= INVERSE toplevelexpr
+statement1 ::= OVER toplevelexpr
+statement1 ::= BORDER toplevelexpr
+statement1 ::= GOTO toplevelexpr
+statement1 ::= GOSUB toplevelexpr
+statement1 ::= PAUSE toplevelexpr
+statement1 ::= CLOSE toplevelexpr
+
+statement2 ::= BEEP toplevelexpr COMMA toplevelexpr
+statement2 ::= OUT toplevelexpr COMMA toplevelexpr
+statement2 ::= POKE toplevelexpr COMMA toplevelexpr
+statement2 ::= OPEN toplevelexpr COMMA toplevelexpr
+
+statementcons ::= LPRINT printseq
+statementcons ::= INPUT inputseq
+statementcons ::= PRINT printseq
+
+statementgraph ::= PLOT plotseq toplevelexpr COMMA toplevelexpr
+statementgraph ::= CIRCLE plotseq toplevelexpr COMMA toplevelexpr COMMA toplevelexpr
+statementgraph ::= DRAW plotseq toplevelexpr COMMA toplevelexpr optionaldraw
+
+statementcass ::= VERIFY toplevelexpr filespecextra
+statementcass ::= LOAD toplevelexpr filespecextra
+statementcass ::= SAVE toplevelexpr filespecextra
+
+statementdeclv ::= DIM VARNAME vardims
+statementdeclv ::= LET topvar EQUAL toplevelexpr
+statementdeclv ::= READ listofreadvars
+statementdeclv ::= FOR VARNAME EQUAL toplevelexpr TO toplevelexpr optionalstep ;
+# Notice that "statementcons" also can include declarations of vars, e.g., in INPUT
+
+statementflownext ::= NEXT VARNAME
+
+statementflowif ::= IF toplevelexpr
+
+statementdefs ::= DEFFN definitionfn
+statementdefs ::= DATA listofexprs
+
+
+# ---------------- STATEMENT: DEF FN
+
+definitionfn ::= VARNAME BEGINPAR funcparms ENDPAR EQUAL toplevelexpr
+# funcparms may repeat the same VARNAME and it will be considered different
+# (no recursive calls will be made in execution)
+
+funcparms ::= VARNAME restofparms
+funcparms ::= ε
+
+restofparms ::= COMMA funcparms
+restofparms ::= ε
+
+
+# ---------------- STATEMENT: FILE MANAGEMENT STATEMENTS
+
+filespecextra ::= DATA VARNAME BEGINPAR ENDPAR
+filespecextra ::= CODE filespeccode
+filespecextra ::= SCREEN
+filespecextra ::= LINE toplevelexpr
+filespecextra ::= ε
+
+filespeccode ::= toplevelexpr restoffilespeccode
+filespeccode ::= ε
+
+restoffilespeccode ::= COMMA toplevelexpr
+restoffilespeccode ::= ε
+
+
+# ---------------- STATEMENT: PRINT
+
+printseq ::= printitem restofprintseq
+printseq ::= printsep printseq
+printseq ::= ε
+
+printitem ::= toplevelexpr
+printitem ::= printcontrol
+
+restofprintseq ::= printsep printseq
+restofprintseq ::= ε ;
+
+printsep ::= COMMA
+printsep ::= APOSTROPHE
+printsep ::= SEMICOLON
+
+printcontrol ::= attrcontrol
+printcontrol ::= loccontrol
+printcontrol ::= streamcontrol
+
+attrcontrol ::= PAPER toplevelexpr
+attrcontrol ::= INK toplevelexpr
+attrcontrol ::= BRIGHT toplevelexpr
+attrcontrol ::= FLASH toplevelexpr
+attrcontrol ::= INVERSE toplevelexpr
+attrcontrol ::= OVER toplevelexpr
+
+loccontrol ::= AT toplevelexpr COMMA toplevelexpr
+loccontrol ::= TAB toplevelexpr
+
+streamcontrol ::= STREAM toplevelexpr
+
+
+# ---------------- STATEMENT: INPUT
+
+inputseq ::= inputitem restofinputseq
+inputseq ::= printsep moreinputseq
+
+moreinputseq ::= inputseq
+moreinputseq ::= ε
+
+# expression that cannot begin with a var
+inputitem ::= toplevelexprnonvar
+# indexed or not
+inputitem ::= topvar
+inputitem ::= LINE topvar
+inputitem ::= printcontrol
+
+optionalinputitem ::= inputitem
+optionalinputitem ::= ε
+
+inputseqorempty ::= optionalinputitem restofinputseq
+
+restofinputseq ::= printsep inputseqorempty
+restofinputseq ::= ε
+
+# ---------------- STATEMENT: PLOT & DRAW
+
+plotseq ::= plotitems
+plotseq ::= ε
+
+plotitems ::= plotitem SEMICOLON restofplotitems
+
+restofplotitems ::= plotitems
+restofplotitems ::= ε
+
+plotitem ::= attrcontrol
+
+optionaldraw ::= COMMA toplevelexpr
+optionaldraw ::= ε
+
+
+# ---------------- STATEMENT: READ
+
+listofreadvars ::= topvar restoflistofreadvars
+
+restoflistofreadvars ::= COMMA listofreadvars
+restoflistofreadvars ::= ε
+
+
+# ---------------- STATEMENT: DIM
+
+vardims ::= BEGINPAR dims ENDPAR
+# "dims" cannot be empty */
+
+dims ::= toplevelexpr restofdims
+
+restofdims ::= COMMA dims
+restofdims ::= ε
+
+
+#  ---------------- STATEMENT: FOR
+
+optionalstep ::= STEP toplevelexpr
+optionalstep ::= ε
+
+
+# ---------------- VARS IN EXPRESSIONS
+
+topvar ::= var
+# To distinguish between vars embedded in an expression and isolated vars as in LET, etc.
+
+var ::= VARNAME optionalseqofindexes
+# General use of a variable in an expr.
+# A string var may be indexed several times, e.g., 'a$( TO 8)( TO 3)( TO 1)'
+# Any var can have several indexes in the first parenthesis (if it is a matrix)
+# separated by comma, but only one in each of the following.
+# If the variable is an array, it cannot have "TO" slices except in the last index
+# of the first parenthesis, as long as it is string; that must be checked out
+# besides parsing.
+# This grammar cannot check whether VARNAME is not a string but a TO is used
+# (error); that must also be done besides parsing. */
+
+optionalseqofindexes ::= firstparindexes optionalmoreseqofindexes
+optionalseqofindexes ::= ε
+
+optionalmoreseqofindexes ::= moreparindexes optionalmoreseqofindexes
+optionalmoreseqofindexes ::= ε
+
+firstparindexes ::= BEGINPAR indexes ENDPAR
+
+moreparindexes ::= BEGINPAR index ENDPAR
+
+indexes ::= indexorslice tailofindexes
+indexes ::= ε
+
+index ::= indexorslice
+index ::= ε
+
+tailofindexes ::= COMMA indexorslice tailofindexes
+tailofindexes ::= ε
+
+indexorslice ::= indexorslice1 | indexorslice2
+
+indexorslice1 : expression restofindexofslice1 ;
+
+indexorslice2 : TO restofrestofindexofslice ; /* Slicing beginning with TO */
+
+restofindexofslice1 : TO restofrestofindexofslice | ε ;
+
+restofrestofindexofslice : expression | ε ;
+
+
+
+// ---------------- MID LEVEL: EXPRESSIONS
+
+topleveloptexpr : toplevelexpr | ε ;
+
+toplevelexpr : expression ;
+/* Cannot be nested, unlike expression */
+
+toplevelexprnonvar : expressionnonvar ;
+/* Cannot be nested, unlike expressionnonvar */
+
+listofexprs : toplevelexpr restoflistofexprs ;
+
+restoflistofexprs : COMMA listofexprs  | ε ;
+
+expression : highprecexpr restofexpr ;
+/* We cannot distinguish between numeric and string expressions in this grammar
+because the DATA statement needs a list of expressions with mixed types
+(numeric / string), and that would make the grammar non-LL(1). Therefore, the
+semantic parsing is in charge of detecting forbidden expressions (operations
+not allowed on numeric or on strings, for instance). */
+
+expressionnonvar : highprecexprnonvar restofexpr ; /* cannot begin with a var */
+
+highprecexpr : highprecexprnonvar
+        | var ;
+
+highprecexprnonvar : NUMLIT /* Compiled no. embedded in terminal */
+        | STRINGLIT optionalmoreseqofindexes /* slice/index a str literal */
+        | BEGINPAR expression ENDPAR optionalmoreseqofindexes /* idem */
+        | MINUS highprecexpr /* unary minus */
+        | PLUS highprecexpr /* unary plus */
+        | FN usrfunctioncall
+        | sysfunctioncall ;
+
+restofexpr : op expression | ε ;
+
+op :     EXPON |    MULT | DIV
+      | PLUS | MINUS /* binary minus and plus */
+      | EQUAL | GREAT | LESS | GREATEQ | LESSEQ | NOTEQ
+      | AND | OR ;
+
+/* In the ZX, the sys functions have higher priority than the rest of the
+expression where they are */
+
+sysfunctioncall : RND
+        | PI
+        | CODE highprecexpr
+        | VAL highprecexpr
+        | LEN highprecexpr
+        | SIN highprecexpr
+        | COS highprecexpr
+        | TAN highprecexpr
+        | ASN highprecexpr
+        | ACS highprecexpr
+        | ATN highprecexpr
+        | LN highprecexpr
+        | EXP highprecexpr
+        | INT highprecexpr
+        | SQR highprecexpr
+        | SGN highprecexpr
+        | ABS highprecexpr
+        | PEEK highprecexpr
+        | IN highprecexpr
+        | NOT highprecexpr
+        | BIN NUMLIT
+        | USR highprecexpr
+        | POINT BEGINPAR expression COMMA expression ENDPAR
+        | ATTR BEGINPAR expression COMMA expression ENDPAR
+        | INKEY
+        | SCREEN BEGINPAR expression COMMA expression ENDPAR
+        | VAL_STR highprecexpr
+        | STR highprecexpr
+        | CHR highprecexpr ;
+
+usrfunctioncall : VARNAME BEGINPAR fnoptionallistofexprs ENDPAR  ;
+
+fnoptionallistofexprs :    fnlistofexprs  | ε ;
+
+fnlistofexprs : expression fnrestoflistofexprs ;
+
+fnrestoflistofexprs : COMMA fnlistofexprs  | ε ;

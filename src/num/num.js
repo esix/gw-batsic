@@ -1,4 +1,4 @@
-const hex = require("../char/hex");
+const hex = require("../chr/hex");
 const int = require("./int");
 
 function parseHexStr(xs) {

@@ -5,6 +5,11 @@ function isValidHexSymbol(x) {
   return '';
 }
 
+function chr(xc) {
+  if (!isValidChar(xc)) throw 1;
+  return String.fromCharCode(parseInt(xc, 16));
+}
+
 function isValidChar(xc) {
   if (xc[2] === undefined &&
       isValidHexSymbol(xc.substr(0, 1)) &&
@@ -35,10 +40,12 @@ function isMinus(xc) {
   return '';
 }
 
-function chr(xc) {
+function isSpace(xc) {
   if (!isValidChar(xc)) throw 1;
-  return String.fromCharCode(parseInt(xc, 16));
+  if (xc === '20') return 'T';
+  return '';
 }
 
 
-module.exports = {isValidChar, isDigit, isZero, isMinus, chr};
+
+module.exports = {isValidChar, chr, isDigit, isZero, isMinus, isSpace};

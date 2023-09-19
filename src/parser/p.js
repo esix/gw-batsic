@@ -154,6 +154,9 @@ function initGrammar(bnf) {
   let nonterminals = new Set([ROOT]);
 
   for (let rule of bnf.split('\n')) {
+    if (rule.startsWith('#')) continue;
+    if (!rule) continue;
+    console.log(rule);
     const split_rule = rule.split('::=');
     if (split_rule.length == 2) {
       const lhs = split_rule[0].trim();
@@ -206,7 +209,7 @@ function displayTables(grammar, tables) {
       return rule[0] + " ::= " + rule.slice(1).join(' ');
     }
   }
-  
+
   const {nullable, first, follow, transition} = tables;
   let t1 = [];
   for (let nonterminal of grammar.nonterminals) {
@@ -225,7 +228,7 @@ function displayTables(grammar, tables) {
   for (let nonterminal of grammar.nonterminals) {
     let entry = {};
     entry[''] = nonterminal;
-    
+
     for (var terminal of grammar.terminals) {
       var contents = transition[nonterminal][terminal]
           .map(stringOfRule)
@@ -268,18 +271,18 @@ function parse(prg, grammar, tables) {
     /** @type number */
   let position = 0;
   let parents = [root];
-  
+
   while (position < input.length) {
     const top = stack.pop();
     const next = input[position];
-  
+
     if (grammar.terminals.has(top)) {
       // If top of the stack matches next input character, consume the input
       if (next == top) {
         position++;
         parents.pop();
         console.log('Match ', next);
-      } else {     
+      } else {
         throw new Error("Expected " + top + ", got " + next);
       }
     } else if (next in tables.transition[top]) {
@@ -287,9 +290,9 @@ function parse(prg, grammar, tables) {
       if (rule == undefined) {
         throw new Error("Syntax error when trying to expand elements at the top of the stack:\nNo valid transition from a nonterminal \"" + top + '\" with look ahead symbol \"' + next + "\"");
       }
-  
+
       stack.push(...[].concat(rule.slice(1)).reverse());
-  
+
       /* Display code ********************************************************/
       var p = parents.pop();
       childnodes = [];
@@ -309,7 +312,7 @@ function parse(prg, grammar, tables) {
         }
       }
       parents = parents.concat(childnodes.reverse());
-   
+
     } else {
       throw new Error("failure");
     }
@@ -319,15 +322,7 @@ function parse(prg, grammar, tables) {
 }
 
 
-const bnf = 
-`Ex ::= T E'
-E' ::= + T E'
-E' ::= ε
-T ::= F T'
-T' ::= * F T'
-T' ::= ε
-F ::= ( Ex )
-F ::= id`;
+const bnf = require('fs').readFileSync('./grammar.bnf', { encoding: 'utf8', flag: 'r' });
 
 
 
