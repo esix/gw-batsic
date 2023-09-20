@@ -80,7 +80,7 @@ statementcass ::= SAVE toplevelexpr filespecextra
 statementdeclv ::= DIM VARNAME vardims
 statementdeclv ::= LET topvar EQUAL toplevelexpr
 statementdeclv ::= READ listofreadvars
-statementdeclv ::= FOR VARNAME EQUAL toplevelexpr TO toplevelexpr optionalstep ;
+statementdeclv ::= FOR VARNAME EQUAL toplevelexpr TO toplevelexpr optionalstep
 # Notice that "statementcons" also can include declarations of vars, e.g., in INPUT
 
 statementflownext ::= NEXT VARNAME
@@ -129,7 +129,7 @@ printitem ::= toplevelexpr
 printitem ::= printcontrol
 
 restofprintseq ::= printsep printseq
-restofprintseq ::= ε ;
+restofprintseq ::= ε
 
 printsep ::= COMMA
 printsep ::= APOSTROPHE
@@ -230,7 +230,7 @@ var ::= VARNAME optionalseqofindexes
 # of the first parenthesis, as long as it is string; that must be checked out
 # besides parsing.
 # This grammar cannot check whether VARNAME is not a string but a TO is used
-# (error); that must also be done besides parsing. */
+# (error); that must also be done besides parsing.
 
 optionalseqofindexes ::= firstparindexes optionalmoreseqofindexes
 optionalseqofindexes ::= ε
@@ -251,96 +251,120 @@ index ::= ε
 tailofindexes ::= COMMA indexorslice tailofindexes
 tailofindexes ::= ε
 
-indexorslice ::= indexorslice1 | indexorslice2
+indexorslice ::= indexorslice1
+indexorslice ::= indexorslice2
 
-indexorslice1 : expression restofindexofslice1 ;
+indexorslice1 ::= expression restofindexofslice1
 
-indexorslice2 : TO restofrestofindexofslice ; /* Slicing beginning with TO */
+indexorslice2 ::= TO restofrestofindexofslice
+# Slicing beginning with TO
 
-restofindexofslice1 : TO restofrestofindexofslice | ε ;
+restofindexofslice1 ::= TO restofrestofindexofslice
+restofindexofslice1 ::= ε
 
-restofrestofindexofslice : expression | ε ;
+restofrestofindexofslice ::= expression
+restofrestofindexofslice ::= ε
 
 
+# ---------------- MID LEVEL: EXPRESSIONS
 
-// ---------------- MID LEVEL: EXPRESSIONS
+topleveloptexpr ::= toplevelexpr
+topleveloptexpr ::= ε
 
-topleveloptexpr : toplevelexpr | ε ;
+toplevelexpr ::= expression
+# Cannot be nested, unlike expression
 
-toplevelexpr : expression ;
-/* Cannot be nested, unlike expression */
+toplevelexprnonvar ::= expressionnonvar
+# Cannot be nested, unlike expressionnonvar
 
-toplevelexprnonvar : expressionnonvar ;
-/* Cannot be nested, unlike expressionnonvar */
+listofexprs ::= toplevelexpr restoflistofexprs
 
-listofexprs : toplevelexpr restoflistofexprs ;
+restoflistofexprs ::= COMMA listofexprs
+restoflistofexprs ::= ε
 
-restoflistofexprs : COMMA listofexprs  | ε ;
+expression ::= highprecexpr restofexpr
+# We cannot distinguish between numeric and string expressions in this grammar
+# because the DATA statement needs a list of expressions with mixed types
+# (numeric / string), and that would make the grammar non-LL(1). Therefore, the
+# semantic parsing is in charge of detecting forbidden expressions (operations
+# not allowed on numeric or on strings, for instance). */
 
-expression : highprecexpr restofexpr ;
-/* We cannot distinguish between numeric and string expressions in this grammar
-because the DATA statement needs a list of expressions with mixed types
-(numeric / string), and that would make the grammar non-LL(1). Therefore, the
-semantic parsing is in charge of detecting forbidden expressions (operations
-not allowed on numeric or on strings, for instance). */
+expressionnonvar ::= highprecexprnonvar restofexpr
+#  cannot begin with a var
 
-expressionnonvar : highprecexprnonvar restofexpr ; /* cannot begin with a var */
+highprecexpr ::= highprecexprnonvar
+highprecexpr ::= var
 
-highprecexpr : highprecexprnonvar
-        | var ;
+# Compiled no. embedded in terminal
+highprecexprnonvar ::= NUMLIT
+# slice/index a str literal
+highprecexprnonvar ::= STRINGLIT optionalmoreseqofindexes
+# idem
+highprecexprnonvar ::= BEGINPAR expression ENDPAR optionalmoreseqofindexes
+# unary minus
+highprecexprnonvar ::= MINUS highprecexpr
+# unary plus
+highprecexprnonvar ::= PLUS highprecexpr
+highprecexprnonvar ::= FN usrfunctioncall
+highprecexprnonvar ::= sysfunctioncall
 
-highprecexprnonvar : NUMLIT /* Compiled no. embedded in terminal */
-        | STRINGLIT optionalmoreseqofindexes /* slice/index a str literal */
-        | BEGINPAR expression ENDPAR optionalmoreseqofindexes /* idem */
-        | MINUS highprecexpr /* unary minus */
-        | PLUS highprecexpr /* unary plus */
-        | FN usrfunctioncall
-        | sysfunctioncall ;
+restofexpr ::= op expression
+restofexpr ::= ε
 
-restofexpr : op expression | ε ;
+op ::= EXPON
+op ::= MULT
+op ::= DIV
+op ::= PLUS
+# binary minus and plus
+op ::= MINUS
+op ::= EQUAL
+op ::= GREAT
+op ::= LESS
+op ::= GREATEQ
+op ::= LESSEQ
+op ::= NOTEQ
+op ::= AND
+op ::= OR
 
-op :     EXPON |    MULT | DIV
-      | PLUS | MINUS /* binary minus and plus */
-      | EQUAL | GREAT | LESS | GREATEQ | LESSEQ | NOTEQ
-      | AND | OR ;
+# In the ZX, the sys functions have higher priority than the rest of the
+# expression where they are
 
-/* In the ZX, the sys functions have higher priority than the rest of the
-expression where they are */
+sysfunctioncall ::= RND
+sysfunctioncall ::= PI
+sysfunctioncall ::= CODE highprecexpr
+sysfunctioncall ::= VAL highprecexpr
+sysfunctioncall ::= LEN highprecexpr
+sysfunctioncall ::= SIN highprecexpr
+sysfunctioncall ::= COS highprecexpr
+sysfunctioncall ::= TAN highprecexpr
+sysfunctioncall ::= ASN highprecexpr
+sysfunctioncall ::= ACS highprecexpr
+sysfunctioncall ::= ATN highprecexpr
+sysfunctioncall ::= LN highprecexpr
+sysfunctioncall ::= EXP highprecexpr
+sysfunctioncall ::= INT highprecexpr
+sysfunctioncall ::= SQR highprecexpr
+sysfunctioncall ::= SGN highprecexpr
+sysfunctioncall ::= ABS highprecexpr
+sysfunctioncall ::= PEEK highprecexpr
+sysfunctioncall ::= IN highprecexpr
+sysfunctioncall ::= NOT highprecexpr
+sysfunctioncall ::= BIN NUMLIT
+sysfunctioncall ::= USR highprecexpr
+sysfunctioncall ::= POINT BEGINPAR expression COMMA expression ENDPAR
+sysfunctioncall ::= ATTR BEGINPAR expression COMMA expression ENDPAR
+sysfunctioncall ::= INKEY
+sysfunctioncall ::= SCREEN BEGINPAR expression COMMA expression ENDPAR
+sysfunctioncall ::= VAL_STR highprecexpr
+sysfunctioncall ::= STR highprecexpr
+sysfunctioncall ::= CHR highprecexpr
 
-sysfunctioncall : RND
-        | PI
-        | CODE highprecexpr
-        | VAL highprecexpr
-        | LEN highprecexpr
-        | SIN highprecexpr
-        | COS highprecexpr
-        | TAN highprecexpr
-        | ASN highprecexpr
-        | ACS highprecexpr
-        | ATN highprecexpr
-        | LN highprecexpr
-        | EXP highprecexpr
-        | INT highprecexpr
-        | SQR highprecexpr
-        | SGN highprecexpr
-        | ABS highprecexpr
-        | PEEK highprecexpr
-        | IN highprecexpr
-        | NOT highprecexpr
-        | BIN NUMLIT
-        | USR highprecexpr
-        | POINT BEGINPAR expression COMMA expression ENDPAR
-        | ATTR BEGINPAR expression COMMA expression ENDPAR
-        | INKEY
-        | SCREEN BEGINPAR expression COMMA expression ENDPAR
-        | VAL_STR highprecexpr
-        | STR highprecexpr
-        | CHR highprecexpr ;
+usrfunctioncall ::= VARNAME BEGINPAR fnoptionallistofexprs ENDPAR
 
-usrfunctioncall : VARNAME BEGINPAR fnoptionallistofexprs ENDPAR  ;
+fnoptionallistofexprs ::= fnlistofexprs
+fnoptionallistofexprs ::= ε
 
-fnoptionallistofexprs :    fnlistofexprs  | ε ;
+fnlistofexprs ::= expression fnrestoflistofexprs
 
-fnlistofexprs : expression fnrestoflistofexprs ;
-
-fnrestoflistofexprs : COMMA fnlistofexprs  | ε ;
+fnrestoflistofexprs ::= COMMA fnlistofexprs
+fnrestoflistofexprs ::= ε

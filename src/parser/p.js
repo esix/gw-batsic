@@ -336,8 +336,8 @@ displayTables(grammar, tables);
 
 
 
-let root = parse('id + id', grammar, tables)
-
+// let root = parse('id + id', grammar, tables)
+let root = parse('LINENUMBER PRINT NUMLIT', grammar, tables)
 
 const drawTree = (item, l = 0) => {
   console.log(''.padStart(l), item.label);
@@ -345,3 +345,4 @@ const drawTree = (item, l = 0) => {
 }
 
 drawTree(root);
+
