@@ -8,10 +8,26 @@ let report, hex = '';
 const byte = () => { v = binary[i++]; hex += x(v) + ' '; return v;};
 const word = () => byte() + 0x100 * byte();
 const dword = () => word() + 0x10000 * word();
-const qword = () => dword() + 0x100000000 * dword();
 
-const single = () => dword();
-const double = () => qword();                               // TODO
+const single = () => {
+  let a0 = byte(), a1 = byte(), a2 = byte(), a3 = byte();
+  if (a3 === 0) return 0.0;
+  const sign = (a2 & 0x80);
+  const exp = (a3 - 2) & 0xFF;
+  a3 = (sign | ((exp >> 1) & 0xff)) & 0xFF;
+  a2 = ((exp << 7) | (a2 & 0x7F)) & 0xFF;
+
+  let b = new ArrayBuffer(4);
+  let i = new Int8Array(b);
+  i[0] = a0;
+  i[1] = a1;
+  i[2] = a2;
+  i[3] = a3;
+
+
+  return x(a0) + x(a1) + x(a2) + x(a3) + '__' + new Float32Array(b)[0];
+}
+const double = () => x(byte()) + x(byte()) + x(byte()) + x(byte()) + x(byte()) + x(byte()) + x(byte()) + x(byte());
 const nextByte = () => (v = binary[i]);
 
 const x = (v) => (v & 0xFF).toString(16).padStart(2, '0');
@@ -64,9 +80,9 @@ while (true) {
         case 0x1A: report += '9'; break;
         case 0x1B: report += '10'; break;
         case 0x1C: report += word(); break;
-        case 0x1D: report += single(); break;          // A four-byte single-precision floating-point constant.
+        case 0x1D: report += 'SNG_' + single(); break;          // A four-byte single-precision floating-point constant.
         case 0x1E: assert(0, '1E'); break;        // This is not used as a token in a program line
-        case 0x1F: report += double(); break;          // An eight-byte double-precision floating-point constant.
+        case 0x1F: report += 'DBL_' + double(); break;          // An eight-byte double-precision floating-point constant.
 
         case 0x20: report += ' '; break;
 
@@ -97,8 +113,12 @@ while (true) {
             report += '\'';
             state = 'REM';
           } else {                        // ELSE   (stored as 3AA1, ":ELSE" but the ":" is suppressed when the program is listed.)
-            if (nextByte() === 0xA1) byte();      // NO such byte in tests???
-            report += ':';
+            if (nextByte() === 0xA1) {
+              byte();
+              report += 'ELSE';
+            } else {
+              report += ':';
+            }
           }
           break;
         case 0x3B: report += ';'; break;
