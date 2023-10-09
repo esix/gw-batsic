@@ -19,16 +19,9 @@ const unpack = (n) => {
   };
 }
 
-
-// const toBinaryString = (n) => {
-//   const {sign, mantissa, exponent} = unpack(n);
-//   return `${sign === 1 ? '+' : '-'}0.1${mantissa.toString(2).padStart(23, '0')} * 2^${exponent}`
-// }
-
-
 const toJSFloat = (n) => {
   const {Z, S, M, E} = unpack(n);
-  return S * M * 2 ** E;
+  return Z ? 0 : S * M * 2 ** E;
 }
 
 
@@ -62,3 +55,27 @@ const fromJSFloat = (f) => {
 // console.log('3  ', toJSFloat(0x82400000));
 
 console.log('1.5', fromJSFloat(1.5).toString(16).padStart(8, '0'));
+
+
+function serialize(v) {
+  let a = v.substr(0, 2);
+  let b = v.substr(2, 2);
+  let c = v.substr(4, 2);
+  let d = v.substr(6, 2);
+
+  if (a === '00') return "0";
+  a = parseInt(a, 16);
+  b = parseInt(b, 16);
+  c = parseInt(c, 16);
+  d = parseInt(d, 16);
+  const exponent = a - 0x80;
+  const sign = (b & 0x80) >> 7;
+  const Z = 0;
+  const S = sign ? -1 : 1;
+  const E = exponent - 24;
+  const M = ((b | 0x80) << 16) | (c << 8) | (d << 0);
+
+  return String( Z ? 0 : S * M * 2 ** E);
+}
+
+module.exports = {serialize};

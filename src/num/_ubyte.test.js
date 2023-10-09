@@ -24,6 +24,10 @@ test('ubyte.add', () => {
   expect(ubyte.add('FF', 'FF')).toEqual(['FE', '1']);
 });
 
+test('ubyte.sub', () => {
+  expect(ubyte.sub('01', '00')).toEqual(['01', '']);
+});
+
 test('ubyte.mul', () => {
   expect(ubyte.mul('AB', 'CD')).toEqual('88EF');
   expect(ubyte.mul('FF', 'FF')).toEqual('FE01');

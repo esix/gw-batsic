@@ -51,11 +51,23 @@ function parse(dec) {
 }
 
 function inc(v) {
-  if (!check(v)) throw new Error();
+  if (!check(v)) throw 1;
   let d = serialize(v), c = '';
   d = String((+d) + 1);
   if (d === '16') {
     d = '0';
+    c = '1';
+  }
+  v = parse(d);
+  return [v, c];
+}
+
+function dec(v) {
+  if (!check(v)) throw 1;
+  let d = serialize(v), c = '';
+  d = String((+d) - 1);
+  if (d === '-1') {
+    d = '15';
     c = '1';
   }
   v = parse(d);
@@ -74,6 +86,22 @@ function add(v1, v2) {
   let d1 = serialize(v1), d2 = serialize(v2), c = '';
   let d = String((+d1) + (+d2));
   if ((+d) >= 16) { d = String((+d) - 16); c = '1';}
+  let v = parse(d);
+  return [v, c];
+}
+
+function subc(v, c) {
+  if (!check(v)) throw 1;
+  if (c) [v, c] = dec(v);
+  return [v, c];
+}
+
+function sub(v1, v2) {
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
+  let d1 = serialize(v1), d2 = serialize(v2), c = '';
+  let d = String((+d1) - (+d2));
+  if ((+d) < 0) { d = String((+d) + 16); c = '1';}
   let v = parse(d);
   return [v, c];
 }
@@ -141,5 +169,5 @@ function not(v) {
   return fromBin(r);
 }
 
-module.exports = {check, serialize, parse, inc, addc, add, mul, not};
+module.exports = {check, serialize, parse, inc, dec, addc, add, subc, sub, mul, not};
 

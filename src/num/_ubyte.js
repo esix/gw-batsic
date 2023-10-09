@@ -5,7 +5,7 @@ const pack = (h, l) => h + l;
 const check = (v) => v[2] === undefined && unpack(v).map(uhalf.check).every(Boolean);
 
 function serialize(v) {
-  if (!check(v)) throw new Error();
+  if (!check(v)) throw 1;
   const [h, l] = unpack(v);
   let ch = uhalf.serialize(h);
   let cl = uhalf.serialize(l);
@@ -16,7 +16,7 @@ function serialize(v) {
 // function parse(dec) { throw new Error('Not implemented'); }
 
 function inc(v) {
-  if (!check(v)) throw new Error();
+  if (!check(v)) throw 1;
   let [h, l] = unpack(v), c = '';
   [l, c] = uhalf.inc(l);
   [h, c] = uhalf.addc(h, c);
@@ -39,9 +39,19 @@ function add(v1, v2) {
   return [h + l, ch || c];
 }
 
+function sub(v1, v2) {
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
+  let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2), c = '';
+  let [l, cl] = uhalf.sub(l1, l2);
+  let [h, ch] = uhalf.sub(h1, h2);
+  [h, c] = uhalf.subc(h, cl)
+  return [h + l, ch || c]
+}
+
 function mul(v1, v2) {
-  if (!check(v1)) throw new Error();
-  if (!check(v2)) throw new Error();
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
   let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2), c = '';
   let a1 = '00' + uhalf.mul(l1, l2);
   let [a2, c2] = add(uhalf.mul(l1, h2), uhalf.mul(l2, h1));
@@ -56,5 +66,5 @@ function mul(v1, v2) {
   return r;
 }
 
-module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ inc, addc, add, mul};
+module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ inc, addc, add, sub, mul};
 

@@ -26,6 +26,14 @@ test('uhalf.inc', () => {
   expect(uhalf.inc('F')).toEqual(['0', '1']);
 });
 
+test('uhalf.dec', () => {
+  expect(uhalf.dec('0')).toEqual(['F', '1']);
+  expect(uhalf.dec('1')).toEqual(['0', '']);
+  expect(uhalf.dec('9')).toEqual(['8', '']);
+  expect(uhalf.dec('A')).toEqual(['9', '']);
+  expect(uhalf.dec('F')).toEqual(['E', '']);
+});
+
 test('uhalf.add', () => {
   expect(uhalf.add('0', '0')).toEqual(['0', '']);
   expect(uhalf.add('1', '0')).toEqual(['1', '']);
