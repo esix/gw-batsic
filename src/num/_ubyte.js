@@ -1,7 +1,7 @@
 const uhalf = require('./_uhalf');
 
 const unpack = (v) => [v.substr(0, 1), v.substr(1, 1)];
-const pack = (h, l) => h + l;
+const pack = (h, l) => String(h) + String(l);
 const check = (v) => v[2] === undefined && unpack(v).map(uhalf.check).every(Boolean);
 
 function serialize(v) {
@@ -66,5 +66,13 @@ function mul(v1, v2) {
   return r;
 }
 
-module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ inc, addc, add, sub, mul};
+function and(v1, v2) {
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
+  let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2);
+  return pack(uhalf.and(h1, h2), uhalf.and(l1, l2));
+}
+
+
+module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ inc, addc, add, sub, mul, and};
 

@@ -169,5 +169,22 @@ function not(v) {
   return fromBin(r);
 }
 
-module.exports = {check, serialize, parse, inc, dec, addc, add, subc, sub, mul, not};
+function binAnd(b1, b2) {
+  if (b1 === '1' && b2 === '1') return '1';
+  return '0';
+}
+
+function and(v1, v2) {
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
+  let b1 = toBin(v1), b2 = toBin(v2);
+  return fromBin(
+      binAnd(b1[0], b2[0]) +
+      binAnd(b1[1], b2[1]) +
+      binAnd(b1[2], b2[2]) +
+      binAnd(b1[3], b2[3]));
+}
+
+
+module.exports = {check, serialize, parse, inc, dec, addc, add, subc, sub, mul, not, and};
 

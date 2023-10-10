@@ -62,3 +62,10 @@ test('uhalf.not', () => {
   expect(uhalf.not('A')).toEqual('5');
   expect(uhalf.not('F')).toEqual('0');
 });
+
+test('uhalf.and', () => {
+  expect(uhalf.and('0', '1')).toEqual('0');
+  expect(uhalf.and('F', '1')).toEqual('1');
+  expect(uhalf.and('5', 'B')).toEqual('1');
+  expect(uhalf.and('F', 'F')).toEqual('F');
+});
