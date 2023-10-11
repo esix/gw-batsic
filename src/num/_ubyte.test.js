@@ -35,3 +35,9 @@ test('ubyte.mul', () => {
   expect(ubyte.mul('00', '00')).toEqual('0000');
   expect(ubyte.mul('08', '81')).toEqual('0408');
 });
+
+test('ubyte.toBib', () => {
+  expect(ubyte.toBin('01')).toEqual('00000001');
+  expect(ubyte.toBin('F4')).toEqual('11110100');
+});
+

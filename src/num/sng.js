@@ -10,17 +10,14 @@ const unpack = (v) => {
 
   let exponent = ubyte.sub(a, "80");
 
-  a = parseInt(a, 16);
-  b = parseInt(b, 16);
-  c = parseInt(c, 16);
-  d = parseInt(d, 16);
   exponent = parseInt(exponent, 16);
 
-  const sign = (b & 0x80) >> 7;
+  const sign = ubyte.toBin(b).substr(0, 1);
   const Z = 0;
-  const S = sign ? -1 : 1;
+  const S = sign === '1' ? -1 : 1;
   const E = exponent - 24;
-  const M = ((b | 0x80) << 16) | (c << 8) | (d << 0);
+  let M = ubyte.or(b, "80") + c + d;
+  M = parseInt(M, 16)
   return { Z, S, E, M };
 }
 

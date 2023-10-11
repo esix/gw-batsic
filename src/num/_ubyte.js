@@ -66,6 +66,12 @@ function mul(v1, v2) {
   return r;
 }
 
+function toBin(v) {
+  if (!check(v)) throw 1;
+  let [h, l] = unpack(v);
+  return uhalf.toBin(h) + uhalf.toBin(l);
+}
+
 function and(v1, v2) {
   if (!check(v1)) throw 1;
   if (!check(v2)) throw 1;
@@ -73,6 +79,13 @@ function and(v1, v2) {
   return pack(uhalf.and(h1, h2), uhalf.and(l1, l2));
 }
 
+function or(v1, v2) {
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
+  let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2);
+  return pack(uhalf.or(h1, h2), uhalf.or(l1, l2));
+}
 
-module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ inc, addc, add, sub, mul, and};
+
+module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ inc, addc, add, sub, mul, toBin, and, or};
 

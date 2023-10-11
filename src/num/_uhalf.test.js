@@ -69,3 +69,10 @@ test('uhalf.and', () => {
   expect(uhalf.and('5', 'B')).toEqual('1');
   expect(uhalf.and('F', 'F')).toEqual('F');
 });
+
+test('uhalf.or', () => {
+  expect(uhalf.or('0', '1')).toEqual('1');
+  expect(uhalf.or('F', '1')).toEqual('F');
+  expect(uhalf.or('5', 'B')).toEqual('F');
+  expect(uhalf.or('F', 'F')).toEqual('F');
+});
