@@ -2,7 +2,7 @@ const uhalf = require('./_uhalf');
 
 const unpack = (v) => [v.substr(0, 1), v.substr(1, 1)];
 const pack = (h, l) => String(h) + String(l);
-const check = (v) => v[2] === undefined && unpack(v).map(uhalf.check).every(Boolean);
+const check = (v) => typeof v === 'string' && v[2] === undefined && unpack(v).map(uhalf.check).every(Boolean);
 
 function serialize(v) {
   if (!check(v)) throw 1;
@@ -40,8 +40,8 @@ function add(v1, v2) {
 }
 
 function sub(v1, v2) {
-  if (!check(v1)) throw 1;
-  if (!check(v2)) throw 1;
+  if (!check(v1)) throw new Error(`Sub with bad arg ${JSON.stringify(v1)}`);
+  if (!check(v2)) throw new Error(`Sub with bad arg ${JSON.stringify(v2)}`);
   let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2), c = '';
   let [l, cl] = uhalf.sub(l1, l2);
   let [h, ch] = uhalf.sub(h1, h2);

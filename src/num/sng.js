@@ -8,16 +8,12 @@ const unpack = (v) => {
 
   if (a === "00") return {Z: 1, S: 0, E: 0, M: 0 /*, sign: 0, mantissa: 0, exponent: 0*/};
 
-  let exponent = ubyte.sub(a, "80");
-
-  exponent = parseInt(exponent, 16);
+  let [E, _] = ubyte.sub(a, "80");
 
   const sign = ubyte.toBin(b).substr(0, 1);
-  const Z = 0;
+  const Z = "";
   const S = sign === '1' ? -1 : 1;
-  const E = exponent - 24;
-  let M = ubyte.or(b, "80") + c + d;
-  M = parseInt(M, 16)
+  let M = '00' + ubyte.or(b, "80") + c + d;
   return { Z, S, E, M };
 }
 
@@ -35,8 +31,11 @@ const fromJSFloat = (f) => {
 
 
 function serialize(v) {
-  const {Z, S, E, M} = unpack(v);
-  return String( Z ? 0 : S * M * 2 ** E);
+  let {Z, S, E, M} = unpack(v);
+  M = parseInt(M, 16);
+  E = parseInt(E, 16);
+
+  return String(Z ? 0 : S * M * 2 ** (E - 24));
 }
 
 module.exports = {serialize};
