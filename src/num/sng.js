@@ -12,7 +12,7 @@ const unpack = (v) => {
 
   const sign = ubyte.toBin(b).substr(0, 1);
   const Z = "";
-  const S = sign === '1' ? -1 : 1;
+  const S = sign === '1' ? "-1" : "1";
   let M = '00' + ubyte.or(b, "80") + c + d;
   return { Z, S, E, M };
 }
@@ -30,12 +30,25 @@ const fromJSFloat = (f) => {
 };
 
 
+const log_10_2 = 0.30102999566398;
+const ln_10 = 2.30258509299;
+
 function serialize(v) {
   let {Z, S, E, M} = unpack(v);
+  if (Z) return 0;
+  // S * M * 2 ** (E - 24)
+  S = parseInt(S);
   M = parseInt(M, 16);
   E = parseInt(E, 16);
 
-  return String(Z ? 0 : S * M * 2 ** (E - 24));
+  let e1 = (E - 24) * log_10_2;
+  let n = Math.floor(e1);
+  let r = e1 - n;
+  let x = Math.exp(r * ln_10);        // 10 ** r
+
+  console.log(S, M, E, ' ---> ', M * x, '* 10^');
+
+  return String(S * M * x * 10 ** n);
 }
 
 module.exports = {serialize};
