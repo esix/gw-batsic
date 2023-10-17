@@ -1,8 +1,8 @@
-const ubyte = require('./_ubyte');
+const xbyte = require('./_xbyte');
 
 const unpack = (v) => [v.substr(0, 2), v.substr(2, 2)];
 const pack = (h, l) => h + l;
-const check = (v) => v[4] === undefined && unpack(v).map(ubyte.check).every(Boolean);
+const check = (v) => v[4] === undefined && unpack(v).map(xbyte.check).every(Boolean);
 
 // function serialize(v) {
 //   if (!check(v)) throw new Error();
@@ -18,8 +18,8 @@ const check = (v) => v[4] === undefined && unpack(v).map(ubyte.check).every(Bool
 function inc(v) {
   if (!check(v)) throw new Error();
   let [h, l] = unpack(v), c = '';
-  [l, c] = ubyte.inc(l);
-  [h, c] = ubyte.addc(h, c);
+  [l, c] = xbyte.inc(l);
+  [h, c] = xbyte.addc(h, c);
   return [h + l, c];
 }
 
@@ -33,9 +33,9 @@ function add(v1, v2) {
   if (!check(v1)) throw new Error();
   if (!check(v2)) throw new Error();
   let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2), c = '';
-  let [l, cl] = ubyte.add(l1, l2);
-  let [h, ch] = ubyte.add(h1, h2);
-  [h, c] = ubyte.addc(h, cl);
+  let [l, cl] = xbyte.add(l1, l2);
+  let [h, ch] = xbyte.add(h1, h2);
+  [h, c] = xbyte.addc(h, cl);
   return [h + l, ch || c];
 }
 
@@ -43,9 +43,9 @@ function mul(v1, v2) {
   if (!check(v1)) throw new Error();
   if (!check(v2)) throw new Error();
   let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2), c = '';
-  let a1 = '0000' + ubyte.mul(l1, l2);
-  let [a2, c2] = add(ubyte.mul(l1, h2), ubyte.mul(l2, h1));
-  let a3 = ubyte.mul(h1, h2) + '0000';
+  let a1 = '0000' + xbyte.mul(l1, l2);
+  let [a2, c2] = add(xbyte.mul(l1, h2), xbyte.mul(l2, h1));
+  let a3 = xbyte.mul(h1, h2) + '0000';
   if (c2) {
     a2 = '01' + a2 + '00';
   } else {

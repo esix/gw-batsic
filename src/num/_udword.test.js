@@ -1,7 +1,7 @@
-const udword = require('./_udword');
+const xdword = require('./_udword');
 
-test('ubyte.add', () => {
-  expect(udword.add('00000000', '00000000')).toEqual(['00000000', '']);
+test('xdword.add', () => {
+  expect(xdword.add('00000000', '00000000')).toEqual(['00000000', '']);
   // expect(udword.add('0001', '0000')).toEqual(['0001', '']);
   // expect(udword.add('0000', '0001')).toEqual(['0001', '']);
   // expect(udword.add('0011', '0012')).toEqual(['0023', '']);
