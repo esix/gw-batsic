@@ -1,4 +1,4 @@
-const xdword = require('./_udword');
+const xdword = require('./_xdword');
 
 test('xdword.add', () => {
   expect(xdword.add('00000000', '00000000')).toEqual(['00000000', '']);

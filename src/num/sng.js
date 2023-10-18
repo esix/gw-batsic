@@ -1,20 +1,38 @@
 const xbyte = require("./_xbyte");
+const xdword = require("./_xdword");
 
-const unpack = (v) => {
+function unpack (v) {
   let a = v.substr(0, 2);
   let b = v.substr(2, 2);
   let c = v.substr(4, 2);
   let d = v.substr(6, 2);
 
-  if (a === "00") return {Z: 1, S: 0, E: 0, M: 0 /*, sign: 0, mantissa: 0, exponent: 0*/};
+  if (a === "00") return {Z: "1", S: "0", E: "00", M: "00000000" /*, sign: 0, mantissa: 0, exponent: 0*/};
 
   let [E, _] = xbyte.sub(a, "80");
 
   const sign = xbyte.toBin(b).substr(0, 1);
   const Z = "";
   const S = sign === '1' ? "-1" : "1";
+  // ??
   let M = '00' + xbyte.or(b, "80") + c + d;
   return { Z, S, E, M };
+}
+
+function pack(S, E, M) {
+  if (!xbyte.check(E)) throw 1;
+  if (!xdword.check(M)) throw 1;
+  if (M.slice(0, 2) !== '00') throw 1;
+  if (!(S === '-1' || s === '0' || s === '1')) throw 1;
+  //
+  if (S === '0') return "00000000";
+  let [a, _] = xbyte.add(E, "80");
+  let b = xbyte.and(M.substr(2, 2), "7F");
+  // TODO:
+  // if (S === "-1") b = xbyte.or()
+  let c = M.substr(4, 2);
+  let d = M.substr(4, 2);
+  return a + b + c + d;
 }
 
 const fromJSFloat = (f) => {
@@ -32,7 +50,20 @@ const fromJSFloat = (f) => {
 function fromSB(sb) {
   if (!xbyte.check(sb)) throw 1;
   if (sb === "00") return "00000000";
+  let bin = xbyte.toBin(sb);
+  let E = 0;
 
+  if (bin.substr(0, 1) === "0") {   // < 0
+    // TODO
+  } else {
+    if (bin[7] === '1') E = 1;
+    if (bin[6] === '1') E = 2;
+    if (bin[5] === '1') E = 3;
+    if (bin[4] === '1') E = 4;
+    if (bin[3] === '1') E = 5;
+    if (bin[2] === '1') E = 6;
+    if (bin[1] === '1') E = 7;
+  }
 }
 
 
