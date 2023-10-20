@@ -1,29 +1,28 @@
 const xbyte = require("./_xbyte");
 const xdword = require("./_xdword");
 
-function unpack (v) {
+function unpack(v) {
   let a = v.substr(0, 2);
   let b = v.substr(2, 2);
   let c = v.substr(4, 2);
   let d = v.substr(6, 2);
 
-  if (a === "00") return {Z: "1", S: "0", E: "00", M: "00000000" /*, sign: 0, mantissa: 0, exponent: 0*/};
+  if (a === "00") return {S: "0", E: "00", M: "00000000"};  /*, sign: 0, mantissa: 0, exponent: 0*/
 
   let [E, _] = xbyte.sub(a, "80");
 
   const sign = xbyte.toBin(b).substr(0, 1);
-  const Z = "";
   const S = sign === '1' ? "-1" : "1";
   // ??
   let M = '00' + xbyte.or(b, "80") + c + d;
-  return { Z, S, E, M };
+  return { S, E, M };
 }
 
 function pack(S, E, M) {
   if (!xbyte.check(E)) throw 1;
   if (!xdword.check(M)) throw 1;
   if (M.slice(0, 2) !== '00') throw 1;
-  if (!(S === '-1' || s === '0' || s === '1')) throw 1;
+  if (!(S === '-1' || S === '0' || S === '1')) throw 1;
   //
   if (S === '0') return "00000000";
   let [a, _] = xbyte.add(E, "80");
@@ -63,6 +62,7 @@ function fromSB(sb) {
     if (bin[3] === '1') E = 5;
     if (bin[2] === '1') E = 6;
     if (bin[1] === '1') E = 7;
+
   }
 }
 
@@ -71,8 +71,8 @@ const log_10_2 = 0.30102999566398;
 const ln_10 = 2.30258509299;
 
 function serialize(v) {
-  let {Z, S, E, M} = unpack(v);
-  if (Z) return 0;
+  let {S, E, M} = unpack(v);
+  if (S === "0") return "0";
   // S * M * 2^(E - 24)
   S = parseInt(S);
   M = parseInt(M, 16);
@@ -88,4 +88,4 @@ function serialize(v) {
   return String(S * M * x * 10 ** n);
 }
 
-module.exports = {fromSB, serialize};
+module.exports = {unpack, pack, fromSB, serialize};
