@@ -50,19 +50,19 @@ function fromSB(sb) {
   if (!xbyte.check(sb)) throw 1;
   if (sb === "00") return "00000000";
   let bin = xbyte.toBin(sb);
-  let E = 0;
+  let E = '80';
 
-  if (bin.substr(0, 1) === "0") {   // < 0
+  if (bin.substr(0, 1) === "1") {   // < 0
     // TODO
   } else {
-    if (bin[7] === '1') E = 1;
-    if (bin[6] === '1') E = 2;
-    if (bin[5] === '1') E = 3;
-    if (bin[4] === '1') E = 4;
-    if (bin[3] === '1') E = 5;
-    if (bin[2] === '1') E = 6;
-    if (bin[1] === '1') E = 7;
-
+    if (bin[1] === '1') return '87' + xbyte.add(sb, '') + '0000';
+    if (bin[2] === '1') { E = '86'; }
+    if (bin[3] === '1') { E = '85'; }
+    if (bin[4] === '1') { E = '84'; }
+    if (bin[5] === '1') return '83' + xbyte.and(sb, 'FB') + '0000';
+    if (bin[6] === '1') return '82' + xbyte.and(sb, 'FD') + '0000';
+    if (bin[7] === '1') return '81' + xbyte.and(sb, 'FE') + '0000';
+    return E + sb + '0000';
   }
 }
 

@@ -204,5 +204,5 @@ function or(v1, v2) {
 
 
 
-module.exports = {check, serialize, parse, inc, dec, addc, add, subc, sub, mul, not, and, or, toBin};
+module.exports = {check, serialize, parse, inc, dec, addc, add, subc, sub, mul, not, and, or, toBin, fromBin};
 

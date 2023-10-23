@@ -22,8 +22,8 @@ test('sng.serialize', () => {
 
 test('sng.fromSB', () => {
   expect(sng.fromSB('00')).toBe('00000000');
-  // expect(sng.fromSB('01')).toBe('81000000');
-  // expect(sng.fromSB('02')).toBe('82000000');
+  expect(sng.fromSB('01')).toBe('81000000');
+  expect(sng.fromSB('02')).toBe('82000000');
   // expect(sng.fromSB('03')).toBe('82400000');
   // expect(sng.fromSB('04')).toBe('83000000');
   // expect(sng.fromSB('05')).toBe('83200000');

@@ -72,6 +72,11 @@ function toBin(v) {
   return xhalf.toBin(h) + xhalf.toBin(l);
 }
 
+function fromBin(b) {
+  // check 8 bin
+  return xhalf.fromBin(b.substr(0, 4)) + xhalf.fromBin(b.substr(4, 4));
+}
+
 function and(v1, v2) {
   if (!check(v1)) throw 1;
   if (!check(v2)) throw 1;
@@ -84,6 +89,14 @@ function or(v1, v2) {
   if (!check(v2)) throw 1;
   let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2);
   return pack(xhalf.or(h1, h2), xhalf.or(l1, l2));
+}
+
+function shl(v, n) {
+  if (!check(v)) throw 1;
+  let b = toBin(v);
+  for (let i = 0; i < +n; i++) b = b + '0';
+  b = b.substr(+n);
+  return fromBin(b);
 }
 
 /**
@@ -117,5 +130,5 @@ function slt(v1, v2) {
 }
 
 
-module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ inc, addc, add, sub, mul, toBin, and, or, slt};
+module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ inc, addc, add, sub, mul, toBin, fromBin, and, or, shl, slt};
 

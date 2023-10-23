@@ -1,6 +1,6 @@
 const xhalf = require('./_xhalf');
 
-test('uhalf.check', () => {
+test('xhalf.check', () => {
   expect(xhalf.check('0')).toBe(true);
   expect(xhalf.check('1')).toBe(true);
   expect(xhalf.check('2')).toBe(true);
@@ -18,7 +18,7 @@ test('uhalf.check', () => {
   expect(xhalf.check(' ')).toBe(false);
 });
 
-test('uhalf.inc', () => {
+test('xhalf.inc', () => {
   expect(xhalf.inc('0')).toEqual(['1', '']);
   expect(xhalf.inc('1')).toEqual(['2', '']);
   expect(xhalf.inc('9')).toEqual(['A', '']);
@@ -26,7 +26,7 @@ test('uhalf.inc', () => {
   expect(xhalf.inc('F')).toEqual(['0', '1']);
 });
 
-test('uhalf.dec', () => {
+test('xhalf.dec', () => {
   expect(xhalf.dec('0')).toEqual(['F', '1']);
   expect(xhalf.dec('1')).toEqual(['0', '']);
   expect(xhalf.dec('9')).toEqual(['8', '']);
@@ -34,7 +34,7 @@ test('uhalf.dec', () => {
   expect(xhalf.dec('F')).toEqual(['E', '']);
 });
 
-test('uhalf.add', () => {
+test('xhalf.add', () => {
   expect(xhalf.add('0', '0')).toEqual(['0', '']);
   expect(xhalf.add('1', '0')).toEqual(['1', '']);
   expect(xhalf.add('0', '1')).toEqual(['1', '']);
@@ -44,7 +44,7 @@ test('uhalf.add', () => {
   expect(xhalf.add('F', '0')).toEqual(['F', '']);
 });
 
-test('uhalf.mul', () => {
+test('xhalf.mul', () => {
   expect(xhalf.mul('0', '0')).toEqual('00');
   expect(xhalf.mul('1', '0')).toEqual('00');
   expect(xhalf.mul('1', 'F')).toEqual('0F');
@@ -52,7 +52,7 @@ test('uhalf.mul', () => {
   expect(xhalf.mul('F', 'F')).toEqual('E1');
 });
 
-test('uhalf.not', () => {
+test('xhalf.not', () => {
   expect(xhalf.not('0')).toEqual('F');
   expect(xhalf.not('1')).toEqual('E');
   expect(xhalf.not('2')).toEqual('D');
@@ -63,16 +63,29 @@ test('uhalf.not', () => {
   expect(xhalf.not('F')).toEqual('0');
 });
 
-test('uhalf.and', () => {
+test('xhalf.and', () => {
   expect(xhalf.and('0', '1')).toEqual('0');
   expect(xhalf.and('F', '1')).toEqual('1');
   expect(xhalf.and('5', 'B')).toEqual('1');
   expect(xhalf.and('F', 'F')).toEqual('F');
 });
 
-test('uhalf.or', () => {
+test('xhalf.or', () => {
   expect(xhalf.or('0', '1')).toEqual('1');
   expect(xhalf.or('F', '1')).toEqual('F');
   expect(xhalf.or('5', 'B')).toEqual('F');
   expect(xhalf.or('F', 'F')).toEqual('F');
+});
+
+test('xhalf.toBin', () => {
+  expect(xhalf.toBin('0')).toEqual('0000');
+  expect(xhalf.toBin('8')).toEqual('1000');
+  expect(xhalf.toBin('F')).toEqual('1111');
+});
+
+
+test('xhalf.fromBin', () => {
+  expect(xhalf.fromBin('0000')).toBe('0');
+  expect(xhalf.fromBin('1000')).toBe('8');
+  expect(xhalf.fromBin('1111')).toBe('F');
 });
