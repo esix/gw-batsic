@@ -54,15 +54,16 @@ function fromSB(sb) {
 
   if (bin.substr(0, 1) === "1") {   // < 0
     // TODO
-  } else {
-    if (bin[1] === '1') return '87' + xbyte.add(sb, '') + '0000';
-    if (bin[2] === '1') { E = '86'; }
-    if (bin[3] === '1') { E = '85'; }
-    if (bin[4] === '1') { E = '84'; }
-    if (bin[5] === '1') return '83' + xbyte.and(sb, 'FB') + '0000';
-    if (bin[6] === '1') return '82' + xbyte.and(sb, 'FD') + '0000';
-    if (bin[7] === '1') return '81' + xbyte.and(sb, 'FE') + '0000';
     return E + sb + '0000';
+  } else {
+    let rank = 1;
+    if (bin[6] === '1') rank = 2;
+    if (bin[5] === '1') rank = 3;
+    if (bin[4] === '1') rank = 4;
+    if (bin[3] === '1') rank = 5;
+    if (bin[2] === '1') rank = 6;
+    if (bin[1] === '1') rank = 7;
+    return '8' + rank + '000000';
   }
 }
 
