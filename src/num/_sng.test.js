@@ -1,17 +1,39 @@
 const sng = require("./sng");
 
+const TESTS = {
+  '-1': {mbf: "81800000", unpacked: {S: "-1", E: "01", M: "00800000"}, dec: "-1!", sb: "FF" },
+  '0' : {mbf: "00000000", unpacked: {S:  "0", E: "00", M: "00000000"}, dec: "0!" , sb: "00" },
+  '1' : {mbf: "81000000", unpacked: {S:  "1", E: "01", M: "00800000"}, dec: "1!" , sb: "01" },
+  '2' : {mbf: "82000000", unpacked: {S:  "1", E: "02", M: "00800000"}, dec: "2!" , sb: "02" },
+  '3' : {mbf: "82400000", unpacked: {S:  "1", E: "02", M: "00C00000"}, dec: "3!" , sb: "03" },
+  '4' : {mbf: "83000000", unpacked: {S:  "1", E: "03", M: "00800000"}, dec: "4!" , sb: "04" },
+  '5' : {mbf: "83200000", unpacked: {S:  "1", E: "03", M: "00A00000"}, dec: "5!" , sb: "05" },
+  '6' : {mbf: "83400000", unpacked: {S:  "1", E: "03", M: "00C00000"}, dec: "6!" , sb: "06" },
+  '7' : {mbf: "83600000", unpacked: {S:  "1", E: "03", M: "00E00000"}, dec: "7!" , sb: "07" },
+  '8' : {mbf: "84000000", unpacked: {S:  "1", E: "04", M: "00800000"}, dec: "8!" , sb: "08" },
+  '9' : {mbf: "84100000", unpacked: {S:  "1", E: "04", M: "00900000"}, dec: "9!" , sb: "09" },
+  '10': {mbf: "84200000", unpacked: {S:  "1", E: "04", M: "00A00000"}, dec: "10!", sb: "0A" },
+  '11': {mbf: "84300000", unpacked: {S:  "1", E: "04", M: "00B00000"}, dec: "11!", sb: "0B" },
+  '12': {mbf: "84400000", unpacked: {S:  "1", E: "04", M: "00C00000"}, dec: "12!", sb: "0C" },
+  '13': {mbf: "84500000", unpacked: {S:  "1", E: "04", M: "00D00000"}, dec: "13!", sb: "0D" },
+  '14': {mbf: "84600000", unpacked: {S:  "1", E: "04", M: "00E00000"}, dec: "14!", sb: "0E" },
+  '15': {mbf: "84700000", unpacked: {S:  "1", E: "04", M: "00F00000"}, dec: "15!", sb: "0F" },
+  '16': {mbf: "85000000", unpacked: {S:  "1", E: "05", M: "00800000"}, dec: "16!", sb: "10" },
+}
+
+
 test('sng.unpack', () => {
-  expect(sng.unpack("00000000")).toStrictEqual({S: "0", E: "00", M: "00000000"}); // 0
-  expect(sng.unpack("81000000")).toStrictEqual({S: "1", E: "01", M: "00800000"}); // 1
-  expect(sng.unpack("82000000")).toStrictEqual({S: "1", E: "02", M: "00800000"}); // 2
-  expect(sng.unpack("85000000")).toStrictEqual({S: "1", E: "05", M: "00800000"}); // 10
+  expect(sng.unpack("00000000")).toStrictEqual({S: "0", E: "00", M: "00000000"});
+  for (let tst of Object.values(TESTS)) {
+    expect(sng.unpack(tst.mbf)).toStrictEqual(tst.unpacked);
+  }
 });
 
 test('sng.pack', () => {
   expect(sng.pack("0", "00", "00000000")).toBe("00000000");
-  expect(sng.pack("1", "01", "00800000")).toBe("81000000");
-  expect(sng.pack("1", "02", "00800000")).toBe("82000000");
-  expect(sng.pack("1", "05", "00800000")).toBe("85000000");
+  for (let tst of Object.values(TESTS)) {
+    expect(sng.pack(tst.unpacked.S, tst.unpacked.E, tst.unpacked.M)).toBe(tst.mbf);
+  }
 });
 
 test('sng.serialize', () => {
@@ -42,24 +64,6 @@ test('sng.fromSB', () => {
   // expect(sng.fromSB('10')).toBe('85000000');
 });
 
-
-//  0   00000000
-//  1   81000000
-//  2   82000000
-//  3   82400000
-//  4   83000000
-//  5   83200000
-//  6   83400000
-//  7   83600000
-//  8   84000000
-//  9   84100000
-// 10   84200000
-// 11   84300000
-// 12   84400000
-// 13   84500000
-// 14   84600000
-// 15   84700000
-// 16   85000000
 
 // 0.5                  .5                        80000000
 // 0.25                 .25                       7F000000

@@ -27,8 +27,7 @@ function pack(S, E, M) {
   if (S === '0') return "00000000";
   let [a, _] = xbyte.add(E, "80");
   let b = xbyte.and(M.substr(2, 2), "7F");
-  // TODO:
-  // if (S === "-1") b = xbyte.or()
+  if (S === "-1") b = xbyte.or(b, '80');
   let c = M.substr(4, 2);
   let d = M.substr(4, 2);
   return a + b + c + d;
