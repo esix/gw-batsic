@@ -61,6 +61,18 @@ test('xbyte.or', () => {
   expect(xbyte.or('01', '03')).toEqual('03');
 });
 
+test('xbyte.not', () => {
+  expect(xbyte.not('00')).toEqual('FF');
+  expect(xbyte.not('01')).toEqual('FE');
+});
+
+test('xbyte.neg', () => {
+  expect(xbyte.neg('00')).toEqual('00');
+  expect(xbyte.neg('01')).toEqual('FF');
+  expect(xbyte.neg('FF')).toEqual('01');
+  expect(xbyte.neg('FE')).toEqual('02');
+});
+
 test('xbyte.shl', () => {
   expect(xbyte.shl('01', '0')).toEqual('01');
   expect(xbyte.shl('01', '1')).toEqual('02');

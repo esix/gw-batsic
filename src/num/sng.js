@@ -48,22 +48,23 @@ const fromJSFloat = (f) => {
 function fromSB(sb) {
   if (!xbyte.check(sb)) throw 1;
   if (sb === "00") return "00000000";
-  let bin = xbyte.toBin(sb);
-  let E = '80';
+  let E = '01', S = '1';
 
-  if (bin.substr(0, 1) === "1") {   // < 0
-    // TODO
-    return E + sb + '0000';
-  } else {
-    let rank = 1;
-    if (bin[6] === '1') rank = 2;
-    if (bin[5] === '1') rank = 3;
-    if (bin[4] === '1') rank = 4;
-    if (bin[3] === '1') rank = 5;
-    if (bin[2] === '1') rank = 6;
-    if (bin[1] === '1') rank = 7;
-    return '8' + rank + '000000';
+  if (xbyte.isNegative(sb) === '1') {
+    S = '-1';
+    sb = xbyte.neg(sb);
   }
+
+  let bin = xbyte.toBin(sb);
+  if (bin[6] === '1') E = '02';
+  if (bin[5] === '1') E = '03';
+  if (bin[4] === '1') E = '04';
+  if (bin[3] === '1') E = '05';
+  if (bin[2] === '1') E = '06';
+  if (bin[1] === '1') E = '07';
+  let M = xbyte.shl(sb, 8 - E);
+
+  return pack(S, E, '00' + M + '0000');
 }
 
 

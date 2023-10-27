@@ -1,8 +1,23 @@
 const xhalf = require('./_xhalf');
 
-const unpack = (v) => [v.substr(0, 1), v.substr(1, 1)];
-const pack = (h, l) => String(h) + String(l);
-const check = (v) => typeof v === 'string' && v[2] === undefined && unpack(v).map(xhalf.check).every(Boolean);
+const check = (v) => {
+  if (typeof v !== 'string') return false;
+  if (v[2] !== undefined) return false;
+  if (!xhalf.check(v.substr(0, 1))) return false;
+  if (!xhalf.check(v.substr(1, 1))) return false;
+  return true;
+}
+
+const unpack = (v) => {
+  if (!check(v)) throw 1;
+  return [v.substr(0, 1), v.substr(1, 1)];
+};
+
+const pack = (h, l) => {
+  if (!xhalf.check(h)) throw 1;
+  if (!xhalf.check(l)) throw 1;
+  return String(h) + String(l);
+}
 
 function serialize(v) {
   if (!check(v)) throw 1;
@@ -91,12 +106,25 @@ function or(v1, v2) {
   return pack(xhalf.or(h1, h2), xhalf.or(l1, l2));
 }
 
+function not(v) {
+  if (!check(v)) throw 1;
+  let [h, l] = unpack(v);
+  return pack(xhalf.not(h), xhalf.not(l));
+}
+
 function shl(v, n) {
   if (!check(v)) throw 1;
   let b = toBin(v);
   for (let i = 0; i < +n; i++) b = b + '0';
   b = b.substr(+n);
   return fromBin(b);
+}
+
+function neg(v) {
+  if (!check(v)) throw 1;
+  let notv = not(v)
+  let [r, c] = add(notv, "01");
+  return r;
 }
 
 /**
@@ -130,5 +158,5 @@ function slt(v1, v2) {
 }
 
 
-module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ inc, addc, add, sub, mul, toBin, fromBin, and, or, shl, slt};
+module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ inc, addc, add, sub, mul, toBin, fromBin, and, or, not, neg, shl, isNegative, slt};
 

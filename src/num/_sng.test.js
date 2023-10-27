@@ -46,22 +46,23 @@ test('sng.serialize', () => {
 
 test('sng.fromSB', () => {
   expect(sng.fromSB('00')).toBe('00000000');
-  // expect(sng.fromSB('01')).toBe('81000000');
-  // expect(sng.fromSB('02')).toBe('82000000');
-  // expect(sng.fromSB('03')).toBe('82400000');
-  // expect(sng.fromSB('04')).toBe('83000000');
-  // expect(sng.fromSB('05')).toBe('83200000');
-  // expect(sng.fromSB('06')).toBe('83400000');
-  // expect(sng.fromSB('07')).toBe('83600000');
-  // expect(sng.fromSB('08')).toBe('84000000');
-  // expect(sng.fromSB('09')).toBe('84100000');
-  // expect(sng.fromSB('0A')).toBe('84200000');
-  // expect(sng.fromSB('0B')).toBe('84300000');
-  // expect(sng.fromSB('0C')).toBe('84400000');
-  // expect(sng.fromSB('0D')).toBe('84500000');
-  // expect(sng.fromSB('0E')).toBe('84600000');
-  // expect(sng.fromSB('0F')).toBe('84700000');
-  // expect(sng.fromSB('10')).toBe('85000000');
+  expect(sng.fromSB('01')).toBe('81000000');
+  expect(sng.fromSB('02')).toBe('82000000');
+  expect(sng.fromSB('03')).toBe('82400000');
+  expect(sng.fromSB('04')).toBe('83000000');
+  expect(sng.fromSB('05')).toBe('83200000');
+  expect(sng.fromSB('06')).toBe('83400000');
+  expect(sng.fromSB('07')).toBe('83600000');
+  expect(sng.fromSB('08')).toBe('84000000');
+  expect(sng.fromSB('09')).toBe('84100000');
+  expect(sng.fromSB('0A')).toBe('84200000');
+  expect(sng.fromSB('0B')).toBe('84300000');
+  expect(sng.fromSB('0C')).toBe('84400000');
+  expect(sng.fromSB('0D')).toBe('84500000');
+  expect(sng.fromSB('0E')).toBe('84600000');
+  expect(sng.fromSB('0F')).toBe('84700000');
+  expect(sng.fromSB('10')).toBe('85000000');
+  expect(sng.fromSB('FF')).toBe('81800000');
 });
 
 
