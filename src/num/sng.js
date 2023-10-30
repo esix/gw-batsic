@@ -33,17 +33,16 @@ function pack(S, E, M) {
   return a + b + c + d;
 }
 
-const fromJSFloat = (f) => {
-  let e = 0, s = 1;
-  if (f === 0) return 0x00000000;
-  if (f < 0) { s = -1; f = -f}
-  while (f > 1) { f /= 2; e++}
-  while (f < 0.5) { f *= 2; e--}
-  f -= 0.5;
-  f *= 2**24;
-  f = f & 0x7fffff;
-  return (((e + 0x80) & 0xff) << 24);
-};
+function isZero(v) {
+  return v.slice(0, 2) === "00";
+}
+
+function isNegative(v) {
+  let b = v.substr(2, 2);
+  const sign = xbyte.toBin(b).substr(0, 1);
+  return sign === '1';
+}
+
 
 function fromSB(sb) {
   if (!xbyte.check(sb)) throw 1;
@@ -67,6 +66,39 @@ function fromSB(sb) {
   return pack(S, E, '00' + M + '0000');
 }
 
+function neg(v) {
+  let {S, E, M} = unpack(v);
+  if (S === '0') return v;
+  if (S === '-1') S = '1';
+  else S = '-1';
+  return pack(S, E, M);
+}
+
+
+// ignore sign bits
+function _add(v1, v2) {
+  //
+}
+
+// ignore sign bits
+function _sub(v1, v2) {
+  //
+}
+
+
+function add(v1, v2) {
+  if (isZero(v1)) return v2;
+  if (isZero(v2)) return v1;
+  if (isNegative(v1)) {
+    if (isNegative(v2)) return neg(_add(v1, v2));
+    else return _sub(v2, v1);
+  } else {
+    if (isNegative(v2)) return _sub(v1, v2);
+    else return _add(v2, v1);
+  }
+}
+
+
 
 const log_10_2 = 0.30102999566398;
 const ln_10 = 2.30258509299;
@@ -84,9 +116,9 @@ function serialize(v) {
   let r = e1 - n;                        // v = S * M * 10^r * 10^n
   let x = Math.exp(r * ln_10);        // x = 10^r
 
-  console.log(S, M, E, ' ---> ', M * x, '* 10^');
+  console.log(S, M, E, ' ---> ', M * x, '* 10^' + String(n));
 
   return String(S * M * x * 10 ** n);
 }
 
-module.exports = {unpack, pack, fromSB, serialize};
+module.exports = {unpack, pack, fromSB, serialize, neg, add};
