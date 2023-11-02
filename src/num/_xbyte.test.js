@@ -13,6 +13,10 @@ test('xbyte.check', () => {
   expect(xbyte.check('')).toBe(false);
 });
 
+// test('xbyte.lt', () => {
+//   expect(xbyte.lt('00', '00')).toEqual('');
+// });
+
 test('xbyte.add', () => {
   expect(xbyte.add('00', '00')).toEqual(['00', '']);
   expect(xbyte.add('01', '00')).toEqual(['01', '']);

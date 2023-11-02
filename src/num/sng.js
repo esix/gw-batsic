@@ -75,9 +75,47 @@ function neg(v) {
 }
 
 
+// compare absolute values
+function _lt(v1, v2) {
+  let {S: S1, E: E1, M: M1} = unpack(v1);
+  let {S: S2, E: E2, M: M2} = unpack(v1);
+  if (xbyte.lt(E1, E2)) return '1';
+  if (xbyte.lt(E2, E1)) return '';
+  return xdword.lt(M1, M2);
+}
+
+/**
+ *
+ * @param v1
+ * @param v2
+ * @returns {'1' | ''}
+ */
+function lt(v1, v2) {
+  if (isNegative(v1)) {
+    if (isNegative(v2)) return _lt(v2, v1);
+    else return '1';
+  } else {
+    if (isNegative(v2)) return '';
+    else return _lt(v1, v2);
+  }
+}
+
+
+
 // ignore sign bits
 function _add(v1, v2) {
-  //
+  if (_lt(v2, v1)) {                          // ] v₁ <= v₂
+    [v1, v2] = [v2, v1];
+  }
+  // TODO ...
+  let {S: S1, E: E1, M: M1} = unpack(v1);
+  let {S: S2, E: E2, M: M2} = unpack(v2);
+  // E₁ ≤ E₂
+  // M₁⋅2ᵉ¹⁻²⁴ + M₂⋅2ᵉ²⁻²⁴ = (M₁⋅2ᵉ¹⁻ᵉ² + M₂)⋅2ᵉ²⁻²⁴
+  let de = xbyte.sub(E2, E1);
+  M2 = xdword.shr(M2, de);
+  let M = xdword.add(M1, M2);
+
 }
 
 // ignore sign bits
@@ -111,14 +149,14 @@ function serialize(v) {
   M = parseInt(M, 16);
   E = parseInt(E, 16);
 
-  let e1 = (E - 24) * log_10_2;           // v = S * M * 10^e1
-  let n = Math.floor(e1);
-  let r = e1 - n;                        // v = S * M * 10^r * 10^n
-  let x = Math.exp(r * ln_10);        // x = 10^r
+  let e1 = (E - 24) * log_10_2;                           // v = S⋅M⋅10ᵉ¹
+  let n = Math.floor(e1);                                 // e₁ = n + r,  n = ⌊e₁⌋
+  let r = e1 - n;                                         // v = S⋅M⋅10ʳ⋅10ⁿ
+  let x = Math.exp(r * ln_10);                            // x = 10ʳ
 
   console.log(S, M, E, ' ---> ', M * x, '* 10^' + String(n));
 
   return String(S * M * x * 10 ** n);
 }
 
-module.exports = {unpack, pack, fromSB, serialize, neg, add};
+module.exports = {unpack, pack, fromSB, serialize, lt, neg, add};

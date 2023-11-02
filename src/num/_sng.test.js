@@ -58,6 +58,7 @@ const TESTS = {
   "130!"        : {mbf: "88020000", unpacked: {S:  "1", E: "08", M: "00820000"},          },
 }
 
+
 test('sng.unpack', () => {
   expect(sng.unpack("00000000")).toStrictEqual({S: "0", E: "00", M: "00000000"});
   for (let tst of Object.values(TESTS)) {
@@ -97,5 +98,13 @@ test('sng.neg', () => {
   expect(sng.neg("00000000")).toBe("00000000");
 });
 
+test('sng.lt', () => {
+  expect(sng.lt(TESTS["0!"].mbf, TESTS["0!"].mbf)).toBe('');
 
+})
+
+test('sng.add', () => {
+  expect(sng.add(TESTS["0!"].mbf, TESTS["0!"].mbf)).toBe(TESTS["0!"].mbf);
+  expect(sng.add(TESTS[".5"].mbf, TESTS[".5"].mbf)).toBe(TESTS["1!"].mbf);
+});
 

@@ -30,6 +30,16 @@ function serialize(v) {
 
 // function parse(dec) { throw new Error('Not implemented'); }
 
+function lt(v1, v2) {
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
+  let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2);
+  if (xhalf.lt(h1, h2)) return '1';
+  if (xhalf.lt(h2, h1)) return '';
+  return xhalf.lt(l1, l2);
+}
+
+
 function inc(v) {
   if (!check(v)) throw 1;
   let [h, l] = unpack(v), c = '';
@@ -39,14 +49,14 @@ function inc(v) {
 }
 
 function addc(v, c) {
-  if (!check(v)) throw new Error();
+  if (!check(v)) throw 1;
   if (c) [v, c] = inc(v);
   return [v, c];
 }
 
 function add(v1, v2) {
-  if (!check(v1)) throw new Error();
-  if (!check(v2)) throw new Error();
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
   let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2), c = '';
   let [l, cl] = xhalf.add(l1, l2);
   let [h, ch] = xhalf.add(h1, h2);
@@ -54,6 +64,12 @@ function add(v1, v2) {
   return [h + l, ch || c];
 }
 
+/**
+ *
+ * @param v1
+ * @param v2
+ * @returns {[string, '' | '1']}
+ */
 function sub(v1, v2) {
   if (!check(v1)) throw new Error(`Sub with bad arg ${JSON.stringify(v1)}`);
   if (!check(v2)) throw new Error(`Sub with bad arg ${JSON.stringify(v2)}`);
@@ -158,5 +174,5 @@ function slt(v1, v2) {
 }
 
 
-module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ inc, addc, add, sub, mul, toBin, fromBin, and, or, not, neg, shl, isNegative, slt};
+module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ lt, inc, addc, add, sub, mul, toBin, fromBin, and, or, not, neg, shl, isNegative, slt};
 

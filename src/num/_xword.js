@@ -15,8 +15,19 @@ const check = (v) => v[4] === undefined && unpack(v).map(xbyte.check).every(Bool
 
 // function parse(dec) { throw new Error('Not implemented'); }
 
+
+function lt(v1, v2) {
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
+  let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2);
+  if (xbyte.lt(h1, h2)) return '1';
+  if (xbyte.lt(h2, h1)) return '';
+  return xbyte.lt(l1, l2);
+}
+
+
 function inc(v) {
-  if (!check(v)) throw new Error();
+  if (!check(v)) throw 1;
   let [h, l] = unpack(v), c = '';
   [l, c] = xbyte.inc(l);
   [h, c] = xbyte.addc(h, c);
@@ -24,14 +35,14 @@ function inc(v) {
 }
 
 function addc(v, c) {
-  if (!check(v)) throw new Error();
+  if (!check(v)) throw 1;
   if (c) [v, c] = inc(v);
   return [v, c];
 }
 
 function add(v1, v2) {
-  if (!check(v1)) throw new Error();
-  if (!check(v2)) throw new Error();
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
   let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2), c = '';
   let [l, cl] = xbyte.add(l1, l2);
   let [h, ch] = xbyte.add(h1, h2);
@@ -40,8 +51,8 @@ function add(v1, v2) {
 }
 
 function mul(v1, v2) {
-  if (!check(v1)) throw new Error();
-  if (!check(v2)) throw new Error();
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
   let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2), c = '';
   let a1 = '0000' + xbyte.mul(l1, l2);
   let [a2, c2] = add(xbyte.mul(l1, h2), xbyte.mul(l2, h1));
@@ -56,4 +67,4 @@ function mul(v1, v2) {
   return r;
 }
 
-module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ inc, addc, add, mul};
+module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ lt, inc, addc, add, mul};

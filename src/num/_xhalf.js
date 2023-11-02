@@ -50,6 +50,13 @@ function parse(dec) {
   return ret;
 }
 
+function lt(v1, v2) {
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
+  if (v1 < v2) return '1';
+  return '';
+}
+
 function inc(v) {
   if (!check(v)) throw 1;
   let d = serialize(v), c = '';
@@ -204,5 +211,5 @@ function or(v1, v2) {
 
 
 
-module.exports = {check, serialize, parse, inc, dec, addc, add, subc, sub, mul, not, and, or, toBin, fromBin};
+module.exports = {check, serialize, parse, lt, inc, dec, addc, add, subc, sub, mul, not, and, or, toBin, fromBin};
 

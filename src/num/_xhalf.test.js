@@ -18,6 +18,20 @@ test('xhalf.check', () => {
   expect(xhalf.check(' ')).toBe(false);
 });
 
+test('xhalf.lt', () => {
+  expect(xhalf.lt('0', '1')).toEqual('1');
+  expect(xhalf.lt('0', '2')).toEqual('1');
+  expect(xhalf.lt('0', 'F')).toEqual('1');
+  expect(xhalf.lt('9', 'F')).toEqual('1');
+  expect(xhalf.lt('A', 'F')).toEqual('1');
+  expect(xhalf.lt('0', '0')).toEqual('');
+  expect(xhalf.lt('F', 'F')).toEqual('');
+  expect(xhalf.lt('1', '0')).toEqual('');
+  expect(xhalf.lt('F', '0')).toEqual('');
+  expect(xhalf.lt('F', 'A')).toEqual('');
+  expect(xhalf.lt('F', '9')).toEqual('');
+});
+
 test('xhalf.inc', () => {
   expect(xhalf.inc('0')).toEqual(['1', '']);
   expect(xhalf.inc('1')).toEqual(['2', '']);
