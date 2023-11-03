@@ -85,6 +85,14 @@ test('xbyte.shl', () => {
   expect(xbyte.shl('02', '7')).toEqual('00');
 });
 
+test('xbyte.shr', () => {
+  expect(xbyte.shr('01', '0')).toEqual('01');
+  expect(xbyte.shr('01', '1')).toEqual('00');
+  expect(xbyte.shr('08', '1')).toEqual('04');
+  expect(xbyte.shr('02', '3')).toEqual('00');
+  expect(xbyte.shr('02', '7')).toEqual('00');
+});
+
 test('xbyte.slt', () => {
   expect(xbyte.slt('00', '01')).toEqual('1');
   expect(xbyte.slt('01', '00')).toEqual('0');

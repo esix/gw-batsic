@@ -111,11 +111,13 @@ function _add(v1, v2) {
   let {S: S1, E: E1, M: M1} = unpack(v1);
   let {S: S2, E: E2, M: M2} = unpack(v2);
   // E₁ ≤ E₂
-  // M₁⋅2ᵉ¹⁻²⁴ + M₂⋅2ᵉ²⁻²⁴ = (M₁⋅2ᵉ¹⁻ᵉ² + M₂)⋅2ᵉ²⁻²⁴
+  // M₁⋅2ᵉ¹⁻²⁴ + M₂⋅2ᵉ²⁻²⁴ = (M₁⋅2ᵉ¹⁻ᵉ² + M₂)⋅2ᵉ²⁻²⁴ = (M₁/2ᵉ²⁻ᵉ¹ + M₂)⋅2ᵉ²⁻²⁴
   let de = xbyte.sub(E2, E1);
-  M2 = xdword.shr(M2, de);
+  M1 = xdword.shr(M1, de);
   let M = xdword.add(M1, M2);
-
+  if (M === "00000000") return "00000000";
+  let hb = xdword.getHighestBit();
+  // TODO:
 }
 
 // ignore sign bits

@@ -104,7 +104,7 @@ function toBin(v) {
 }
 
 function fromBin(b) {
-  // check 8 bin
+  // TODO: check 8 bits
   return xhalf.fromBin(b.substr(0, 4)) + xhalf.fromBin(b.substr(4, 4));
 }
 
@@ -134,6 +134,14 @@ function shl(v, n) {
   for (let i = 0; i < +n; i++) b = b + '0';
   b = b.substr(+n);
   return fromBin(b);
+}
+
+function shr(v, n) {
+  if (!check(v)) throw 1;
+  let b = toBin(v);
+  for (let i = 0; i < +n; i++) b = '0' + b;
+  b = b.substr(0, 8);
+  return fromBin(b)
 }
 
 function neg(v) {
@@ -174,5 +182,5 @@ function slt(v1, v2) {
 }
 
 
-module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ lt, inc, addc, add, sub, mul, toBin, fromBin, and, or, not, neg, shl, isNegative, slt};
+module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ lt, inc, addc, add, sub, mul, toBin, fromBin, and, or, not, neg, shl, shr, isNegative, slt};
 

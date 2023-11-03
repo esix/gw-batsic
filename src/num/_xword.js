@@ -15,6 +15,17 @@ const check = (v) => v[4] === undefined && unpack(v).map(xbyte.check).every(Bool
 
 // function parse(dec) { throw new Error('Not implemented'); }
 
+function toBin(v) {
+  if (!check(v)) throw 1;
+  let [h, l] = unpack(v);
+  return xbyte.toBin(h) + xbyte.toBin(l);
+}
+
+function fromBin(b) {
+  // TODO: check 16 bits
+  return xbyte.fromBin(b.substr(0, 8)) + xbyte.fromBin(b.substr(8, 8));
+}
+
 
 function lt(v1, v2) {
   if (!check(v1)) throw 1;
@@ -67,4 +78,4 @@ function mul(v1, v2) {
   return r;
 }
 
-module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ lt, inc, addc, add, mul};
+module.exports = {unpack, pack, check, toBin, fromBin, /*serialize,*/ /*parse,*/ lt, inc, addc, add, mul};
