@@ -181,6 +181,15 @@ function slt(v1, v2) {
   return '0';
 }
 
+function bsr(v) {
+  if (!check(v)) throw 1;
+  let [h, l] = unpack(v);
+  let bsrh = xhalf.bsr(h);
+  if (bsrh !== '0') return String(4 + +bsrh);
+  return xhalf.bsr(l);
+}
 
-module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ lt, inc, addc, add, sub, mul, toBin, fromBin, and, or, not, neg, shl, shr, isNegative, slt};
+
+module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ lt, inc, addc, add, sub, mul, toBin, fromBin, and, or,
+  not, neg, shl, shr, isNegative, slt, bsr};
 

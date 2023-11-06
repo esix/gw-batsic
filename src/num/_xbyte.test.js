@@ -104,3 +104,10 @@ test('xbyte.slt', () => {
   expect(xbyte.slt('80', '81')).toEqual('1');
 });
 
+test('xbyte.bsr', () => {
+  expect(xbyte.bsr('00')).toEqual('0');
+  expect(xbyte.bsr('01')).toEqual('1');
+  expect(xbyte.bsr('07')).toEqual('3');
+  expect(xbyte.bsr('80')).toEqual('8');
+  expect(xbyte.bsr('7F')).toEqual('7');
+});

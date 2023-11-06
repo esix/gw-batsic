@@ -176,12 +176,12 @@ function not(v) {
   return fromBin(r);
 }
 
-function binAnd(b1, b2) {
+function _binAnd(b1, b2) {
   if (b1 === '1' && b2 === '1') return '1';
   return '0';
 }
 
-function binOr(b1, b2) {
+function _binOr(b1, b2) {
   if (b1 === '1' || b2 === '1') return '1';
   return '0';
 }
@@ -191,10 +191,10 @@ function and(v1, v2) {
   if (!check(v2)) throw 1;
   let b1 = toBin(v1), b2 = toBin(v2);
   return fromBin(
-      binAnd(b1[0], b2[0]) +
-      binAnd(b1[1], b2[1]) +
-      binAnd(b1[2], b2[2]) +
-      binAnd(b1[3], b2[3]));
+      _binAnd(b1[0], b2[0]) +
+      _binAnd(b1[1], b2[1]) +
+      _binAnd(b1[2], b2[2]) +
+      _binAnd(b1[3], b2[3]));
 }
 
 function or(v1, v2) {
@@ -202,14 +202,26 @@ function or(v1, v2) {
   if (!check(v2)) throw 1;
   let b1 = toBin(v1), b2 = toBin(v2);
   return fromBin(
-      binOr(b1[0], b2[0]) +
-      binOr(b1[1], b2[1]) +
-      binOr(b1[2], b2[2]) +
-      binOr(b1[3], b2[3]));
+      _binOr(b1[0], b2[0]) +
+      _binOr(b1[1], b2[1]) +
+      _binOr(b1[2], b2[2]) +
+      _binOr(b1[3], b2[3]));
+}
+
+// bit scan reverse
+function bsr(v) {
+  if (!check(v)) throw 1;
+  let b = toBin(v);
+  if (b.substr(0, 1) === '1') return '4';
+  if (b.substr(1, 1) === '1') return '3';
+  if (b.substr(2, 1) === '1') return '2';
+  if (b.substr(3, 1) === '1') return '1';
+  return '0';
 }
 
 
 
-
-module.exports = {check, serialize, parse, lt, inc, dec, addc, add, subc, sub, mul, not, and, or, toBin, fromBin};
+module.exports = {check, serialize, parse, lt, inc, dec, addc, add, subc, sub, mul, not, and, or,
+  toBin, fromBin,
+  bsr};
 

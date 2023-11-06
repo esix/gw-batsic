@@ -1,6 +1,6 @@
 const xword = require('./_xword');
 
-test('uword.check', () => {
+test('xword.check', () => {
   expect(xword.check('0000')).toBe(true);
   expect(xword.check('0001')).toBe(true);
   expect(xword.check('0002')).toBe(true);
@@ -14,7 +14,7 @@ test('uword.check', () => {
   expect(xword.check('')).toBe(false);
 });
 
-test('uword.add', () => {
+test('xword.add', () => {
   expect(xword.add('0000', '0000')).toEqual(['0000', '']);
   expect(xword.add('0001', '0000')).toEqual(['0001', '']);
   expect(xword.add('0000', '0001')).toEqual(['0001', '']);
@@ -29,10 +29,17 @@ test('uword.add', () => {
   expect(xword.add('7FFF', '8001')).toEqual(['0000', '1']);
 });
 
-test('uword.mul', () => {
+test('xword.mul', () => {
   expect(xword.mul('0000', '0000')).toEqual('00000000');
   expect(xword.mul('0001', '0000')).toEqual('00000000');
   expect(xword.mul('FFFF', 'FFFF')).toEqual('FFFE0001');
   expect(xword.mul('1000', '0010')).toEqual('00010000');
 });
 
+test('xword.bsr', () => {
+  expect(xword.bsr('0000')).toBe('0');
+  expect(xword.bsr('0001')).toBe('1');
+  expect(xword.bsr('007F')).toBe('7');
+  expect(xword.bsr('FFFF')).toBe('16');
+  expect(xword.bsr('3000')).toBe('14');
+});

@@ -78,4 +78,14 @@ function mul(v1, v2) {
   return r;
 }
 
-module.exports = {unpack, pack, check, toBin, fromBin, /*serialize,*/ /*parse,*/ lt, inc, addc, add, mul};
+
+function bsr(v) {
+  if (!check(v)) throw 1;
+  let [h, l] = unpack(v);
+  let bsrh = xbyte.bsr(h);
+  if (bsrh !== '0') return String(8 + +bsrh);
+  return xbyte.bsr(l);
+}
+
+
+module.exports = {unpack, pack, check, toBin, fromBin, /*serialize,*/ /*parse,*/ lt, inc, addc, add, mul, bsr};

@@ -97,9 +97,17 @@ test('xhalf.toBin', () => {
   expect(xhalf.toBin('F')).toEqual('1111');
 });
 
-
 test('xhalf.fromBin', () => {
   expect(xhalf.fromBin('0000')).toBe('0');
   expect(xhalf.fromBin('1000')).toBe('8');
   expect(xhalf.fromBin('1111')).toBe('F');
 });
+
+test('xhalf.bsr', () => {
+  expect(xhalf.bsr('0')).toBe('0');
+  expect(xhalf.bsr('8')).toBe('4');
+  expect(xhalf.bsr('F')).toBe('4');
+  expect(xhalf.bsr('7')).toBe('3');
+  expect(xhalf.bsr('1')).toBe('1');
+});
+

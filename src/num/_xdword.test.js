@@ -14,3 +14,13 @@ test('xdword.add', () => {
   // expect(udword.add('7FFF', '8000')).toEqual(['FFFF', '']);
   // expect(udword.add('7FFF', '8001')).toEqual(['0000', '1']);
 });
+
+test('xdword.bsr', () => {
+  expect(xdword.bsr('00000000')).toBe('0');
+  expect(xdword.bsr('00000001')).toBe('1');
+  expect(xdword.bsr('00000011')).toBe('5');
+  expect(xdword.bsr('000000F1')).toBe('8');
+  expect(xdword.bsr('0000FFFF')).toBe('16');
+  expect(xdword.bsr('00030000')).toBe('18');
+  expect(xdword.bsr('FFFFFFFF')).toBe('32');
+});

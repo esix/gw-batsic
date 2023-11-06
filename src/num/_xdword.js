@@ -24,6 +24,12 @@ function lt(v1, v2) {
   return xword.lt(l1, l2);
 }
 
+/**
+ *
+ * @param v1
+ * @param v2
+ * @returns {[string, '1' | '']}
+ */
 function add(v1, v2) {
   if (!check(v1)) throw 1;
   if (!check(v2)) throw 1;
@@ -42,9 +48,13 @@ function shr(v, n) {
   return fromBin(b)
 }
 
-function getHighestBit(v) {
+function bsr(v) {
   if (!check(v)) throw 1;
-
+  let [h, l] = unpack(v);
+  let bsrh = xword.bsr(h);
+  if (bsrh !== '0') return String(16 + +bsrh);
+  return xword.bsr(l);
 }
 
-module.exports = {unpack, pack, check, lt, add, shr};
+
+module.exports = {unpack, pack, check, lt, add, shr, bsr};

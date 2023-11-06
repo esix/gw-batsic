@@ -114,9 +114,9 @@ function _add(v1, v2) {
   // M₁⋅2ᵉ¹⁻²⁴ + M₂⋅2ᵉ²⁻²⁴ = (M₁⋅2ᵉ¹⁻ᵉ² + M₂)⋅2ᵉ²⁻²⁴ = (M₁/2ᵉ²⁻ᵉ¹ + M₂)⋅2ᵉ²⁻²⁴
   let de = xbyte.sub(E2, E1);
   M1 = xdword.shr(M1, de);
-  let M = xdword.add(M1, M2);
+  let [M, c] = xdword.add(M1, M2);
   if (M === "00000000") return "00000000";
-  let hb = xdword.getHighestBit();
+  let hb = xdword.bsr(M);
   // TODO:
 }
 
