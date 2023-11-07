@@ -111,13 +111,20 @@ function _add(v1, v2) {
   let {S: S1, E: E1, M: M1} = unpack(v1);
   let {S: S2, E: E2, M: M2} = unpack(v2);
   // E₁ ≤ E₂
-  // M₁⋅2ᵉ¹⁻²⁴ + M₂⋅2ᵉ²⁻²⁴ = (M₁⋅2ᵉ¹⁻ᵉ² + M₂)⋅2ᵉ²⁻²⁴ = (M₁/2ᵉ²⁻ᵉ¹ + M₂)⋅2ᵉ²⁻²⁴
+  // M₁⋅2ᴱ¹⁻²⁴ + M₂⋅2ᴱ²⁻²⁴ = (M₁⋅2ᴱ¹⁻ᴱ² + M₂)⋅2ᵉ²⁻²⁴ = (M₁/2ᴱ²⁻ᴱ¹ + M₂)⋅2ᴱ²⁻²⁴
   let de = xbyte.sub(E2, E1);
   M1 = xdword.shr(M1, de);
   let [M, c] = xdword.add(M1, M2);
   if (M === "00000000") return "00000000";
   let hb = xdword.bsr(M);
-  // TODO:
+  if (+hb < 24) {    // hb < 24
+
+  }
+  if (24 < +hb) {     // hb > 24
+    M = xdword.shr(M, String(hb - 24));
+    E2 = xbyte.add(E2, xbyte.parse(String(hb - 24)));
+  }
+  return pack('1', E2, M);
 }
 
 // ignore sign bits

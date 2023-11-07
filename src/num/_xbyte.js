@@ -28,7 +28,15 @@ function serialize(v) {
   return String(ret);
 }
 
-// function parse(dec) { throw new Error('Not implemented'); }
+/**
+ * parse decimal from '-128' to '255' and return unsigned
+ * 162%
+ * hex: &H76
+ * oct: &O34, &34
+ * @param dec
+ */
+function parse(dec) {
+}
 
 function lt(v1, v2) {
   if (!check(v1)) throw 1;
@@ -190,6 +198,6 @@ function bsr(v) {
 }
 
 
-module.exports = {unpack, pack, check, /*serialize,*/ /*parse,*/ lt, inc, addc, add, sub, mul, toBin, fromBin, and, or,
+module.exports = {unpack, pack, check, /*serialize,*/ parse, lt, inc, addc, add, sub, mul, toBin, fromBin, and, or,
   not, neg, shl, shr, isNegative, slt, bsr};
 
