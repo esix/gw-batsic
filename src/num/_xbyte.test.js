@@ -13,9 +13,16 @@ test('xbyte.check', () => {
   expect(xbyte.check('')).toBe(false);
 });
 
-// test('xbyte.lt', () => {
-//   expect(xbyte.lt('00', '00')).toEqual('');
-// });
+test('xbyte.parse', () => {
+  expect(xbyte.parse('0')).toBe('00');
+  expect(xbyte.parse('1')).toBe('01');
+  expect(xbyte.parse('255')).toBe('FF');
+});
+
+test('xbyte.lt', () => {
+  expect(xbyte.lt('00', '00')).toEqual('');
+  expect(xbyte.lt('00', '01')).toEqual('1');
+});
 
 test('xbyte.add', () => {
   expect(xbyte.add('00', '00')).toEqual(['00', '']);

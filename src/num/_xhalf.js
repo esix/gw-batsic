@@ -57,13 +57,20 @@ function lt(v1, v2) {
   return '';
 }
 
+/**
+ *
+ * @param {string} v
+ * @returns {[string, ""|"1"]}
+ */
 function inc(v) {
   if (!check(v)) throw 1;
-  let d = serialize(v), c = '';
+  let d = serialize(v);
+  /** @type {""|"1"} */
+  let c = "";
   d = String((+d) + 1);
   if (d === '16') {
     d = '0';
-    c = '1';
+    c = "1";
   }
   v = parse(d);
   return [v, c];
@@ -81,6 +88,12 @@ function dec(v) {
   return [v, c];
 }
 
+/**
+ *
+ * @param {string} v
+ * @param {""|"1"} c
+ * @returns {[string, ""|"1"]}
+ */
 function addc(v, c) {
   if (!check(v)) throw 1;
   if (c) [v, c] = inc(v);
