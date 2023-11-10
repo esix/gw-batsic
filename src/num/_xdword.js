@@ -4,6 +4,11 @@ const unpack = (v) => [v.substr(0, 4), v.substr(4, 4)];
 const pack = (h, l) => h + l;
 const check = (v) => v[8] === undefined && unpack(v).map(xword.check).every(Boolean);
 
+const checkDec = (n) => {
+  // TODO
+  return true;
+}
+
 function toBin(v) {
   if (!check(v)) throw 1;
   let [h, l] = unpack(v);
@@ -42,6 +47,7 @@ function add(v1, v2) {
 
 function shr(v, n) {
   if (!check(v)) throw 1;
+  if (!checkDec(n)) throw 1;
   let b = toBin(v);
   for (let i = 0; i < +n; i++) b = '0' + b;
   b = b.substr(0, 32);
