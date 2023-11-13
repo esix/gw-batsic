@@ -72,9 +72,23 @@ function inc(v) {
   return [h + l, c];
 }
 
+function dec(v) {
+  if (!check(v)) throw 1;
+  let [h, l] = unpack(v), c = "";
+  [l, c] = xhalf.dec(l);
+  [h, c] = xhalf.subc(h, c);
+  return [h + l, c];
+}
+
 function addc(v, c) {
   if (!check(v)) throw 1;
   if (c) [v, c] = inc(v);
+  return [v, c];
+}
+
+function subc(v, c) {
+  if (!check(v)) throw 1;
+  if (c) [v, c] = dec(v);
   return [v, c];
 }
 
@@ -98,14 +112,14 @@ function add(v1, v2) {
 }
 
 /**
- *
+ * Unsigned subtraction
  * @param v1
  * @param v2
  * @returns {[string, '' | '1']}
  */
 function sub(v1, v2) {
-  if (!check(v1)) throw new Error(`Sub with bad arg ${JSON.stringify(v1)}`);
-  if (!check(v2)) throw new Error(`Sub with bad arg ${JSON.stringify(v2)}`);
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
   let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2), c = '';
   let [l, cl] = xhalf.sub(l1, l2);
   let [h, ch] = xhalf.sub(h1, h2);
@@ -229,6 +243,6 @@ function bsr(v) {
 }
 
 
-module.exports = {unpack, pack, check, /*serialize,*/ parse, lt, inc, addc, add, sub, mul, toBin, fromBin, and, or,
+module.exports = {unpack, pack, check, /*serialize,*/ parse, lt, inc, dec, addc, subc, add, sub, mul, toBin, fromBin, and, or,
   not, neg, shl, shr, isNegative, slt, bsr};
 

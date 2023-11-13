@@ -45,9 +45,23 @@ function inc(v) {
   return [h + l, c];
 }
 
+function dec(v) {
+  if (!check(v)) throw 1;
+  let [h, l] = unpack(v), c = "";
+  [l, c] = xbyte.dec(l);
+  [h, c] = xbyte.subc(h, c);
+  return [h + l, c];
+}
+
 function addc(v, c) {
   if (!check(v)) throw 1;
   if (c) [v, c] = inc(v);
+  return [v, c];
+}
+
+function subc(v, c) {
+  if (!check(v)) throw 1;
+  if (c) [v, c] = dec(v);
   return [v, c];
 }
 
@@ -59,6 +73,22 @@ function add(v1, v2) {
   let [h, ch] = xbyte.add(h1, h2);
   [h, c] = xbyte.addc(h, cl);
   return [h + l, ch || c];
+}
+
+/**
+ * Unsigned subtraction
+ * @param v1
+ * @param v2
+ * @returns {[string, '' | '1']}
+ */
+function sub(v1, v2) {
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
+  let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2), c = '';
+  let [l, cl] = xbyte.sub(l1, l2);
+  let [h, ch] = xbyte.sub(h1, h2);
+  [h, c] = xbyte.subc(h, cl)
+  return [h + l, ch || c]
 }
 
 function mul(v1, v2) {
@@ -88,4 +118,4 @@ function bsr(v) {
 }
 
 
-module.exports = {unpack, pack, check, toBin, fromBin, /*serialize,*/ /*parse,*/ lt, inc, addc, add, mul, bsr};
+module.exports = {unpack, pack, check, toBin, fromBin, /*serialize,*/ /*parse,*/ lt, inc, dec, addc, subc, add, sub, mul, bsr};

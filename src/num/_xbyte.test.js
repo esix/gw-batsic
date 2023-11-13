@@ -37,6 +37,7 @@ test('xbyte.add', () => {
 
 test('xbyte.sub', () => {
   expect(xbyte.sub('01', '00')).toEqual(['01', '']);
+  expect(xbyte.sub('88', '08')).toEqual(['80', '']);
 });
 
 test('xbyte.toBin', () => {
