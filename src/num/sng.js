@@ -40,7 +40,7 @@ function isZero(v) {
 function isNegative(v) {
   let b = v.substr(2, 2);
   const sign = xbyte.toBin(b).substr(0, 1);
-  return sign === '1';
+  return sign === '1' ? '1' : '';
 }
 
 
@@ -110,16 +110,16 @@ function lt(v1, v2) {
 
 // ignore sign bits
 function _add(v1, v2) {
-  if (_lt(v2, v1)) {                          // ] v₁ <= v₂
+  if (_lt(v1, v2)) {                          // ] v₁ >= v₂
     [v1, v2] = [v2, v1];
   }
   let de, M, c;
   let {S: S1, E: E1, M: M1} = unpack(v1);
   let {S: S2, E: E2, M: M2} = unpack(v2);
   // E₁ ≤ E₂
-  // M₁⋅2ᴱ¹⁻²⁴ + M₂⋅2ᴱ²⁻²⁴ = (M₁⋅2ᴱ¹⁻ᴱ² + M₂)⋅2ᵉ²⁻²⁴ = (M₁/2ᴱ²⁻ᴱ¹ + M₂)⋅2ᴱ²⁻²⁴
-  [de, c] = xbyte.sub(E2, E1);
-  M1 = xdword.shr(M1, de);
+  // M₁⋅2ᴱ¹⁻²⁴ + M₂⋅2ᴱ²⁻²⁴ = (M₁ + M₂⋅2ᴱ²⁻ᴱ¹)⋅2ᴱ¹⁻²⁴ = (M₁ + M₂/2ᴱ¹⁻ᴱ²)⋅2ᴱ¹⁻²⁴
+  [de, c] = xbyte.sub(E1, E2);
+  M2 = xdword.shr(M2, de);                    // M₂ ￩ M₂/2ᴱ¹⁻ᴱ²
   [M, c] = xdword.add(M1, M2);
   if (M === "00000000") return "00000000";
   let hb = xdword.bsr(M);
@@ -128,14 +128,14 @@ function _add(v1, v2) {
   }
   if (24 < +hb) {     // hb > 24
     M = xdword.shr(M, String(hb - 24));
-    [E2, c] = xbyte.add(E2, xbyte.parse(String(hb - 24)));
+    [E1, c] = xbyte.add(E1, xbyte.parse(String(hb - 24)));
   }
-  return pack('1', E2, M);
+  return pack('1', E1, M);
 }
 
 // ignore sign bits
 function _sub(v1, v2) {
-  // a >= b
+  // v1 >= v2
   let de, M, c;
   let {S: S1, E: E1, M: M1} = unpack(v1);
   let {S: S2, E: E2, M: M2} = unpack(v2);
@@ -153,8 +153,6 @@ function _sub(v1, v2) {
     [E2, c] = xbyte.add(E2, xbyte.parse(String(hb - 24)));
   }
   return pack('1', E2, M);
-
-
 }
 
 
@@ -167,7 +165,7 @@ function add(a, b) {
     else if (aGEb) return neg(_sub(b, a));
     else return _sub(b, a);
   } else {
-    if (!isNegative(b)) return _add(b, a);
+    if (!isNegative(b)) return _add(a, b);
     else if (aGEb) return _sub(a, b);
     else return neg(_sub(b, a));
   }
