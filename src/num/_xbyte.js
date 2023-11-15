@@ -207,31 +207,30 @@ function neg(v) {
 /**
  *
  * @param sv - hex byte
- * @returns {"0" | "1"}
+ * @returns {"" | "1"}
  */
 function isNegative(sv) {
   if (!check(sv)) throw 1;
   const bin = toBin(sv);
-  if (bin.substr(0, 1) === '1') return '1';
-  return '0';
+  if (bin.substr(0, 1) === "1") return "1";
+  return "";
 }
 
 /**
- * Return '1' if first argument is less then second, signed comparision
- * otherwise return '0'
+ * Return "1" if first argument is less then second, signed comparision
+ * otherwise return ""
  * @param v1
  * @param v2
- * @returns {"0" | "1"}
+ * @returns {"" | "1"}
  */
 function slt(v1, v2) {
   if (!check(v1)) throw 1;
   if (!check(v2)) throw 1;
   const nv1 = isNegative(v1);
   const nv2 = isNegative(v2);
-  if (nv1 === '1' && nv2 === '0') return '1';
-  if (nv1 === '0' && nv2 === '1') return '0';
-  if (v1 < v2) return '1';
-  return '0';
+  if (nv1 === "1" && nv2 === "") return "1";
+  if (nv1 === "" && nv2 === "1") return "";
+  return lt(v1, v2);
 }
 
 function bsr(v) {

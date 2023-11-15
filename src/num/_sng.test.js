@@ -1,8 +1,8 @@
 const sng = require("./sng");
 
 const TESTS = {
-  "-.5"         : {mbf: "80800000", unpacked: {S: "-1", E: "00", M: "00800000"},          },          // -1/2
   "-1!"         : {mbf: "81800000", unpacked: {S: "-1", E: "01", M: "00800000"}, sb: "FF" },
+  "-.5"         : {mbf: "80800000", unpacked: {S: "-1", E: "00", M: "00800000"},          },          // -1/2
   "0!"          : {mbf: "00000000", unpacked: {S:  "0", E: "00", M: "00000000"}, sb: "00" },
   "1.525879E-05": {mbf: "71000000", unpacked: {S:  "1", E: "F1", M: "00800000"},          },          // 1/65536 = 0.0000152587890625
   "3.051758E-05": {mbf: "72000000", unpacked: {S:  "1", E: "F2", M: "00800000"},          },          // 1/32768 = 0.000030517578125
@@ -117,9 +117,26 @@ test('sng.neg', () => {
 
 test('sng.lt', () => {
   expect(sng.lt(TESTS["0!"].mbf, TESTS["0!"].mbf)).toBe('');
+  expect(sng.lt(TESTS["1!"].mbf, TESTS["1!"].mbf)).toBe('');
+  expect(sng.lt(TESTS["-1!"].mbf, TESTS["-1!"].mbf)).toBe('');
+  //
+  expect(sng.lt(TESTS["0!"].mbf, TESTS["1!"].mbf)).toBe('1');
   expect(sng.lt(TESTS["1!"].mbf, TESTS["0!"].mbf)).toBe('');
+  //
+  expect(sng.lt(TESTS[".5"].mbf, TESTS["1!"].mbf)).toBe('1');
+  expect(sng.lt(TESTS["1!"].mbf, TESTS[".5"].mbf)).toBe('');
+  //
   expect(sng.lt(TESTS["-1!"].mbf, TESTS["0!"].mbf)).toBe('1');
+  expect(sng.lt(TESTS["0!"].mbf, TESTS["-1!"].mbf)).toBe('');
+  //
+  expect(sng.lt(TESTS["-1!"].mbf, TESTS["-.5"].mbf)).toBe('1');
+  expect(sng.lt(TESTS["-.5"].mbf, TESTS["-1!"].mbf)).toBe('');
+  //
   expect(sng.lt(TESTS["-1!"].mbf, TESTS["1!"].mbf)).toBe('1');
+  expect(sng.lt(TESTS["1!"].mbf, TESTS["-1!"].mbf)).toBe('');
+  //
+  expect(sng.lt(TESTS[".25"].mbf, TESTS["1!"].mbf)).toBe('1');
+  expect(sng.lt(TESTS["1!"].mbf, TESTS[".25"].mbf)).toBe('');
 })
 
 test('sng.add', () => {

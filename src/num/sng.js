@@ -84,9 +84,9 @@ function neg(v) {
  */
 function _lt(v1, v2) {
   let {S: S1, E: E1, M: M1} = unpack(v1);
-  let {S: S2, E: E2, M: M2} = unpack(v1);
-  if (xbyte.lt(E1, E2)) return '1';
-  if (xbyte.lt(E2, E1)) return '';
+  let {S: S2, E: E2, M: M2} = unpack(v2);
+  if (xbyte.slt(E1, E2)) return '1';
+  if (xbyte.slt(E2, E1)) return '';
   return xdword.lt(M1, M2);
 }
 
@@ -99,9 +99,9 @@ function _lt(v1, v2) {
 function lt(v1, v2) {
   if (isNegative(v1)) {
     if (isNegative(v2)) return _lt(v2, v1);
-    else return '1';
+    else return "1";
   } else {
-    if (isNegative(v2)) return '';
+    if (isNegative(v2)) return "";
     else return _lt(v1, v2);
   }
 }

@@ -102,14 +102,27 @@ test('xbyte.shr', () => {
 });
 
 test('xbyte.slt', () => {
-  expect(xbyte.slt('00', '01')).toEqual('1');
-  expect(xbyte.slt('01', '00')).toEqual('0');
-  expect(xbyte.slt('01', '01')).toEqual('0');
-  expect(xbyte.slt('80', '7F')).toEqual('1');
-  expect(xbyte.slt('80', '00')).toEqual('1');
-  expect(xbyte.slt('7F', '00')).toEqual('0');
-  expect(xbyte.slt('AA', 'AB')).toEqual('1');
-  expect(xbyte.slt('80', '81')).toEqual('1');
+  expect(xbyte.slt("01", "01")).toEqual("");
+  expect(xbyte.slt("00", "00")).toEqual("");
+  expect(xbyte.slt("FF", "FF")).toEqual("");
+  //
+  expect(xbyte.slt("00", "01")).toEqual("1");
+  expect(xbyte.slt("01", "00")).toEqual("");
+
+  expect(xbyte.slt("80", "7F")).toEqual("1");
+  expect(xbyte.slt("7F", "80")).toEqual("");
+
+  expect(xbyte.slt("80", "00")).toEqual("1");
+  expect(xbyte.slt("00", "80")).toEqual("");
+
+  expect(xbyte.slt("00", "7F")).toEqual("1");
+  expect(xbyte.slt("7F", "00")).toEqual("");
+
+  expect(xbyte.slt("AA", "AB")).toEqual("1");
+  expect(xbyte.slt("AB", "AA")).toEqual("");
+
+  expect(xbyte.slt("80", "81")).toEqual("1");
+  expect(xbyte.slt("81", "80")).toEqual("");
 });
 
 test('xbyte.bsr', () => {
