@@ -110,13 +110,11 @@ function lt(v1, v2) {
 
 // ignore sign bits
 function _add(v1, v2) {
-  if (_lt(v1, v2)) {                          // ] v₁ >= v₂
-    [v1, v2] = [v2, v1];
-  }
+  // v₁ >= v₂
   let de, M, c;
   let {S: S1, E: E1, M: M1} = unpack(v1);
   let {S: S2, E: E2, M: M2} = unpack(v2);
-  // E₁ ≤ E₂
+  // E₁ ≥ E₂
   // M₁⋅2ᴱ¹⁻²⁴ + M₂⋅2ᴱ²⁻²⁴ = (M₁ + M₂⋅2ᴱ²⁻ᴱ¹)⋅2ᴱ¹⁻²⁴ = (M₁ + M₂/2ᴱ¹⁻ᴱ²)⋅2ᴱ¹⁻²⁴
   [de, c] = xbyte.sub(E1, E2);
   M2 = xdword.shr(M2, de);                    // M₂ ￩ M₂/2ᴱ¹⁻ᴱ²
@@ -135,18 +133,19 @@ function _add(v1, v2) {
 
 // ignore sign bits
 function _sub(v1, v2) {
-  // v1 >= v2
+  // v₁ >= v₂
   let de, M, c;
   let {S: S1, E: E1, M: M1} = unpack(v1);
   let {S: S2, E: E2, M: M2} = unpack(v2);
-  // M₁⋅2ᴱ¹⁻²⁴ - M₂⋅2ᴱ²⁻²⁴ = (M₁⋅2ᴱ¹⁻ᴱ² - M₂)⋅2ᵉ²⁻²⁴ = (M₁/2ᴱ²⁻ᴱ¹ - M₂)⋅2ᴱ²⁻²⁴
-  [de, c] = xbyte.sub(E2, E1);
-  M1 = xdword.shr(M1, de);
+  // M₁⋅2ᴱ¹⁻²⁴ - M₂⋅2ᴱ²⁻²⁴ = (M₁ + M₂⋅2ᴱ²⁻ᴱ¹)⋅2ᴱ¹⁻²⁴ = (M₁ + M₂/2ᴱ¹⁻ᴱ²)⋅2ᴱ¹⁻²⁴
+  [de, c] = xbyte.sub(E1, E2);
+  M2 = xdword.shr(M2, de);                    // M₂ ￩ M₂/2ᴱ¹⁻ᴱ²
   [M, c] = xdword.sub(M1, M2);
   if (M === "00000000") return "00000000";
   let hb = xdword.bsr(M);
   if (+hb < 24) {    // hb < 24
-    throw 100;
+    M = xdword.shl(M, String(20 - hb));
+    [E2, c] = xbyte.sub(E2, xbyte.parse(String(24 - hb)));
   }
   if (24 < +hb) {     // hb > 24
     M = xdword.shr(M, String(hb - 24));
@@ -159,15 +158,21 @@ function _sub(v1, v2) {
 function add(a, b) {
   if (isZero(a)) return b;
   if (isZero(b)) return a;
-  let aGEb = lt(b, a);
+  let aGEb = _lt(b, a);                 // |a| >= |b|
   if (isNegative(a)) {
-    if (isNegative(b)) return neg(_add(a, b));
-    else if (aGEb) return neg(_sub(b, a));
-    else return _sub(b, a);
+    if (isNegative(b))
+      if (aGEb) return neg(_add(a, b));
+      else return neg(_add(b, a));
+    else
+      if (aGEb) return neg(_sub(a, b));
+      else return _sub(b, a);
   } else {
-    if (!isNegative(b)) return _add(a, b);
-    else if (aGEb) return _sub(a, b);
-    else return neg(_sub(b, a));
+    if (!isNegative(b))
+      if (aGEb) return _add(a, b);
+      else return _add(b, a);
+    else
+      if (aGEb) return _sub(a, b);
+      else return neg(_sub(b, a));
   }
 }
 
