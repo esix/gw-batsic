@@ -1,8 +1,17 @@
 const xbyte = require('./_xbyte');
 
-const unpack = (v) => [v.substr(0, 2), v.substr(2, 2)];
-const pack = (h, l) => h + l;
-const check = (v) => v[4] === undefined && unpack(v).map(xbyte.check).every(Boolean);
+const check = (v) => typeof v === 'string' && v.length === 4 && xbyte.check(v.substr(0, 2)) && xbyte.check(v.substr(2, 2));
+
+function unpack(v) {
+  if (!check(v)) throw 1;
+  return [v.substr(0, 2), v.substr(2, 2)];
+}
+
+function pack(h, l) {
+  if (!xbyte.check(h)) throw 1;
+  if (!xbyte.check(l)) throw 1;
+  return String(h) + String(l);
+}
 
 // function serialize(v) {
 //   if (!check(v)) throw new Error();

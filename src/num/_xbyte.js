@@ -1,19 +1,13 @@
 const xhalf = require('./_xhalf');
 
-const check = (v) => {
-  if (typeof v !== 'string') return false;
-  if (v[2] !== undefined) return false;
-  if (!xhalf.check(v.substr(0, 1))) return false;
-  if (!xhalf.check(v.substr(1, 1))) return false;
-  return true;
-}
+const check = (v) => typeof v === 'string' && v.length === 2 && xhalf.check(v.substr(0, 1)) && xhalf.check(v.substr(1, 1));
 
-const unpack = (v) => {
+function unpack(v) {
   if (!check(v)) throw 1;
   return [v.substr(0, 1), v.substr(1, 1)];
-};
+}
 
-const pack = (h, l) => {
+function pack(h, l) {
   if (!xhalf.check(h)) throw 1;
   if (!xhalf.check(l)) throw 1;
   return String(h) + String(l);

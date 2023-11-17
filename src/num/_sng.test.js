@@ -152,5 +152,10 @@ test('sng.add', () => {
 
 test('sng.sub', () => {
   expect(sng.sub(TESTS["0!"].mbf, TESTS["0!"].mbf)).toBe(TESTS["0!"].mbf);
+
   expect(sng.sub(TESTS["1!"].mbf, TESTS[".5"].mbf)).toBe(TESTS[".5"].mbf);
+  expect(sng.sub(TESTS[".5"].mbf, TESTS["1!"].mbf)).toBe(TESTS["-.5"].mbf);
+
+  expect(sng.sub(TESTS["1!"].mbf, TESTS["1.5"].mbf)).toBe(TESTS["-.5"].mbf);
+  expect(sng.sub(TESTS["1.5"].mbf, TESTS["1!"].mbf)).toBe(TESTS[".5"].mbf);
 });

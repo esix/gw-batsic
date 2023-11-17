@@ -2,7 +2,7 @@ const xword = require('./_xword');
 
 const unpack = (v) => [v.substr(0, 4), v.substr(4, 4)];
 const pack = (h, l) => h + l;
-const check = (v) => v[8] === undefined && unpack(v).map(xword.check).every(Boolean);
+const check = (v) => typeof v === 'string' && v.length === 8 && xword.check(v.substr(0, 4)) && xword.check(v.substr(4, 4));
 
 const checkDec = (n) => {
   // TODO
@@ -90,7 +90,12 @@ function sub(v1, v2) {
   return [h + l, ch || c]
 }
 
-
+/**
+ * Shift right
+ * @param {string} v
+ * @param {string} n
+ * @returns {string}
+ */
 function shr(v, n) {
   if (!check(v)) throw 1;
   if (!checkDec(n)) throw 1;
@@ -99,6 +104,22 @@ function shr(v, n) {
   b = b.substr(0, 32);
   return fromBin(b)
 }
+
+/**
+ * Shift left
+ * @param {string} v
+ * @param {string} n
+ * @returns {string}
+ */
+function shl(v, n) {
+  if (!check(v)) throw 1;
+  if (!checkDec(n)) throw 1;
+  let b = toBin(v);
+  for (let i = 0; i < +n; i++) b = b + '0';
+  b = b.substr(n);
+  return fromBin(b);
+}
+
 
 function bsr(v) {
   if (!check(v)) throw 1;
@@ -109,4 +130,4 @@ function bsr(v) {
 }
 
 
-module.exports = {unpack, pack, check, lt, inc, dec, addc, subc, add, sub, shr, bsr};
+module.exports = {unpack, pack, check, lt, inc, dec, addc, subc, add, sub, shr, shl, bsr};

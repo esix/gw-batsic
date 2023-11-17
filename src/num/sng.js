@@ -144,14 +144,13 @@ function _sub(v1, v2) {
   if (M === "00000000") return "00000000";
   let hb = xdword.bsr(M);
   if (+hb < 24) {    // hb < 24
-    M = xdword.shl(M, String(20 - hb));
-    [E2, c] = xbyte.sub(E2, xbyte.parse(String(24 - hb)));
+    M = xdword.shl(M, String(24 - hb));
+    [E1, c] = xbyte.sub(E1, xbyte.parse(String(24 - hb)));
   }
   if (24 < +hb) {     // hb > 24
-    M = xdword.shr(M, String(hb - 24));
-    [E2, c] = xbyte.add(E2, xbyte.parse(String(hb - 24)));
+    throw 100;
   }
-  return pack('1', E2, M);
+  return pack('1', E1, M);
 }
 
 
