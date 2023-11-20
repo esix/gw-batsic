@@ -1,6 +1,20 @@
 const xbyte = require("./_xbyte");
 const xdword = require("./_xdword");
 
+/**
+ *
+ * @param {any} v
+ * @returns {boolean}
+ */
+function check(v) {
+  return xdword.check(v);
+}
+
+/**
+ *
+ * @param v
+ * @returns {{S: "-1"|"0"|"1", E: string, M: string}}
+ */
 function unpack(v) {
   let a = v.substr(0, 2);
   let b = v.substr(2, 2);
@@ -12,12 +26,19 @@ function unpack(v) {
   let [E, _] = xbyte.sub(a, "80");
 
   const sign = xbyte.toBin(b).substr(0, 1);
-  const S = sign === '1' ? "-1" : "1";
+  const S = sign === "1" ? "-1" : "1";
   // ??
   let M = '00' + xbyte.or(b, "80") + c + d;
   return { S, E, M };
 }
 
+/**
+ *
+ * @param {"-1"|"0"|"1"} S
+ * @param {string} E
+ * @param {string} M
+ * @returns {string}
+ */
 function pack(S, E, M) {
   if (!xbyte.check(E)) throw 1;
   if (!xdword.check(M)) throw 1;
@@ -107,7 +128,6 @@ function lt(v1, v2) {
 }
 
 
-
 // ignore sign bits
 function _add(v1, v2) {
   // v₁ >= v₂
@@ -155,6 +175,9 @@ function _sub(v1, v2) {
 
 
 function add(a, b) {
+  if (!check(a)) throw 1;
+  if (!check(b)) throw 1;
+
   if (isZero(a)) return b;
   if (isZero(b)) return a;
   let aGEb = _lt(b, a);                 // |a| >= |b|
@@ -176,24 +199,51 @@ function add(a, b) {
 }
 
 function sub(v1, v2) {
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
   return add(v1, neg(v2));
+}
+
+/**
+ *
+ * @param {string} v1
+ * @param {string} v2
+ * @returns {string}
+ */
+function mul(v1, v2) {
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
+
+  let {S: S1, E: E1, M: M1} = unpack(v1);
+  let {S: S2, E: E2, M: M2} = unpack(v2);
+
+  if (S1 === "0") return "00000000";
+  if (S2 === "0") return "00000000";
+
+  // M₁⋅2ᴱ¹⁻²⁴ ⋅ M₂⋅2ᴱ²⁻²⁴ = (M₁⋅M₂)⋅2ᴱ¹⁻²⁴⁺ᴱ²⁻²⁴
+  let M = xdword.mul(M1, M2);
 }
 
 
 const log_10_2 = 0.30102999566398;
 const ln_10 = 2.30258509299;
 
+/**
+ *
+ * @param {string} v
+ * @returns {string}
+ */
 function serialize(v) {
   let {S, E, M} = unpack(v);
   if (S === "0") return "0";
-  // S * M * 2^(E - 24)
+
   S = parseInt(S);
   M = parseInt(M, 16);
   E = parseInt(E, 16);
 
-  let e1 = (E - 24) * log_10_2;                           // v = S⋅M⋅10ᵉ¹
-  let n = Math.floor(e1);                                 // e₁ = n + r,  n = ⌊e₁⌋
-  let r = e1 - n;                                         // v = S⋅M⋅10ʳ⋅10ⁿ
+  let E1 = (E - 24) * log_10_2;                           // v = S⋅M⋅2ᴱ⁻²⁴ = S⋅M⋅10ᴱ¹
+  let n = Math.floor(E1);                                 // e₁ = n + r,  n = ⌊e₁⌋
+  let r = E1 - n;                                         // v = S⋅M⋅10ʳ⋅10ⁿ
   let x = Math.exp(r * ln_10);                            // x = 10ʳ
 
   console.log(S, M, E, ' ---> ', M * x, '* 10^' + String(n));
@@ -201,4 +251,4 @@ function serialize(v) {
   return String(S * M * x * 10 ** n);
 }
 
-module.exports = {unpack, pack, fromSB, serialize, lt, neg, add, sub};
+module.exports = {unpack, pack, fromSB, serialize, lt, neg, add, sub, mul};

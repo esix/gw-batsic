@@ -69,7 +69,7 @@ const TESTS = {
   "16.25"       : {mbf: "85020000", unpacked: {S:  "1", E: "05", M: "00820000"},          },
   "16.5"        : {mbf: "85040000", unpacked: {S:  "1", E: "05", M: "00840000"},          },
   // "90!"         : {mbf: "87340000", unpacked: {S:  "1", E: "07", M: "00B40000"}, sb: "5A" },
-  // "100!"        : {mbf: "87480000", unpacked: {S:  "1", E: "07", M: "00C80000"}, sb: "64" },
+  "100!"        : {mbf: "87480000", unpacked: {S:  "1", E: "07", M: "00C80000"}, sb: "64" },
   // "110!"        : {mbf: "875C0000", unpacked: {S:  "1", E: "07", M: "00DC0000"}, sb: "6E" },
   // "120!"        : {mbf: "87700000", unpacked: {S:  "1", E: "07", M: "00F00000"}, sb: "78" },
   // "130!"        : {mbf: "88020000", unpacked: {S:  "1", E: "08", M: "00820000"},          },
@@ -88,14 +88,6 @@ test('sng.pack', () => {
   for (let tst of Object.values(TESTS)) {
     expect(sng.pack(tst.unpacked.S, tst.unpacked.E, tst.unpacked.M)).toBe(tst.mbf);
   }
-});
-
-test('sng.serialize', () => {
-  expect(sng.serialize('00000000')).toBe('0');
-  // expect(sng.serialize('80000000')).toBe('0.5');
-  // expect(sng.serialize('81400000')).toBe('1.5');
-  // expect(sng.serialize('9117E880')).toBe('77777');
-  // expect(sng.serialize('7E4CCCCD')).toBe('0.2');
 });
 
 test('sng.fromSB', () => {
@@ -159,3 +151,19 @@ test('sng.sub', () => {
   expect(sng.sub(TESTS["1!"].mbf, TESTS["1.5"].mbf)).toBe(TESTS["-.5"].mbf);
   expect(sng.sub(TESTS["1.5"].mbf, TESTS["1!"].mbf)).toBe(TESTS[".5"].mbf);
 });
+
+test('sng.mul', () => {
+  expect(sng.mul(TESTS["0!"].mbf, TESTS["0!"].mbf)).toBe(TESTS["0!"].mbf);
+  expect(sng.mul(TESTS["10!"].mbf, TESTS["0!"].mbf)).toBe(TESTS["0!"].mbf);
+
+  expect(sng.mul(TESTS["10!"].mbf, TESTS["10!"].mbf)).toBe(TESTS["100!"].mbf);
+});
+
+test('sng.serialize', () => {
+  expect(sng.serialize('00000000')).toBe('0');
+  // expect(sng.serialize('80000000')).toBe('.5');
+  // expect(sng.serialize('81400000')).toBe('1.5');
+  // expect(sng.serialize('9117E880')).toBe('77777');
+  // expect(sng.serialize('7E4CCCCD')).toBe('0.2');
+});
+
