@@ -123,8 +123,8 @@ function sub(v1, v2) {
 
 /**
  *
- * @param v1
- * @param v2
+ * @param {string} v1
+ * @param {string} v2
  * @returns {string}
  */
 function mul(v1, v2) {

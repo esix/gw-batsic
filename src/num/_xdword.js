@@ -1,8 +1,16 @@
-const xword = require('./_xword');
+const xword = require("./_xword");
 
 const unpack = (v) => [v.substr(0, 4), v.substr(4, 4)];
 const pack = (h, l) => h + l;
-const check = (v) => typeof v === 'string' && v.length === 8 && xword.check(v.substr(0, 4)) && xword.check(v.substr(4, 4));
+
+/**
+ * Check if value is a valid DWORD
+ * @param {any} v
+ * @returns {boolean}
+ */
+function check(v) {
+  return typeof v === 'string' && v.length === 8 && xword.check(v.substr(0, 4)) && xword.check(v.substr(4, 4));
+}
 
 const checkDec = (n) => {
   // TODO
@@ -17,7 +25,7 @@ function toBin(v) {
 
 function fromBin(b) {
   // TODO: check 32 bits
-  return xword.fromBin(b.substr(0, 16)) + xword.fromBin(b.substr(16, 16));
+  return pack(xword.fromBin(b.substr(0, 16)), xword.fromBin(b.substr(16, 16)));
 }
 
 function lt(v1, v2) {
@@ -129,5 +137,27 @@ function bsr(v) {
   return xword.bsr(l);
 }
 
+/**
+ *
+ * @param {string} v1
+ * @param {string} v2
+ * @returns {string}
+ */
+function mul(v1, v2) {
+  if (!check(v1)) throw 1;
+  if (!check(v2)) throw 1;
+  let [h1, l1] = unpack(v1), [h2, l2] = unpack(v2), c = '';
+  let a1 = "00000000" + xword.mul(l1, l2);
+  let [a2, c2] = add(xword.mul(l1, h2), xword.mul(l2, h1));
+  let a3 = xword.mul(h1, h2) + "00000000";
+  if (c2) {
+    a2 = "0001" + a2 + "0000";
+  } else {
+    a2 = "0000" + a2 + "0000";
+  }
+  let [r, c_r] = require('./_xqword').add(a1, a2);
+  [r, c_r] = require('./_xqword').add(r, a3);
+  return r;
+}
 
-module.exports = {unpack, pack, check, lt, inc, dec, addc, subc, add, sub, shr, shl, bsr};
+module.exports = {unpack, pack, check, toBin, fromBin, lt, inc, dec, addc, subc, add, sub, shr, shl, bsr, mul};

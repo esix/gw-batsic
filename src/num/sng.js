@@ -1,5 +1,6 @@
 const xbyte = require("./_xbyte");
 const xdword = require("./_xdword");
+const xqword = require("./_xqword");
 
 /**
  *
@@ -222,6 +223,12 @@ function mul(v1, v2) {
 
   // M₁⋅2ᴱ¹⁻²⁴ ⋅ M₂⋅2ᴱ²⁻²⁴ = (M₁⋅M₂)⋅2ᴱ¹⁻²⁴⁺ᴱ²⁻²⁴
   let M = xdword.mul(M1, M2);
+  M = xqword.shr(M, "24");
+  let [E, c] = xbyte.sadd(E1, E2);
+  if (c) {
+    throw 200;
+  }
+
 }
 
 
