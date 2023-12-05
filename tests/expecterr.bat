@@ -1,4 +1,6 @@
 @echo off
+:: Usage
+::  expecterr "Command" errorcode
 
 set "operation=%~1"
 set "__="
