@@ -15,6 +15,7 @@ call %test% "xhalf.check"
   call expecterr "_xhalf check g" 1
   call expecterr "_xhalf check G" 1
   call expecterr "_xhalf check :" 1
-   call expecterr "_xhalf check" 1
+  call expecterr "_xhalf check" 1
   call expecterr "_xhalf check 00" 1
-  call expecterr "_xhalf check ^" ^""  1
+  call expecterr "_xhalf check ^"  1
+
