@@ -1,7 +1,7 @@
 @echo off
 
 set "operation=%~1"
-:: set "__="
+set "__="
 set /a numTests+=1
 
 call %operation%

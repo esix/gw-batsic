@@ -1,267 +1,292 @@
 @echo off
-if not "%~1"=="" shift & goto :%~1
-goto :_start
+@REM Hex-to-decimal lookup (set once on entry, used by binary ops)
+set "_s_0=0"& set "_s_1=1"& set "_s_2=2"& set "_s_3=3"& set "_s_4=4"& set "_s_5=5"& set "_s_6=6"& set "_s_7=7"
+set "_s_8=8"& set "_s_9=9"& set "_s_A=10"& set "_s_B=11"& set "_s_C=12"& set "_s_D=13"& set "_s_E=14"& set "_s_F=15"
+@REM Decimal-to-hex lookup
+set "_p_0=0"& set "_p_1=1"& set "_p_2=2"& set "_p_3=3"& set "_p_4=4"& set "_p_5=5"& set "_p_6=6"& set "_p_7=7"
+set "_p_8=8"& set "_p_9=9"& set "_p_10=A"& set "_p_11=B"& set "_p_12=C"& set "_p_13=D"& set "_p_14=E"& set "_p_15=F"
+if "%~1"=="" goto :_start
+set "_fn=%~1"
+shift
+goto :%_fn%
+
 
 :check v
   setlocal EnableDelayedExpansion
   set "v=%~1"
-  if "!v:~1,1!" neq "" endlocal && exit /B 1
+  if "!v:~1,1!" neq "" endlocal & exit /B 1
   for %%l in (0 1 2 3 4 5 6 7 8 9 A B C D E F) do (
-    if "!v!"=="%%l" endlocal && exit /B 0
+    if "!v!"=="%%l" endlocal & exit /B 0
   )
-  @REM if "!v!" geq "A" if "!v!" leq "F" 
-  endlocal && exit /B 1
+  endlocal & exit /B 1
 
 
 :serialize v ret
   setlocal EnableDelayedExpansion
   set "v=%~1"
-  call :check !v!
-  if errorlevel 1 endlocal && exit /B 1
-  if "!v!" == "0" set ret=0
-  if "!v!" == "1" set ret=1
-  if "!v!" == "2" set ret=2
-  if "!v!" == "3" set ret=3
-  if "!v!" == "4" set ret=4
-  if "!v!" == "5" set ret=5
-  if "!v!" == "6" set ret=6
-  if "!v!" == "7" set ret=7
-  if "!v!" == "8" set ret=8
-  if "!v!" == "9" set ret=9
-  if "!v!" == "A" set ret=10
-  if "!v!" == "B" set ret=11
-  if "!v!" == "C" set ret=12
-  if "!v!" == "D" set ret=13
-  if "!v!" == "E" set ret=14
-  if "!v!" == "F" set ret=15
-
-  if "!ret!" == "" endlocal && exit /B 1
-  endlocal && set "%~2=%ret%" && exit /B 0
+  set "r=!_s_%v%!"
+  if "!r!"=="" endlocal & exit /B 1
+  endlocal & set "%~2=%r%" & exit /B 0
 
 
 :parse dec ret
   setlocal EnableDelayedExpansion
-  set "dec=%~1"
-  set ret=
-  if "!dec!" == "0"  set ret=0
-  if "!dec!" == "1"  set ret=1
-  if "!dec!" == "2"  set ret=2
-  if "!dec!" == "3"  set ret=3
-  if "!dec!" == "4"  set ret=4
-  if "!dec!" == "5"  set ret=5
-  if "!dec!" == "6"  set ret=6
-  if "!dec!" == "7"  set ret=7
-  if "!dec!" == "8"  set ret=8
-  if "!dec!" == "9"  set ret=9
-  if "!dec!" == "10" set ret=A
-  if "!dec!" == "11" set ret=B
-  if "!dec!" == "12" set ret=C
-  if "!dec!" == "13" set ret=D
-  if "!dec!" == "14" set ret=E
-  if "!dec!" == "15" set ret=F
-
-  if "!ret!" == "" endlocal && exit /B 1
-  endlocal && set "%~2=%ret%" && exit /B 0
+  set "d=%~1"
+  set "r=!_p_%d%!"
+  if "!r!"=="" endlocal & exit /B 1
+  endlocal & set "%~2=%r%" & exit /B 0
 
 
-@REM function lt(v1, v2) {
-@REM   if (!check(v1)) throw 1;
-@REM   if (!check(v2)) throw 1;
-@REM   if (v1 < v2) return '1';
-@REM   return '';
-@REM }
+@REM === Unary ops: goto-dispatch tables (no call :label needed) ===
+
+:inc v
+  goto :_inc_%~1
+:_inc_0
+  set "__=1"& set "__c="& exit /B 0
+:_inc_1
+  set "__=2"& set "__c="& exit /B 0
+:_inc_2
+  set "__=3"& set "__c="& exit /B 0
+:_inc_3
+  set "__=4"& set "__c="& exit /B 0
+:_inc_4
+  set "__=5"& set "__c="& exit /B 0
+:_inc_5
+  set "__=6"& set "__c="& exit /B 0
+:_inc_6
+  set "__=7"& set "__c="& exit /B 0
+:_inc_7
+  set "__=8"& set "__c="& exit /B 0
+:_inc_8
+  set "__=9"& set "__c="& exit /B 0
+:_inc_9
+  set "__=A"& set "__c="& exit /B 0
+:_inc_A
+  set "__=B"& set "__c="& exit /B 0
+:_inc_B
+  set "__=C"& set "__c="& exit /B 0
+:_inc_C
+  set "__=D"& set "__c="& exit /B 0
+:_inc_D
+  set "__=E"& set "__c="& exit /B 0
+:_inc_E
+  set "__=F"& set "__c="& exit /B 0
+:_inc_F
+  set "__=0"& set "__c=1"& exit /B 0
 
 
-@REM /**
-@REM  *
-@REM  * @param {string} v
-@REM  * @returns {[string, ""|"1"]}
-@REM  */
-@REM function inc(v) {
-@REM   if (!check(v)) throw 1;
-@REM   let d = serialize(v);
-@REM   /** @type {""|"1"} */
-@REM   let c = "";
-@REM   d = String((+d) + 1);
-@REM   if (d === '16') {
-@REM     d = '0';
-@REM     c = "1";
-@REM   }
-@REM   v = parse(d);
-@REM   return [v, c];
-@REM }
+:dec v
+  goto :_dec_%~1
+:_dec_0
+  set "__=F"& set "__c=1"& exit /B 0
+:_dec_1
+  set "__=0"& set "__c="& exit /B 0
+:_dec_2
+  set "__=1"& set "__c="& exit /B 0
+:_dec_3
+  set "__=2"& set "__c="& exit /B 0
+:_dec_4
+  set "__=3"& set "__c="& exit /B 0
+:_dec_5
+  set "__=4"& set "__c="& exit /B 0
+:_dec_6
+  set "__=5"& set "__c="& exit /B 0
+:_dec_7
+  set "__=6"& set "__c="& exit /B 0
+:_dec_8
+  set "__=7"& set "__c="& exit /B 0
+:_dec_9
+  set "__=8"& set "__c="& exit /B 0
+:_dec_A
+  set "__=9"& set "__c="& exit /B 0
+:_dec_B
+  set "__=A"& set "__c="& exit /B 0
+:_dec_C
+  set "__=B"& set "__c="& exit /B 0
+:_dec_D
+  set "__=C"& set "__c="& exit /B 0
+:_dec_E
+  set "__=D"& set "__c="& exit /B 0
+:_dec_F
+  set "__=E"& set "__c="& exit /B 0
 
 
-@REM function dec(v) {
-@REM   if (!check(v)) throw 1;
-@REM   let d = serialize(v), c = '';
-@REM   d = String((+d) - 1);
-@REM   if (d === '-1') {
-@REM     d = '15';
-@REM     c = '1';
-@REM   }
-@REM   v = parse(d);
-@REM   return [v, c];
-@REM }
+:inv v
+  goto :_not_%~1
+:_not_0
+  set "__=F"& exit /B 0
+:_not_1
+  set "__=E"& exit /B 0
+:_not_2
+  set "__=D"& exit /B 0
+:_not_3
+  set "__=C"& exit /B 0
+:_not_4
+  set "__=B"& exit /B 0
+:_not_5
+  set "__=A"& exit /B 0
+:_not_6
+  set "__=9"& exit /B 0
+:_not_7
+  set "__=8"& exit /B 0
+:_not_8
+  set "__=7"& exit /B 0
+:_not_9
+  set "__=6"& exit /B 0
+:_not_A
+  set "__=5"& exit /B 0
+:_not_B
+  set "__=4"& exit /B 0
+:_not_C
+  set "__=3"& exit /B 0
+:_not_D
+  set "__=2"& exit /B 0
+:_not_E
+  set "__=1"& exit /B 0
+:_not_F
+  set "__=0"& exit /B 0
 
 
-@REM /**
-@REM  *
-@REM  * @param {string} v
-@REM  * @param {""|"1"} c
-@REM  * @returns {[string, ""|"1"]}
-@REM  */
-@REM function addc(v, c) {
-@REM   if (!check(v)) throw 1;
-@REM   if (c) [v, c] = inc(v);
-@REM   return [v, c];
-@REM }
+:shr v
+  goto :_shr_%~1
+:_shr_0
+  set "__=0"& set "__c="& exit /B 0
+:_shr_1
+  set "__=0"& set "__c=1"& exit /B 0
+:_shr_2
+  set "__=1"& set "__c="& exit /B 0
+:_shr_3
+  set "__=1"& set "__c=1"& exit /B 0
+:_shr_4
+  set "__=2"& set "__c="& exit /B 0
+:_shr_5
+  set "__=2"& set "__c=1"& exit /B 0
+:_shr_6
+  set "__=3"& set "__c="& exit /B 0
+:_shr_7
+  set "__=3"& set "__c=1"& exit /B 0
+:_shr_8
+  set "__=4"& set "__c="& exit /B 0
+:_shr_9
+  set "__=4"& set "__c=1"& exit /B 0
+:_shr_A
+  set "__=5"& set "__c="& exit /B 0
+:_shr_B
+  set "__=5"& set "__c=1"& exit /B 0
+:_shr_C
+  set "__=6"& set "__c="& exit /B 0
+:_shr_D
+  set "__=6"& set "__c=1"& exit /B 0
+:_shr_E
+  set "__=7"& set "__c="& exit /B 0
+:_shr_F
+  set "__=7"& set "__c=1"& exit /B 0
 
 
-@REM function add(v1, v2) {
-@REM   if (!check(v1)) throw 1;
-@REM   if (!check(v2)) throw 1;
-@REM   let d1 = serialize(v1), d2 = serialize(v2), c = '';
-@REM   let d = String((+d1) + (+d2));
-@REM   if ((+d) >= 16) { d = String((+d) - 16); c = '1';}
-@REM   let v = parse(d);
-@REM   return [v, c];
-@REM }
+:shl v
+  goto :_shl_%~1
+:_shl_0
+  set "__=0"& set "__c="& exit /B 0
+:_shl_1
+  set "__=2"& set "__c="& exit /B 0
+:_shl_2
+  set "__=4"& set "__c="& exit /B 0
+:_shl_3
+  set "__=6"& set "__c="& exit /B 0
+:_shl_4
+  set "__=8"& set "__c="& exit /B 0
+:_shl_5
+  set "__=A"& set "__c="& exit /B 0
+:_shl_6
+  set "__=C"& set "__c="& exit /B 0
+:_shl_7
+  set "__=E"& set "__c="& exit /B 0
+:_shl_8
+  set "__=0"& set "__c=1"& exit /B 0
+:_shl_9
+  set "__=2"& set "__c=1"& exit /B 0
+:_shl_A
+  set "__=4"& set "__c=1"& exit /B 0
+:_shl_B
+  set "__=6"& set "__c=1"& exit /B 0
+:_shl_C
+  set "__=8"& set "__c=1"& exit /B 0
+:_shl_D
+  set "__=A"& set "__c=1"& exit /B 0
+:_shl_E
+  set "__=C"& set "__c=1"& exit /B 0
+:_shl_F
+  set "__=E"& set "__c=1"& exit /B 0
 
 
-@REM function subc(v, c) {
-@REM   if (!check(v)) throw 1;
-@REM   if (c) [v, c] = dec(v);
-@REM   return [v, c];
-@REM }
+@REM === addc / subc: delegates to inc / dec via goto ===
+
+:addc v c
+  if "%~2"=="1" goto :inc
+  set "__=%~1"& set "__c="& exit /B 0
+
+:subc v c
+  if "%~2"=="1" goto :dec
+  set "__=%~1"& set "__c="& exit /B 0
 
 
-@REM function sub(v1, v2) {
-@REM   if (!check(v1)) throw 1;
-@REM   if (!check(v2)) throw 1;
-@REM   let d1 = serialize(v1), d2 = serialize(v2), c = '';
-@REM   let d = String((+d1) - (+d2));
-@REM   if ((+d) < 0) { d = String((+d) + 16); c = '1';}
-@REM   let v = parse(d);
-@REM   return [v, c];
-@REM }
+@REM === Binary ops: env-var lookup tables + set /a ===
+@REM Uses _s_ (hex->dec) and _p_ (dec->hex) tables set at file entry.
+@REM No call :label — only env var indirection via !_s_%v%! pattern.
+
+:add
+  setlocal EnableDelayedExpansion
+  set "v1=%~1"& set "v2=%~2"
+  set /a "d=!_s_%v1%!+!_s_%v2%!"
+  set "c="
+  if !d! GEQ 16 set /a "d=d-16" & set "c=1"
+  set "r=!_p_%d%!"
+  endlocal & set "__=%r%" & set "__c=%c%" & exit /B 0
 
 
-@REM function mul(v1, v2) {
-@REM   if (!check(v1)) throw 1;
-@REM   if (!check(v2)) throw 1;
-@REM   let d1 = serialize(v1), d2 = serialize(v2), c = '';
-@REM   let d = String((+d1) * (+d2));
-@REM   let h = parse(String(Math.floor((+d) / 16))), l = parse(String((+d) % 16));
-@REM   return `${h}${l}`;
-@REM }
+:sub
+  setlocal EnableDelayedExpansion
+  set "v1=%~1"& set "v2=%~2"
+  set /a "d=!_s_%v1%!-!_s_%v2%!"
+  set "c="
+  if !d! LSS 0 set /a "d=d+16" & set "c=1"
+  set "r=!_p_%d%!"
+  endlocal & set "__=%r%" & set "__c=%c%" & exit /B 0
 
 
-@REM function toBin(v) {
-@REM   let ret = '';
-@REM   if (!check(v)) throw 1;
-@REM   if (v === '0') ret = '0000';
-@REM   if (v === '1') ret = '0001';
-@REM   if (v === '2') ret = '0010';
-@REM   if (v === '3') ret = '0011';
-@REM   if (v === '4') ret = '0100';
-@REM   if (v === '5') ret = '0101';
-@REM   if (v === '6') ret = '0110';
-@REM   if (v === '7') ret = '0111';
-@REM   if (v === '8') ret = '1000';
-@REM   if (v === '9') ret = '1001';
-@REM   if (v === 'A') ret = '1010';
-@REM   if (v === 'B') ret = '1011';
-@REM   if (v === 'C') ret = '1100';
-@REM   if (v === 'D') ret = '1101';
-@REM   if (v === 'E') ret = '1110';
-@REM   if (v === 'F') ret = '1111';
-@REM   return ret;
-@REM }
+:mul
+  setlocal EnableDelayedExpansion
+  set "v1=%~1"& set "v2=%~2"
+  set /a "d=!_s_%v1%!*!_s_%v2%!"
+  set /a "h=d/16"& set /a "l=d%%16"
+  set "rh=!_p_%h%!"& set "rl=!_p_%l%!"
+  endlocal & set "__=%rh%%rl%" & exit /B 0
 
 
-@REM function fromBin(b) {
-@REM   let ret = '';
-@REM   if (b === '0000') ret = '0';
-@REM   if (b === '0001') ret = '1';
-@REM   if (b === '0010') ret = '2';
-@REM   if (b === '0011') ret = '3';
-@REM   if (b === '0100') ret = '4';
-@REM   if (b === '0101') ret = '5';
-@REM   if (b === '0110') ret = '6';
-@REM   if (b === '0111') ret = '7';
-@REM   if (b === '1000') ret = '8';
-@REM   if (b === '1001') ret = '9';
-@REM   if (b === '1010') ret = 'A';
-@REM   if (b === '1011') ret = 'B';
-@REM   if (b === '1100') ret = 'C';
-@REM   if (b === '1101') ret = 'D';
-@REM   if (b === '1110') ret = 'E';
-@REM   if (b === '1111') ret = 'F';
-@REM   return ret;
-@REM }
+:and
+  setlocal EnableDelayedExpansion
+  set "v1=%~1"& set "v2=%~2"
+  set /a "d=!_s_%v1%!&!_s_%v2%!"
+  set "r=!_p_%d%!"
+  endlocal & set "__=%r%" & exit /B 0
 
 
-@REM function not(v) {
-@REM   if (!check(v)) throw 1;
-@REM   let bin = toBin(v);
-@REM   let r = '';
-@REM   if (bin.substr(0, 1) === '1') r += '0'; else r += '1';
-@REM   if (bin.substr(1, 1) === '1') r += '0'; else r += '1';
-@REM   if (bin.substr(2, 1) === '1') r += '0'; else r += '1';
-@REM   if (bin.substr(3, 1) === '1') r += '0'; else r += '1';
-@REM   return fromBin(r);
-@REM }
+:or
+  setlocal EnableDelayedExpansion
+  set "v1=%~1"& set "v2=%~2"
+  set /a "d=!_s_%v1%!|!_s_%v2%!"
+  set "r=!_p_%d%!"
+  endlocal & set "__=%r%" & exit /B 0
 
 
-@REM function _binAnd(b1, b2) {
-@REM   if (b1 === '1' && b2 === '1') return '1';
-@REM   return '0';
-@REM }
-
-
-@REM function _binOr(b1, b2) {
-@REM   if (b1 === '1' || b2 === '1') return '1';
-@REM   return '0';
-@REM }
-
-
-@REM function and(v1, v2) {
-@REM   if (!check(v1)) throw 1;
-@REM   if (!check(v2)) throw 1;
-@REM   let b1 = toBin(v1), b2 = toBin(v2);
-@REM   return fromBin(
-@REM       _binAnd(b1[0], b2[0]) +
-@REM       _binAnd(b1[1], b2[1]) +
-@REM       _binAnd(b1[2], b2[2]) +
-@REM       _binAnd(b1[3], b2[3]));
-@REM }
-
-
-@REM function or(v1, v2) {
-@REM   if (!check(v1)) throw 1;
-@REM   if (!check(v2)) throw 1;
-@REM   let b1 = toBin(v1), b2 = toBin(v2);
-@REM   return fromBin(
-@REM       _binOr(b1[0], b2[0]) +
-@REM       _binOr(b1[1], b2[1]) +
-@REM       _binOr(b1[2], b2[2]) +
-@REM       _binOr(b1[3], b2[3]));
-@REM }
-
-
-@REM // bit scan reverse
-@REM function bsr(v) {
-@REM   if (!check(v)) throw 1;
-@REM   let b = toBin(v);
-@REM   if (b.substr(0, 1) === '1') return '4';
-@REM   if (b.substr(1, 1) === '1') return '3';
-@REM   if (b.substr(2, 1) === '1') return '2';
-@REM   if (b.substr(3, 1) === '1') return '1';
-@REM   return '0';
-@REM }
+:xor
+  setlocal EnableDelayedExpansion
+  set "v1=%~1"& set "v2=%~2"
+  set /a "d1=!_s_%v1%!"& set /a "d2=!_s_%v2%!"
+  set /a "d=(d1|d2)-(d1&d2)"
+  set "r=!_p_%d%!"
+  endlocal & set "__=%r%" & exit /B 0
 
 
 :_start
 echo _start@xhalf.bat
-
