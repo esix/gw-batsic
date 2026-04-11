@@ -30,6 +30,13 @@ call %test% "xdword.sub"
   call expect "_xdword sub 00000000 00000001" "FFFFFFFF"
   call expect "_xdword sub 23456789 11111111" "12345678"
 
+call %test% "xdword.mul"
+  call expect "_xdword mul 00000000 00000000" "00000000"
+  call expect "_xdword mul 00000001 00000001" "00000001"
+  call expect "_xdword mul 00000002 00000003" "00000006"
+  call expect "_xdword mul 0000FFFF 0000FFFF" "FFFE0001"
+  call expect "_xdword mul 00010000 00010000" "00000000"
+
 call %test% "xdword.inv"
   call expect "_xdword inv 00000000" "FFFFFFFF"
   call expect "_xdword inv FFFFFFFF" "00000000"

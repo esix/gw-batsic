@@ -99,6 +99,45 @@ goto :%_fn%
   endlocal & set "__=%__%" & set "__c=%__c%" & exit /B 0
 
 
+:mul
+  setlocal EnableDelayedExpansion
+  set "a=%~1"& set "b=%~2"
+  set "ah=!a:~0,4!"& set "al=!a:~4,4!"
+  set "bh=!b:~0,4!"& set "bl=!b:~4,4!"
+  call _xword mul !al! !bl!
+  set "p0l=!__!"& set "p0h=!__h!"
+  call _xword mul !ah! !bl!
+  set "p1l=!__!"& set "p1h=!__h!"
+  call _xword mul !al! !bh!
+  set "p2l=!__!"& set "p2h=!__h!"
+  call _xword mul !ah! !bh!
+  set "p3l=!__!"& set "p3h=!__h!"
+  set "r0=!p0l!"
+  @REM R1 = p0h + p1l + p2l
+  set "cy=0000"
+  call _xword add !p0h! !p1l!
+  set "r1=!__!"
+  if "!__c!"=="1" (call _xword inc !cy! & set "cy=!__!")
+  call _xword add !r1! !p2l!
+  set "r1=!__!"
+  if "!__c!"=="1" (call _xword inc !cy! & set "cy=!__!")
+  @REM R2 = p1h + p2h + p3l + carries
+  set "cy2=0000"
+  call _xword add !p1h! !p2h!
+  set "r2=!__!"
+  if "!__c!"=="1" (call _xword inc !cy2! & set "cy2=!__!")
+  call _xword add !r2! !p3l!
+  set "r2=!__!"
+  if "!__c!"=="1" (call _xword inc !cy2! & set "cy2=!__!")
+  call _xword add !r2! !cy!
+  set "r2=!__!"
+  if "!__c!"=="1" (call _xword inc !cy2! & set "cy2=!__!")
+  @REM R3 = p3h + carries
+  call _xword add !p3h! !cy2!
+  set "r3=!__!"
+  endlocal & set "__=%r1%%r0%" & set "__h=%r3%%r2%" & exit /B 0
+
+
 :and
   setlocal EnableDelayedExpansion
   set "a=%~1"& set "b=%~2"

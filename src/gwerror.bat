@@ -1,6 +1,8 @@
 @echo off
-if not "%~1"=="" shift & goto :%~1
-goto :_start
+if "%~1"=="" goto :_start
+set "_fn=%~1"
+shift
+goto :%_fn%
 
 :ErrorCodeToString code ret
   setlocal EnableDelayedExpansion

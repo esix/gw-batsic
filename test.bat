@@ -1,36 +1,53 @@
 @echo off
-if not "%~1"=="" shift & goto :%~1
-goto :_start
+setlocal EnableDelayedExpansion
+set "root=%~dp0"
+set "PATH=%root%src;%root%tests;%PATH%"
+set "test=%root%tests\testDeclaration.bat"
+set "expect=%root%tests\expect.bat"
 
-:_start
-  setlocal EnableDelayedExpansion
-  set PATH=%~dp0\src;%~dp0\tests;%PATH%
+set numTests=0
+set passedTests=0
+set failedTests=0
 
-  set numTests=0
-  set passedTests=0
-  set failedTests=0
+@REM Optional arg: module name (directory under src/)
+@REM   test.bat         -> run all modules under src/
+@REM   test.bat num     -> run only src/num/
+set "module=%~1"
+
+if "%module%" neq "" (
+  call :runModule "%root%src\%module%"
+) else (
+  for /D %%d in ("%root%src\*") do call :runModule "%%d"
+)
+
+echo.
+echo Total tests: !numTests!
+echo      FAILED: !failedTests!
+echo      PASSED: !passedTests!
+
+endlocal & exit /B %failedTests%
 
 
-  for /f %%f in ('dir /A-D /S /B "%~dp0*.test.bat"') do (
-    call:runTest %%f
+:runModule
+  set "_dir=%~1"
+  if not exist "%_dir%" (
+    echo Module not found: %_dir%
+    exit /B 1
   )
-
-  echo Total tests: %numTests%
-  echo      FAILED: %failedTests%
-  echo      PASSED: %passedTests%
-
-  endlocal & exit /B %failedTests%
-
-
-:runTest testFile
-  set "testFile=%~1"
-  set "testPath=%~dp1"
-  set "test=%~dp0tests\testDeclaration.bat"
-  set "expect=%~dp0tests\expect.bat"
-  set "PATH=%testPath%;%PATH%"
-
-  pushd "%testPath%"
-  echo Testing %testFile%
-  call %testFile%
+  set "PATH=%_dir%;%PATH%"
+  pushd "%_dir%"
+  @REM If module has its own test.bat, use it
+  if exist "test.bat" (
+    echo Testing %_dir%\test.bat
+    call test.bat
+    popd
+    exit /B
+  )
+  @REM Otherwise auto-discover *.test.bat in this dir and subdirs
+  for /f %%f in ('dir /A-D /S /B "%_dir%\*.test.bat" 2^>nul') do (
+    set "PATH=%%~dpf;%PATH%"
+    echo Testing %%f
+    call "%%f"
+  )
   popd
-exit /B
+  exit /B
