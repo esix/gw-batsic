@@ -20,7 +20,7 @@ set line=
 
     if defined isEol (
       if defined line (
-        echo %line%
+        echo !line!
       )
       set line=
     ) else (
@@ -28,7 +28,7 @@ set line=
     )
   )
 
-  if not "%input%"=="0A" goto :Loop
+  if not "!input!"=="0A" goto :Loop
 
 :End
   endlocal

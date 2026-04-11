@@ -10,7 +10,7 @@ All values carry a one-letter type prefix so type mismatches are caught early:
 |--------|------|-------|---------|---------|
 | `i` | Integer | 16-bit signed | `i007B` | 123 |
 | `s` | Single | 32-bit MBF float | `s83200000` | 10.0 |
-| `d` | Double | 64-bit MBF float | *(not yet implemented)* | |
+| `d` | Double | 64-bit MBF float | `d8320000000000000` | 10.0 |
 
 Passing a wrong prefix to any facade function returns error 13 (Type mismatch).
 
@@ -72,7 +72,32 @@ fromDec accepts: integers (`100`), decimals (`3.14`), negative (`-0.5`), E-notat
 
 ### dbl.bat — Double-Precision Float (MBF)
 
-*Not yet implemented.* Will follow the same API as sng.bat with `d` prefix and 64-bit MBF format (8-bit exponent, 1-bit sign, 55-bit mantissa).
+Internal representation: Microsoft Binary Format, 8 bytes (16 hex chars).
+Layout: `EESMMMMMMMMMMMMM` — 8-bit exponent (biased 128), 1-bit sign, 55-bit mantissa (implied leading 1).
+
+Same API as sng.bat with `d` prefix:
+
+```
+call dbl fromDec 3.14       __ = "d..."
+call dbl toDec d8000000000000000   __ = "1"
+call dbl fromInt i000A      __ = "d8320000000000000"    (CDBL)
+call dbl toInt d8320000000000000   __ = "i000A"          (CINT, truncates)
+call dbl add d8000000000000000 d8000000000000000   __ = "d8100000000000000"   (1+1=2)
+call dbl sub d8140000000000000 d8000000000000000   __ = "d8100000000000000"   (3-1=2)
+call dbl mul d8100000000000000 d8140000000000000   __ = "d8240000000000000"   (2*3=6)
+call dbl div d8240000000000000 d8100000000000000   __ = "d8140000000000000"   (6/2=3)
+call dbl neg d8000000000000000   __ = "d8080000000000000"
+call dbl abs d8080000000000000   __ = "d8000000000000000"
+call dbl cmp d8000000000000000 d8100000000000000   __ = "2"   (1<2 -> "2"=LT)
+```
+
+Note: double-precision operations are significantly slower than single due to the deeper call chain (qword -> dword -> word -> byte -> half). Decimal conversion (fromDec/toDec) currently uses 7 significant digits; binary arithmetic is full 56-bit precision.
+
+| Error | Meaning |
+|-------|---------|
+| 6 | Overflow |
+| 11 | Division by zero |
+| 13 | Type mismatch |
 
 ## Architecture
 
@@ -91,7 +116,7 @@ Private hex arithmetic (do not use directly):
 
 Private float internals:
   _mbfs.bat      MBF single (4-byte) operations
-  _mbfd.bat      MBF double (8-byte) operations (planned)
+  _mbfd.bat      MBF double (8-byte) operations
 ```
 
 Each `_x*.bat` layer splits its value into two halves and delegates to the layer below. No `set /a` is used above `_xhalf.bat` level (except in conversion functions at the decimal boundary).
@@ -117,12 +142,12 @@ Value  = (-1)^S * 1.mantissa * 2^(EE - 128)
 
 Notable values:
 
-| Decimal | MBF Single Hex |
-|---------|---------------|
-| 0 | `00000000` |
-| 0.5 | `7F000000` |
-| 1.0 | `80000000` |
-| -1.0 | `80800000` |
-| 2.0 | `81000000` |
-| 10.0 | `83200000` |
-| 100.0 | `86480000` |
+| Decimal | MBF Single | MBF Double |
+|---------|-----------|-----------|
+| 0 | `00000000` | `0000000000000000` |
+| 0.5 | `7F000000` | `7F00000000000000` |
+| 1.0 | `80000000` | `8000000000000000` |
+| -1.0 | `80800000` | `8080000000000000` |
+| 2.0 | `81000000` | `8100000000000000` |
+| 10.0 | `83200000` | `8320000000000000` |
+| 100.0 | `86480000` | `8648000000000000` |

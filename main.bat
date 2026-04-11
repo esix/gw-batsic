@@ -4,13 +4,17 @@ goto _start
 
 :_start
   setlocal EnableDelayedExpansion
-  set PATH=%~dp0src;%~dp0lib;%PATH%
+  set PATH=%~dp0src;%~dp0src\num;%~dp0src\lexer;%~dp0lib;%PATH%
   set GWSRC=%~dp0src
   chcp 65001
 
-  call %GWSRC%\parser\init
+  @REM Pre-load keyword tables (once, not per-call)
+  call keyword init
 
-  call gw Load "examples\1.bas"
-  :: call gw Load "examples\G3D.bas" 
+  if "%~1"=="" (
+    call gw Load "examples\1.bas"
+  ) else (
+    call gw Load "%~1"
+  )
 
 endlocal && exit /b

@@ -14,12 +14,7 @@ shift & goto :%~1
       echo "Saved tokens=!tokens!"
       exit /b !ERRORLEVEL!
     ) else (
-      echo TOKENS=!tokens!
-      echo.
-
-      :: First token is LN - skip
-      call strdeq shift tokens
-      call %GWSRC%\parser\parse "!tokens!" pTree 
+      echo !tokens!
     )
 
     @REM TODO:
