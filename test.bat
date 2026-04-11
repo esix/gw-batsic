@@ -11,7 +11,7 @@ goto :_start
   set failedTests=0
 
 
-  for /f %%f in ('dir /A-D /S /B *.test.bat') do (
+  for /f %%f in ('dir /A-D /S /B "%~dp0*.test.bat"') do (
     call:runTest %%f
   )
 
@@ -19,8 +19,7 @@ goto :_start
   echo      FAILED: %failedTests%
   echo      PASSED: %passedTests%
 
-  endlocal
-exit /B
+  endlocal & exit /B %failedTests%
 
 
 :runTest testFile
@@ -28,6 +27,7 @@ exit /B
   set "testPath=%~dp1"
   set "test=%~dp0tests\testDeclaration.bat"
   set "expect=%~dp0tests\expect.bat"
+  set "PATH=%testPath%;%PATH%"
 
   pushd "%testPath%"
   echo Testing %testFile%

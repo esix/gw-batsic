@@ -9,7 +9,7 @@ set /a numTests+=1
 call %operation%
 set "e=%ERRORLEVEL%"
 
-if "%~2" neq "%ERRORLEVEL%" (
+if "%~2" neq "%e%" (
   echo FAILED: "%operation%"
   echo   Expected error = %~2
   echo              got = %e%    result="%__%"
