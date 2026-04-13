@@ -1,8 +1,440 @@
-Ex ::= T E'
-E' ::= + T E'
-E' ::= ε
-T ::= F T'
-T' ::= ★ F T'
-T' ::= ε
-F ::= { Ex }
-F ::= id
+; GW-BASIC LL(1) Grammar
+; Token names match lexer output (see src/lexer/README.md)
+;
+; Conventions:
+;   UPPER_CASE  = terminal (token from lexer)
+;   CamelCase   = nonterminal
+;   ::=         = production rule
+;   |           = alternative (separate lines for LL(1) clarity)
+;   e           = epsilon (empty production)
+;   NUM         = any NUM_i.../NUM_s.../NUM_d... token
+;   VAR         = any VAR_UNK_/VAR_STR_/VAR_INT_/VAR_SNG_/VAR_DBL_ token
+;   STR         = any STR_... token
+;   REM_TEXT    = any REM_... token
+
+; ============================================================
+; Entry point
+; ============================================================
+;
+; The parser always operates on a SINGLE LINE, already tokenized.
+; Line numbers (LN__) are handled by the dispatcher before parsing:
+;   - LN__ present → store tokenized line in program memory
+;   - LN__ absent  → immediate mode: parse + execute
+; The parser never sees LN__ tokens.
+
+StmtList      ::= Stmt StmtRest
+StmtRest      ::= COLON Stmt StmtRest
+StmtRest      ::= e
+
+; ============================================================
+; Statements
+; ============================================================
+
+Stmt          ::= PrintStmt
+Stmt          ::= LetStmt
+Stmt          ::= IfStmt
+Stmt          ::= ForStmt
+Stmt          ::= NextStmt
+Stmt          ::= GotoStmt
+Stmt          ::= GosubStmt
+Stmt          ::= RETURN
+Stmt          ::= InputStmt
+Stmt          ::= ReadStmt
+Stmt          ::= DataStmt
+Stmt          ::= DimStmt
+Stmt          ::= WhileStmt
+Stmt          ::= WEND
+Stmt          ::= RemStmt
+Stmt          ::= EndStmt
+Stmt          ::= STOP
+Stmt          ::= OnStmt
+Stmt          ::= DefStmt
+Stmt          ::= PokeStmt
+Stmt          ::= OpenStmt
+Stmt          ::= CloseStmt
+Stmt          ::= WriteStmt
+Stmt          ::= LineStmt
+Stmt          ::= LocateStmt
+Stmt          ::= ColorStmt
+Stmt          ::= ScreenStmt
+Stmt          ::= SoundStmt
+Stmt          ::= KeyStmt
+Stmt          ::= SwapStmt
+Stmt          ::= EraseStmt
+Stmt          ::= ErrorStmt
+Stmt          ::= ResumeStmt
+Stmt          ::= CLS
+Stmt          ::= BEEP
+Stmt          ::= RANDOMIZE Expr
+Stmt          ::= AssignStmt
+Stmt          ::= e
+
+; --- PRINT / ? ---
+PrintStmt     ::= PRINT PrintList @PEND
+PrintList     ::= PrintItem PrintRest
+PrintList     ::= e
+PrintItem     ::= Expr
+PrintItem     ::= TAB( Expr CPAR @PTAB
+PrintItem     ::= SPC( Expr CPAR @PSPC
+PrintRest     ::= SEMICOLON @PSEMI PrintItem PrintRest
+PrintRest     ::= COMA @PTAB PrintItem PrintRest
+PrintRest     ::= e
+
+; --- LET / assignment ---
+LetStmt       ::= LET AssignStmt
+AssignStmt    ::= VarRef EQ Expr @ASSIGN
+
+; --- IF / THEN ---
+IfStmt        ::= IF Expr THEN ThenClause ElseClause
+ThenClause    ::= NUM
+ThenClause    ::= StmtList
+ElseClause    ::= ELSE ThenClause
+ElseClause    ::= e
+
+; --- FOR / NEXT ---
+ForStmt       ::= FOR VAR EQ Expr TO Expr StepClause
+StepClause    ::= STEP Expr
+StepClause    ::= e
+NextStmt      ::= NEXT NextVars
+NextVars      ::= VAR NextVarRest
+NextVars      ::= e
+NextVarRest   ::= COMA VAR NextVarRest
+NextVarRest   ::= e
+
+; --- GOTO / GOSUB ---
+GotoStmt      ::= GOTO NUM
+GosubStmt     ::= GOSUB NUM
+
+; --- ON ---
+OnStmt        ::= ON Expr OnAction NumList
+OnAction      ::= GOTO
+OnAction      ::= GOSUB
+NumList       ::= NUM NumListRest
+NumListRest   ::= COMA NUM NumListRest
+NumListRest   ::= e
+
+; --- INPUT ---
+InputStmt     ::= INPUT InputPrompt VarList
+InputPrompt   ::= STR SEMICOLON
+InputPrompt   ::= e
+VarList       ::= VarRef VarListRest
+VarListRest   ::= COMA VarRef VarListRest
+VarListRest   ::= e
+
+; --- READ / DATA ---
+ReadStmt      ::= READ VarList
+DataStmt      ::= DATA DataList
+DataList      ::= DataItem DataListRest
+DataItem      ::= NUM
+DataItem      ::= STR
+DataItem      ::= MINUS NUM
+DataListRest  ::= COMA DataItem DataListRest
+DataListRest  ::= e
+
+; --- DIM ---
+DimStmt       ::= DIM DimVar DimVarRest
+DimVar        ::= VAR OPAR ExprList CPAR
+DimVarRest    ::= COMA DimVar DimVarRest
+DimVarRest    ::= e
+
+; --- WHILE ---
+WhileStmt     ::= WHILE Expr
+
+; --- REM / ' ---
+RemStmt       ::= REM REM_TEXT
+
+; --- END ---
+EndStmt       ::= END
+
+; --- DEF FN ---
+DefStmt       ::= DEF DefWhat
+DefWhat       ::= FN VAR OPAR VarList CPAR EQ Expr
+DefWhat       ::= DefTypeStmt
+DefTypeStmt   ::= DEFINT LetterRange
+DefTypeStmt   ::= DEFSNG LetterRange
+DefTypeStmt   ::= DEFDBL LetterRange
+DefTypeStmt   ::= DEFSTR LetterRange
+LetterRange   ::= VAR RangeRest
+RangeRest     ::= MINUS VAR
+RangeRest     ::= e
+
+; --- POKE ---
+PokeStmt      ::= POKE Expr COMA Expr
+
+; --- OPEN ---
+OpenStmt      ::= OPEN Expr OpenMode HASH NUM OpenRecLen
+OpenMode      ::= FOR OpenAccess
+OpenMode      ::= COMA Expr COMA Expr
+OpenMode      ::= e
+OpenAccess    ::= INPUT
+OpenAccess    ::= OUTPUT
+OpenAccess    ::= APPEND
+OpenRecLen    ::= COMA Expr
+OpenRecLen    ::= e
+
+; --- CLOSE ---
+CloseStmt     ::= CLOSE CloseList
+CloseList     ::= HASH NUM CloseListRest
+CloseList     ::= e
+CloseListRest ::= COMA HASH NUM CloseListRest
+CloseListRest ::= e
+
+; --- WRITE ---
+WriteStmt     ::= WRITE WriteTarget ExprList
+WriteTarget   ::= HASH NUM COMA
+WriteTarget   ::= e
+
+; --- LINE ---
+LineStmt      ::= LINE LineWhat
+LineWhat      ::= INPUT LineInput
+LineWhat      ::= OPAR Expr COMA Expr CPAR MINUS OPAR Expr COMA Expr CPAR LineBox
+LineInput     ::= InputPrompt VarRef
+LineBox       ::= COMA Expr LineBoxFill
+LineBox       ::= e
+LineBoxFill   ::= COMA VAR
+LineBoxFill   ::= e
+
+; --- LOCATE ---
+LocateStmt    ::= LOCATE Expr LocateCol
+LocateCol     ::= COMA Expr
+LocateCol     ::= e
+
+; --- COLOR ---
+ColorStmt     ::= COLOR Expr ColorRest
+ColorRest     ::= COMA Expr ColorBorder
+ColorRest     ::= e
+ColorBorder   ::= COMA Expr
+ColorBorder   ::= e
+
+; --- SCREEN ---
+ScreenStmt    ::= SCREEN Expr ScreenRest
+ScreenRest    ::= COMA Expr ScreenRest2
+ScreenRest    ::= e
+ScreenRest2   ::= COMA Expr ScreenRest3
+ScreenRest2   ::= e
+ScreenRest3   ::= COMA Expr
+ScreenRest3   ::= e
+
+; --- SOUND ---
+SoundStmt     ::= SOUND Expr COMA Expr
+
+; --- KEY ---
+KeyStmt       ::= KEY KeyWhat
+KeyWhat       ::= ON
+KeyWhat       ::= OFF
+KeyWhat       ::= LIST
+KeyWhat       ::= Expr COMA Expr
+
+; --- SWAP ---
+SwapStmt      ::= SWAP VarRef COMA VarRef
+
+; --- ERASE ---
+EraseStmt     ::= ERASE VAR EraseRest
+EraseRest     ::= COMA VAR EraseRest
+EraseRest     ::= e
+
+; --- ERROR / RESUME ---
+ErrorStmt     ::= ERROR Expr
+ResumeStmt    ::= RESUME ResumeTarget
+ResumeTarget  ::= NEXT
+ResumeTarget  ::= NUM
+ResumeTarget  ::= e
+
+; ============================================================
+; Expressions (precedence low to high, no left recursion)
+; ============================================================
+;
+; Precedence (GW-BASIC, lowest first):
+;   1. IMP
+;   2. EQV
+;   3. XOR
+;   4. OR
+;   5. AND
+;   6. NOT  (prefix)
+;   7. =  <  >  <=  >=  <>   (relational)
+;   8. +  -  (additive)
+;   9. MOD
+;  10. \  (integer division)
+;  11. *  /  (multiplicative)
+;  12. -  (unary negation)
+;  13. ^  (exponentiation, right-assoc)
+;  14. primary
+
+Expr          ::= ImpExpr
+
+ImpExpr       ::= EqvExpr ImpRest
+ImpRest       ::= IMP EqvExpr @IMP ImpRest
+ImpRest       ::= e
+
+EqvExpr       ::= XorExpr EqvRest
+EqvRest       ::= EQV XorExpr @EQV EqvRest
+EqvRest       ::= e
+
+XorExpr       ::= OrExpr XorRest
+XorRest       ::= XOR OrExpr @XOR XorRest
+XorRest       ::= e
+
+OrExpr        ::= AndExpr OrRest
+OrRest        ::= OR AndExpr @OR OrRest
+OrRest        ::= e
+
+AndExpr       ::= NotExpr AndRest
+AndRest       ::= AND NotExpr @AND AndRest
+AndRest       ::= e
+
+NotExpr       ::= NOT NotExpr @NOT
+NotExpr       ::= RelExpr
+
+RelExpr       ::= AddExpr RelRest
+RelRest       ::= EQ AddExpr @CMP_EQ RelRest
+RelRest       ::= LT AddExpr @CMP_LT RelRest
+RelRest       ::= GT AddExpr @CMP_GT RelRest
+RelRest       ::= LE AddExpr @CMP_LE RelRest
+RelRest       ::= GE AddExpr @CMP_GE RelRest
+RelRest       ::= NE AddExpr @CMP_NE RelRest
+RelRest       ::= e
+
+AddExpr       ::= ModExpr AddRest
+AddRest       ::= PLUS ModExpr @ADD AddRest
+AddRest       ::= MINUS ModExpr @SUB AddRest
+AddRest       ::= e
+
+ModExpr       ::= IdivExpr ModRest
+ModRest       ::= MOD IdivExpr @MOD ModRest
+ModRest       ::= e
+
+IdivExpr      ::= MulExpr IdivRest
+IdivRest      ::= IDIV MulExpr @IDIV IdivRest
+IdivRest      ::= e
+
+MulExpr       ::= UnaryExpr MulRest
+MulRest       ::= MUL UnaryExpr @MUL MulRest
+MulRest       ::= DIV UnaryExpr @DIV MulRest
+MulRest       ::= e
+
+UnaryExpr     ::= MINUS PowExpr @NEG
+UnaryExpr     ::= PowExpr
+
+PowExpr       ::= Primary PowRest
+PowRest       ::= POW PowExpr @POW
+PowRest       ::= e
+
+; ============================================================
+; Primary expressions
+; ============================================================
+
+Primary       ::= NUM
+Primary       ::= STR
+Primary       ::= VarOrCall
+Primary       ::= OPAR Expr CPAR
+Primary       ::= FnCall
+Primary       ::= BuiltinCall
+
+; --- Variable reference or array access ---
+VarOrCall     ::= VAR ArrayIndex
+ArrayIndex    ::= OPAR ExprList CPAR
+ArrayIndex    ::= e
+
+; --- FN user function call ---
+FnCall        ::= FN VAR OPAR ExprList CPAR
+
+; --- Built-in function calls ---
+BuiltinCall   ::= AbsFn
+BuiltinCall   ::= IntFn
+BuiltinCall   ::= SgnFn
+BuiltinCall   ::= SqrFn
+BuiltinCall   ::= SinFn
+BuiltinCall   ::= CosFn
+BuiltinCall   ::= TanFn
+BuiltinCall   ::= AtnFn
+BuiltinCall   ::= LogFn
+BuiltinCall   ::= ExpFn
+BuiltinCall   ::= RndFn
+BuiltinCall   ::= FixFn
+BuiltinCall   ::= CintFn
+BuiltinCall   ::= CsngFn
+BuiltinCall   ::= CdblFn
+BuiltinCall   ::= LenFn
+BuiltinCall   ::= ValFn
+BuiltinCall   ::= AscFn
+BuiltinCall   ::= PeekFn
+BuiltinCall   ::= InpFn
+BuiltinCall   ::= PosFn
+BuiltinCall   ::= FreFn
+BuiltinCall   ::= ChrFn
+BuiltinCall   ::= StrFn
+BuiltinCall   ::= SpaceFn
+BuiltinCall   ::= StringFn
+BuiltinCall   ::= HexFn
+BuiltinCall   ::= OctFn
+BuiltinCall   ::= LeftFn
+BuiltinCall   ::= RightFn
+BuiltinCall   ::= MidFn
+BuiltinCall   ::= InstrFn
+BuiltinCall   ::= InkeyFn
+BuiltinCall   ::= VarPtrFn
+BuiltinCall   ::= ERL
+BuiltinCall   ::= ERR
+BuiltinCall   ::= CSRLIN
+
+; 1-arg numeric functions: FN OPAR Expr CPAR
+AbsFn         ::= ABS OPAR Expr CPAR
+IntFn         ::= INT OPAR Expr CPAR
+SgnFn         ::= SGN OPAR Expr CPAR
+SqrFn         ::= SQR OPAR Expr CPAR
+SinFn         ::= SIN OPAR Expr CPAR
+CosFn         ::= COS OPAR Expr CPAR
+TanFn         ::= TAN OPAR Expr CPAR
+AtnFn         ::= ATN OPAR Expr CPAR
+LogFn         ::= LOG OPAR Expr CPAR
+ExpFn         ::= EXP OPAR Expr CPAR
+FixFn         ::= FIX OPAR Expr CPAR
+CintFn        ::= CINT OPAR Expr CPAR
+CsngFn        ::= CSNG OPAR Expr CPAR
+CdblFn        ::= CDBL OPAR Expr CPAR
+LenFn         ::= LEN OPAR Expr CPAR
+ValFn         ::= VAL OPAR Expr CPAR
+AscFn         ::= ASC OPAR Expr CPAR
+PeekFn        ::= PEEK OPAR Expr CPAR
+InpFn         ::= INP OPAR Expr CPAR
+PosFn         ::= POS OPAR Expr CPAR
+FreFn         ::= FRE OPAR Expr CPAR
+ChrFn         ::= CHR$ OPAR Expr CPAR
+StrFn         ::= STR$ OPAR Expr CPAR
+SpaceFn       ::= SPACE$ OPAR Expr CPAR
+HexFn         ::= HEX$ OPAR Expr CPAR
+OctFn         ::= OCT$ OPAR Expr CPAR
+VarPtrFn      ::= VARPTR OPAR VarRef CPAR
+
+; RND can be RND or RND(x)
+RndFn         ::= RND RndArgs
+RndArgs       ::= OPAR Expr CPAR
+RndArgs       ::= e
+
+; 2-arg string functions
+LeftFn        ::= LEFT$ OPAR Expr COMA Expr CPAR
+RightFn       ::= RIGHT$ OPAR Expr COMA Expr CPAR
+StringFn      ::= STRING$ OPAR Expr COMA Expr CPAR
+
+; 3-arg
+MidFn         ::= MID$ OPAR Expr COMA Expr MidLen CPAR
+MidLen        ::= COMA Expr
+MidLen        ::= e
+
+; 2-4 arg
+InstrFn       ::= INSTR OPAR Expr COMA Expr InstrLen CPAR
+InstrLen      ::= COMA Expr
+InstrLen      ::= e
+
+; No-arg
+InkeyFn       ::= INKEY$
+
+; ============================================================
+; Shared rules
+; ============================================================
+
+VarRef        ::= VAR ArrayIndex
+
+ExprList      ::= Expr ExprListRest
+ExprListRest  ::= COMA Expr ExprListRest
+ExprListRest  ::= e
