@@ -149,5 +149,20 @@ goto :%_fn%
   echo.
   echo --- PRINT -1*2 ---
   call :parse "PRINT MINUS NUM_i0001 MUL NUM_i0002 EOL"
+  echo.
+  echo --- GOTO 100 ---
+  call :parse "GOTO NUM_i0064 EOL"
+  echo.
+  echo --- IF A THEN 100 ---
+  call :parse "IF VAR_UNK_A THEN NUM_i0064 EOL"
+  echo.
+  echo --- FOR I=1 TO 10 STEP 2 ---
+  call :parse "FOR VAR_UNK_I EQ NUM_i0001 TO NUM_i000A STEP NUM_i0002 EOL"
+  echo.
+  echo --- PRINT ABS(X) ---
+  call :parse "PRINT ABS OPAR VAR_UNK_X CPAR EOL"
+  echo.
+  echo --- PRINT LEFT$(A$,3) ---
+  call :parse "PRINT LEFT$ OPAR VAR_STR_A COMA NUM_i0003 CPAR EOL"
 
   endlocal

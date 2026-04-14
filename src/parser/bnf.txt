@@ -37,16 +37,16 @@ Stmt          ::= ForStmt
 Stmt          ::= NextStmt
 Stmt          ::= GotoStmt
 Stmt          ::= GosubStmt
-Stmt          ::= RETURN
+Stmt          ::= RETURN @RETURN
 Stmt          ::= InputStmt
 Stmt          ::= ReadStmt
 Stmt          ::= DataStmt
 Stmt          ::= DimStmt
 Stmt          ::= WhileStmt
-Stmt          ::= WEND
+Stmt          ::= WEND @WEND
 Stmt          ::= RemStmt
 Stmt          ::= EndStmt
-Stmt          ::= STOP
+Stmt          ::= STOP @STOP
 Stmt          ::= OnStmt
 Stmt          ::= DefStmt
 Stmt          ::= PokeStmt
@@ -63,9 +63,9 @@ Stmt          ::= SwapStmt
 Stmt          ::= EraseStmt
 Stmt          ::= ErrorStmt
 Stmt          ::= ResumeStmt
-Stmt          ::= CLS
-Stmt          ::= BEEP
-Stmt          ::= RANDOMIZE Expr
+Stmt          ::= CLS @CLS
+Stmt          ::= BEEP @BEEP
+Stmt          ::= RANDOMIZE Expr @RANDOMIZE
 Stmt          ::= AssignStmt
 Stmt          ::= e
 
@@ -85,45 +85,45 @@ LetStmt       ::= LET AssignStmt
 AssignStmt    ::= VarRef EQ Expr @ASSIGN
 
 ; --- IF / THEN ---
-IfStmt        ::= IF Expr THEN ThenClause ElseClause
-ThenClause    ::= NUM
+IfStmt        ::= IF Expr @IF THEN ThenClause ElseClause @ENDIF
+ThenClause    ::= NUM @IF_GOTO
 ThenClause    ::= StmtList
-ElseClause    ::= ELSE ThenClause
+ElseClause    ::= ELSE @ELSE ThenClause
 ElseClause    ::= e
 
 ; --- FOR / NEXT ---
-ForStmt       ::= FOR VAR EQ Expr TO Expr StepClause
+ForStmt       ::= FOR VAR EQ Expr TO Expr StepClause @FOR
 StepClause    ::= STEP Expr
 StepClause    ::= e
-NextStmt      ::= NEXT NextVars
+NextStmt      ::= NEXT NextVars @NEXT
 NextVars      ::= VAR NextVarRest
 NextVars      ::= e
-NextVarRest   ::= COMA VAR NextVarRest
+NextVarRest   ::= COMA VAR @NEXT NextVarRest
 NextVarRest   ::= e
 
 ; --- GOTO / GOSUB ---
-GotoStmt      ::= GOTO NUM
-GosubStmt     ::= GOSUB NUM
+GotoStmt      ::= GOTO NUM @GOTO
+GosubStmt     ::= GOSUB NUM @GOSUB
 
 ; --- ON ---
-OnStmt        ::= ON Expr OnAction NumList
-OnAction      ::= GOTO
-OnAction      ::= GOSUB
+OnStmt        ::= ON Expr OnAction NumList @ON_END
+OnAction      ::= GOTO @ON_GOTO
+OnAction      ::= GOSUB @ON_GOSUB
 NumList       ::= NUM NumListRest
 NumListRest   ::= COMA NUM NumListRest
 NumListRest   ::= e
 
 ; --- INPUT ---
-InputStmt     ::= INPUT InputPrompt VarList
-InputPrompt   ::= STR SEMICOLON
+InputStmt     ::= INPUT InputPrompt VarList @INPUT
+InputPrompt   ::= STR SEMICOLON @PROMPT
 InputPrompt   ::= e
 VarList       ::= VarRef VarListRest
 VarListRest   ::= COMA VarRef VarListRest
 VarListRest   ::= e
 
 ; --- READ / DATA ---
-ReadStmt      ::= READ VarList
-DataStmt      ::= DATA DataList
+ReadStmt      ::= READ VarList @READ
+DataStmt      ::= DATA DataList @DATA
 DataList      ::= DataItem DataListRest
 DataItem      ::= NUM
 DataItem      ::= STR
@@ -133,33 +133,33 @@ DataListRest  ::= e
 
 ; --- DIM ---
 DimStmt       ::= DIM DimVar DimVarRest
-DimVar        ::= VAR OPAR ExprList CPAR
+DimVar        ::= VAR OPAR ExprList CPAR @DIM
 DimVarRest    ::= COMA DimVar DimVarRest
 DimVarRest    ::= e
 
 ; --- WHILE ---
-WhileStmt     ::= WHILE Expr
+WhileStmt     ::= WHILE Expr @WHILE
 
 ; --- REM / ' ---
-RemStmt       ::= REM REM_TEXT
+RemStmt       ::= REM REM_TEXT @REM
 
 ; --- END ---
-EndStmt       ::= END
+EndStmt       ::= END @END
 
 ; --- DEF FN ---
 DefStmt       ::= DEF DefWhat
-DefWhat       ::= FN VAR OPAR VarList CPAR EQ Expr
+DefWhat       ::= FN VAR OPAR VarList CPAR EQ Expr @DEF_FN
 DefWhat       ::= DefTypeStmt
-DefTypeStmt   ::= DEFINT LetterRange
-DefTypeStmt   ::= DEFSNG LetterRange
-DefTypeStmt   ::= DEFDBL LetterRange
-DefTypeStmt   ::= DEFSTR LetterRange
+DefTypeStmt   ::= DEFINT LetterRange @DEFINT
+DefTypeStmt   ::= DEFSNG LetterRange @DEFSNG
+DefTypeStmt   ::= DEFDBL LetterRange @DEFDBL
+DefTypeStmt   ::= DEFSTR LetterRange @DEFSTR
 LetterRange   ::= VAR RangeRest
 RangeRest     ::= MINUS VAR
 RangeRest     ::= e
 
 ; --- POKE ---
-PokeStmt      ::= POKE Expr COMA Expr
+PokeStmt      ::= POKE Expr COMA Expr @POKE
 
 ; --- OPEN ---
 OpenStmt      ::= OPEN Expr OpenMode HASH NUM OpenRecLen
@@ -216,29 +216,29 @@ ScreenRest3   ::= COMA Expr
 ScreenRest3   ::= e
 
 ; --- SOUND ---
-SoundStmt     ::= SOUND Expr COMA Expr
+SoundStmt     ::= SOUND Expr COMA Expr @SOUND
 
 ; --- KEY ---
 KeyStmt       ::= KEY KeyWhat
-KeyWhat       ::= ON
-KeyWhat       ::= OFF
-KeyWhat       ::= LIST
-KeyWhat       ::= Expr COMA Expr
+KeyWhat       ::= ON @KEY_ON
+KeyWhat       ::= OFF @KEY_OFF
+KeyWhat       ::= LIST @KEY_LIST
+KeyWhat       ::= Expr COMA Expr @KEY_SET
 
 ; --- SWAP ---
-SwapStmt      ::= SWAP VarRef COMA VarRef
+SwapStmt      ::= SWAP VarRef COMA VarRef @SWAP
 
 ; --- ERASE ---
-EraseStmt     ::= ERASE VAR EraseRest
-EraseRest     ::= COMA VAR EraseRest
+EraseStmt     ::= ERASE VAR @ERASE EraseRest
+EraseRest     ::= COMA VAR @ERASE EraseRest
 EraseRest     ::= e
 
 ; --- ERROR / RESUME ---
-ErrorStmt     ::= ERROR Expr
+ErrorStmt     ::= ERROR Expr @ERROR
 ResumeStmt    ::= RESUME ResumeTarget
-ResumeTarget  ::= NEXT
-ResumeTarget  ::= NUM
-ResumeTarget  ::= e
+ResumeTarget  ::= NEXT @RESUME_NEXT
+ResumeTarget  ::= NUM @RESUME_LINE
+ResumeTarget  ::= e @RESUME
 
 ; ============================================================
 ; Expressions (precedence low to high, no left recursion)
@@ -332,11 +332,11 @@ Primary       ::= BuiltinCall
 
 ; --- Variable reference or array access ---
 VarOrCall     ::= VAR ArrayIndex
-ArrayIndex    ::= OPAR ExprList CPAR
+ArrayIndex    ::= OPAR ExprList CPAR @AIDX
 ArrayIndex    ::= e
 
 ; --- FN user function call ---
-FnCall        ::= FN VAR OPAR ExprList CPAR
+FnCall        ::= FN VAR OPAR ExprList CPAR @CALL_FN
 
 ; --- Built-in function calls ---
 BuiltinCall   ::= AbsFn
@@ -373,61 +373,61 @@ BuiltinCall   ::= MidFn
 BuiltinCall   ::= InstrFn
 BuiltinCall   ::= InkeyFn
 BuiltinCall   ::= VarPtrFn
-BuiltinCall   ::= ERL
-BuiltinCall   ::= ERR
-BuiltinCall   ::= CSRLIN
+BuiltinCall   ::= ERL @FN_ERL
+BuiltinCall   ::= ERR @FN_ERR
+BuiltinCall   ::= CSRLIN @FN_CSRLIN
 
-; 1-arg numeric functions: FN OPAR Expr CPAR
-AbsFn         ::= ABS OPAR Expr CPAR
-IntFn         ::= INT OPAR Expr CPAR
-SgnFn         ::= SGN OPAR Expr CPAR
-SqrFn         ::= SQR OPAR Expr CPAR
-SinFn         ::= SIN OPAR Expr CPAR
-CosFn         ::= COS OPAR Expr CPAR
-TanFn         ::= TAN OPAR Expr CPAR
-AtnFn         ::= ATN OPAR Expr CPAR
-LogFn         ::= LOG OPAR Expr CPAR
-ExpFn         ::= EXP OPAR Expr CPAR
-FixFn         ::= FIX OPAR Expr CPAR
-CintFn        ::= CINT OPAR Expr CPAR
-CsngFn        ::= CSNG OPAR Expr CPAR
-CdblFn        ::= CDBL OPAR Expr CPAR
-LenFn         ::= LEN OPAR Expr CPAR
-ValFn         ::= VAL OPAR Expr CPAR
-AscFn         ::= ASC OPAR Expr CPAR
-PeekFn        ::= PEEK OPAR Expr CPAR
-InpFn         ::= INP OPAR Expr CPAR
-PosFn         ::= POS OPAR Expr CPAR
-FreFn         ::= FRE OPAR Expr CPAR
-ChrFn         ::= CHR$ OPAR Expr CPAR
-StrFn         ::= STR$ OPAR Expr CPAR
-SpaceFn       ::= SPACE$ OPAR Expr CPAR
-HexFn         ::= HEX$ OPAR Expr CPAR
-OctFn         ::= OCT$ OPAR Expr CPAR
-VarPtrFn      ::= VARPTR OPAR VarRef CPAR
+; 1-arg numeric functions
+AbsFn         ::= ABS OPAR Expr CPAR @FN_ABS
+IntFn         ::= INT OPAR Expr CPAR @FN_INT
+SgnFn         ::= SGN OPAR Expr CPAR @FN_SGN
+SqrFn         ::= SQR OPAR Expr CPAR @FN_SQR
+SinFn         ::= SIN OPAR Expr CPAR @FN_SIN
+CosFn         ::= COS OPAR Expr CPAR @FN_COS
+TanFn         ::= TAN OPAR Expr CPAR @FN_TAN
+AtnFn         ::= ATN OPAR Expr CPAR @FN_ATN
+LogFn         ::= LOG OPAR Expr CPAR @FN_LOG
+ExpFn         ::= EXP OPAR Expr CPAR @FN_EXP
+FixFn         ::= FIX OPAR Expr CPAR @FN_FIX
+CintFn        ::= CINT OPAR Expr CPAR @FN_CINT
+CsngFn        ::= CSNG OPAR Expr CPAR @FN_CSNG
+CdblFn        ::= CDBL OPAR Expr CPAR @FN_CDBL
+LenFn         ::= LEN OPAR Expr CPAR @FN_LEN
+ValFn         ::= VAL OPAR Expr CPAR @FN_VAL
+AscFn         ::= ASC OPAR Expr CPAR @FN_ASC
+PeekFn        ::= PEEK OPAR Expr CPAR @FN_PEEK
+InpFn         ::= INP OPAR Expr CPAR @FN_INP
+PosFn         ::= POS OPAR Expr CPAR @FN_POS
+FreFn         ::= FRE OPAR Expr CPAR @FN_FRE
+ChrFn         ::= CHR$ OPAR Expr CPAR @FN_CHR
+StrFn         ::= STR$ OPAR Expr CPAR @FN_STR
+SpaceFn       ::= SPACE$ OPAR Expr CPAR @FN_SPACE
+HexFn         ::= HEX$ OPAR Expr CPAR @FN_HEX
+OctFn         ::= OCT$ OPAR Expr CPAR @FN_OCT
+VarPtrFn      ::= VARPTR OPAR VarRef CPAR @FN_VARPTR
 
 ; RND can be RND or RND(x)
-RndFn         ::= RND RndArgs
+RndFn         ::= RND RndArgs @FN_RND
 RndArgs       ::= OPAR Expr CPAR
 RndArgs       ::= e
 
 ; 2-arg string functions
-LeftFn        ::= LEFT$ OPAR Expr COMA Expr CPAR
-RightFn       ::= RIGHT$ OPAR Expr COMA Expr CPAR
-StringFn      ::= STRING$ OPAR Expr COMA Expr CPAR
+LeftFn        ::= LEFT$ OPAR Expr COMA Expr CPAR @FN_LEFT
+RightFn       ::= RIGHT$ OPAR Expr COMA Expr CPAR @FN_RIGHT
+StringFn      ::= STRING$ OPAR Expr COMA Expr CPAR @FN_STRING
 
-; 3-arg
-MidFn         ::= MID$ OPAR Expr COMA Expr MidLen CPAR
+; 2-3 arg
+MidFn         ::= MID$ OPAR Expr COMA Expr MidLen CPAR @FN_MID
 MidLen        ::= COMA Expr
 MidLen        ::= e
 
-; 2-4 arg
-InstrFn       ::= INSTR OPAR Expr COMA Expr InstrLen CPAR
+; 2-3 arg
+InstrFn       ::= INSTR OPAR Expr COMA Expr InstrLen CPAR @FN_INSTR
 InstrLen      ::= COMA Expr
 InstrLen      ::= e
 
 ; No-arg
-InkeyFn       ::= INKEY$
+InkeyFn       ::= INKEY$ @FN_INKEY
 
 ; ============================================================
 ; Shared rules
