@@ -81,7 +81,7 @@ exit /B
 :_pe
   set /a numTests+=1
   call parse parse "%~1" __ 2>nul
-  if errorlevel 1 (
+  if "%ERRORLEVEL%"=="2" (
     set /a passedTests+=1
   ) else (
     echo FAILED: expected parse error for "%~1"

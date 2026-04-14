@@ -40,12 +40,12 @@ goto :%_fn%
   set "_h_4B=K"& set "_h_4C=L"& set "_h_4D=M"& set "_h_4E=N"& set "_h_4F=O"
   set "_h_50=P"& set "_h_51=Q"& set "_h_52=R"& set "_h_53=S"& set "_h_54=T"
   set "_h_55=U"& set "_h_56=V"& set "_h_57=W"& set "_h_58=X"& set "_h_59=Y"
-  set "_h_5A=Z"& set "_h_61=a"& set "_h_62=b"& set "_h_63=c"& set "_h_64=d"
-  set "_h_65=e"& set "_h_66=f"& set "_h_67=g"& set "_h_68=h"& set "_h_69=i"
-  set "_h_6A=j"& set "_h_6B=k"& set "_h_6C=l"& set "_h_6D=m"& set "_h_6E=n"
-  set "_h_6F=o"& set "_h_70=p"& set "_h_71=q"& set "_h_72=r"& set "_h_73=s"
-  set "_h_74=t"& set "_h_75=u"& set "_h_76=v"& set "_h_77=w"& set "_h_78=x"
-  set "_h_79=y"& set "_h_7A=z"& set "_h_2E=."
+  set "_h_5A=Z"& set "_h_61=A"& set "_h_62=B"& set "_h_63=C"& set "_h_64=D"
+  set "_h_65=E"& set "_h_66=F"& set "_h_67=G"& set "_h_68=H"& set "_h_69=I"
+  set "_h_6A=J"& set "_h_6B=K"& set "_h_6C=L"& set "_h_6D=M"& set "_h_6E=N"
+  set "_h_6F=O"& set "_h_70=P"& set "_h_71=Q"& set "_h_72=R"& set "_h_73=S"
+  set "_h_74=T"& set "_h_75=U"& set "_h_76=V"& set "_h_77=W"& set "_h_78=X"
+  set "_h_79=Y"& set "_h_7A=Z"& set "_h_2E=."
 
   :: 00 means last char
   set "buffer=%~100"
@@ -75,7 +75,7 @@ goto :%_fn%
 :_S_EmitNum
       @REM Convert acc to tagged binary number
       if "!ntype!"=="" (
-        call int fromDec !acc!
+        call %GWSRC%\num\int fromDec !acc!
         if not errorlevel 1 (
           set "tokens=!tokens! NUM_!__!"
           set acc=
@@ -85,16 +85,16 @@ goto :%_fn%
         set "ntype=s"
       )
       if "!ntype!"=="i" (
-        call int fromDec !acc!
-        if errorlevel 1 (call sng fromDec !acc!)
+        call %GWSRC%\num\int fromDec !acc!
+        if errorlevel 1 (call %GWSRC%\num\sng fromDec !acc!)
         set "tokens=!tokens! NUM_!__!"
       )
       if "!ntype!"=="s" (
-        call sng fromDec !acc!
+        call %GWSRC%\num\sng fromDec !acc!
         set "tokens=!tokens! NUM_!__!"
       )
       if "!ntype!"=="d" (
-        call dbl fromDec !acc!
+        call %GWSRC%\num\dbl fromDec !acc!
         set "tokens=!tokens! NUM_!__!"
       )
       set acc=
@@ -344,12 +344,15 @@ goto :%_fn%
       goto :_Loop
 
 :_S_Ampersand
-      @REM &H -> hex literal, &O -> octal literal, & alone -> ignored
+      @REM &H/&h -> hex literal
       if !c!==48 (set "state=HexLit" & set "acc=" & goto :_Loop)
       if !c!==68 (set "state=HexLit" & set "acc=" & goto :_Loop)
+      @REM &O/&o -> octal literal
       if !c!==4F (set "state=OctLit" & set "acc=" & goto :_Loop)
       if !c!==6F (set "state=OctLit" & set "acc=" & goto :_Loop)
-      @REM Bare & - treat as long integer suffix, ignore
+      @REM &digits -> octal (bare & is same as &O in GW-BASIC)
+      if defined isNumber (set "state=OctLit" & set "acc=" & goto :_S_OctLit)
+      @REM Bare & at end or before non-digit -> long integer suffix, ignore
       set state=Normal
       goto :_S_Normal
 
@@ -396,7 +399,7 @@ goto :%_fn%
 :_FlushNum
   @REM Same logic as _EmitNum but at end-of-line
   if "!ntype!"=="" (
-    call int fromDec !acc!
+    call %GWSRC%\num\int fromDec !acc!
     if not errorlevel 1 (
       set "tokens=!tokens! NUM_!__!"
       goto :_FlushDone
@@ -404,12 +407,12 @@ goto :%_fn%
     set "ntype=s"
   )
   if "!ntype!"=="i" (
-    call int fromDec !acc!
-    if errorlevel 1 (call sng fromDec !acc!)
+    call %GWSRC%\num\int fromDec !acc!
+    if errorlevel 1 (call %GWSRC%\num\sng fromDec !acc!)
     set "tokens=!tokens! NUM_!__!"
   )
-  if "!ntype!"=="s" (call sng fromDec !acc! & set "tokens=!tokens! NUM_!__!")
-  if "!ntype!"=="d" (call dbl fromDec !acc! & set "tokens=!tokens! NUM_!__!")
+  if "!ntype!"=="s" (call %GWSRC%\num\sng fromDec !acc! & set "tokens=!tokens! NUM_!__!")
+  if "!ntype!"=="d" (call %GWSRC%\num\dbl fromDec !acc! & set "tokens=!tokens! NUM_!__!")
   set "ntype="
   goto :_FlushDone
 :_FlushId
@@ -446,11 +449,16 @@ goto :%_fn%
 
 
 :_start
-  setlocal DisableDelayedExpansion
-  set PATH=%~dp0;%~dp0..\..\lib;%PATH%
-
-  ::                 6 5   D I M   H ( M A X F R A M E   +   1 ,   P O I N T S ,   2 )
-  set "buffer=20202036352044494D2048284D41584652414D45202B20312C20504F494E54532C20322920"
-  echo "   65 DIM H(MAXFRAME + 1, POINTS, 2)"
-  call:ParseTxt %buffer%
+  if not defined GWSRC set "GWSRC=%~dp0.."
+  set "PATH=%~dp0;%GWSRC%\num;%PATH%"
+  call %GWSRC%\lexer\keyword init
+  echo GW-BASIC Lexer. Enter a line to tokenize. Empty line to quit.
+:_repl
+  call %GWSRC%\str\str input "> " _hex
+  if errorlevel 1 goto :_repl_end
+  setlocal EnableDelayedExpansion
+  call :ParseTxt !_hex! _tokens
+  echo !_tokens!
   endlocal
+  goto :_repl
+:_repl_end

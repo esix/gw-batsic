@@ -129,46 +129,45 @@ goto :%_fn%
   exit /B 0
 
 :_parse_err
-  echo PARSE ERROR: !_err! 1>&2
-  echo   Token: !_tok! Stack top: !_top! 1>&2
+  echo Syntax error: !_err! 1>&2
   endlocal
-  exit /B 1
+  exit /B 2
 
 
 :_start
-  setlocal EnableDelayedExpansion
-  set "PATH=%~dp0;%~dp0..\stl;%PATH%"
+  if not defined GWSRC set "GWSRC=%~dp0.."
+  set "PATH=%~dp0;%~dp0..\stl;%GWSRC%\num;%PATH%"
   call _table loadCache "%~dp0_table.dat"
   if errorlevel 1 (echo _table.dat not found. Run _rebuild.bat & exit /B 1)
-
-  echo --- PRINT 1+2 ---
-  call :parse "PRINT NUM_i0001 PLUS NUM_i0002 EOL"
-  echo.
-  echo --- PRINT 1+2*3 ---
-  call :parse "PRINT NUM_i0001 PLUS NUM_i0002 MUL NUM_i0003 EOL"
-  echo.
-  echo --- PRINT A;B,C;1+2 ---
-  call :parse "PRINT VAR_UNK_A SEMICOLON VAR_UNK_B COMA VAR_UNK_C SEMICOLON NUM_i0001 PLUS NUM_i0002 EOL"
-  echo.
-  echo --- A=1+2 ---
-  call :parse "VAR_UNK_A EQ NUM_i0001 PLUS NUM_i0002 EOL"
-  echo.
-  echo --- PRINT -1*2 ---
-  call :parse "PRINT MINUS NUM_i0001 MUL NUM_i0002 EOL"
-  echo.
-  echo --- GOTO 100 ---
-  call :parse "GOTO NUM_i0064 EOL"
-  echo.
-  echo --- IF A THEN 100 ---
-  call :parse "IF VAR_UNK_A THEN NUM_i0064 EOL"
-  echo.
-  echo --- FOR I=1 TO 10 STEP 2 ---
-  call :parse "FOR VAR_UNK_I EQ NUM_i0001 TO NUM_i000A STEP NUM_i0002 EOL"
-  echo.
-  echo --- PRINT ABS(X) ---
-  call :parse "PRINT ABS OPAR VAR_UNK_X CPAR EOL"
-  echo.
-  echo --- PRINT LEFT$(A$,3) ---
-  call :parse "PRINT LEFT$ OPAR VAR_STR_A COMA NUM_i0003 CPAR EOL"
-
+  call %GWSRC%\lexer\keyword init
+  echo GW-BASIC Parser. Enter a line to parse. Empty line to quit.
+:_repl
+  call %GWSRC%\str\str input "> " _hex
+  if errorlevel 1 goto :_repl_end
+  setlocal EnableDelayedExpansion
+  @REM Run lexer
+  call %GWSRC%\lexer\lexer ParseTxt !_hex! _tokens
+  @REM Strip LN__ token if present
+  set "_first="
+  for /f "tokens=1*" %%a in ("!_tokens!") do (
+    set "_first=%%a"
+    set "_rest=%%b"
+  )
+  if "!_first:~0,4!"=="LN__" (
+    echo [line !_first:~4!]
+    set "_tokens=!_rest!"
+  ) else (
+    set "_tokens=!_tokens!"
+  )
+  @REM Run parser
+  set "_result="
+  call :parse "!_tokens!" _result
+  if not errorlevel 1 (
+    if defined _result echo !_result!
+  ) else (
+    echo Error !ERRORLEVEL! 1>&2
+  )
+  set "_result="
   endlocal
+  goto :_repl
+:_repl_end

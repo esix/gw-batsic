@@ -19,6 +19,20 @@ bnf.txt  --[_rebuild.bat]-->  _table.dat  --[parser]-->  postfix output
 
 This reads `bnf.txt`, computes FIRST/FOLLOW sets, builds the LL(1) parse table, and writes `_table.dat`. Takes ~3-4 minutes (batch is slow for set operations). Only needed when `bnf.txt` changes.
 
+Two expected warnings are printed during rebuild:
+
+```
+CONFLICT: table.StmtRest.COLON = 1 vs 2 [FOLLOW]
+CONFLICT: table.ElseClause.ELSE = 55 vs 56 [FOLLOW]
+```
+
+These are known LL(1) limitations, both resolved correctly:
+
+- **StmtRest.COLON**: `:` can start a new statement (rule 1) or end the statement list (rule 2). FIRST entry wins — `:` continues parsing. Correct.
+- **ElseClause.ELSE**: `ELSE` can match an else clause (rule 55) or be skipped (rule 56). FIRST entry wins — `ELSE` is matched. This is the classic "dangling else" resolution. Correct.
+
+The `[FOLLOW]` tag means the FOLLOW-derived entry was NOT written because a FIRST entry already existed. Any NEW conflicts (without `[FOLLOW]`, or between different FIRST rules) would indicate a real grammar ambiguity that needs fixing.
+
 ### At runtime:
 
 ```batch
