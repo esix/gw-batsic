@@ -1,7 +1,7 @@
 @echo off
 @REM Module test runner for src/lexer
-set "PATH=%~dp0;%~dp0..\num;%~dp0..;%~dp0..\..\lib;%PATH%"
-set "GWSRC=%~dp0.."
+if not defined GWSRC set "GWSRC=%~dp0.."
+set "PATH=%~dp0;%GWSRC%\num;%PATH%"
 
 call keyword init
 

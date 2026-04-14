@@ -162,7 +162,7 @@ RangeRest     ::= e
 PokeStmt      ::= POKE Expr COMA Expr @POKE
 
 ; --- OPEN ---
-OpenStmt      ::= OPEN Expr OpenMode HASH NUM OpenRecLen
+OpenStmt      ::= OPEN Expr OpenMode HASH NUM OpenRecLen @OPEN
 OpenMode      ::= FOR OpenAccess
 OpenMode      ::= COMA Expr COMA Expr
 OpenMode      ::= e
@@ -173,21 +173,21 @@ OpenRecLen    ::= COMA Expr
 OpenRecLen    ::= e
 
 ; --- CLOSE ---
-CloseStmt     ::= CLOSE CloseList
+CloseStmt     ::= CLOSE CloseList @CLOSE
 CloseList     ::= HASH NUM CloseListRest
 CloseList     ::= e
 CloseListRest ::= COMA HASH NUM CloseListRest
 CloseListRest ::= e
 
 ; --- WRITE ---
-WriteStmt     ::= WRITE WriteTarget ExprList
+WriteStmt     ::= WRITE WriteTarget ExprList @WRITE
 WriteTarget   ::= HASH NUM COMA
 WriteTarget   ::= e
 
 ; --- LINE ---
 LineStmt      ::= LINE LineWhat
-LineWhat      ::= INPUT LineInput
-LineWhat      ::= OPAR Expr COMA Expr CPAR MINUS OPAR Expr COMA Expr CPAR LineBox
+LineWhat      ::= INPUT LineInput @LINE_INPUT
+LineWhat      ::= OPAR Expr COMA Expr CPAR MINUS OPAR Expr COMA Expr CPAR LineBox @LINE_DRAW
 LineInput     ::= InputPrompt VarRef
 LineBox       ::= COMA Expr LineBoxFill
 LineBox       ::= e
@@ -195,19 +195,19 @@ LineBoxFill   ::= COMA VAR
 LineBoxFill   ::= e
 
 ; --- LOCATE ---
-LocateStmt    ::= LOCATE Expr LocateCol
+LocateStmt    ::= LOCATE Expr LocateCol @LOCATE
 LocateCol     ::= COMA Expr
 LocateCol     ::= e
 
 ; --- COLOR ---
-ColorStmt     ::= COLOR Expr ColorRest
+ColorStmt     ::= COLOR Expr ColorRest @COLOR
 ColorRest     ::= COMA Expr ColorBorder
 ColorRest     ::= e
 ColorBorder   ::= COMA Expr
 ColorBorder   ::= e
 
 ; --- SCREEN ---
-ScreenStmt    ::= SCREEN Expr ScreenRest
+ScreenStmt    ::= SCREEN Expr ScreenRest @SCREEN
 ScreenRest    ::= COMA Expr ScreenRest2
 ScreenRest    ::= e
 ScreenRest2   ::= COMA Expr ScreenRest3
