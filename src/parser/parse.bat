@@ -80,8 +80,14 @@ goto :%_fn%
 
   @REM Terminal match: top == current token class
   if "!_top!"=="!_term!" (
-    @REM Emit the actual token (with value)
-    set "_output=!_output! !_tok!"
+    @REM Only emit value tokens (NUM_, VAR_, STR_, REM_), skip structural noise
+    set "_tp=!_tok:~0,4!"
+    if "!_tp!"=="NUM_" set "_output=!_output! !_tok!"
+    if "!_tp!"=="VAR_" set "_output=!_output! !_tok!"
+    if "!_tp!"=="STR_" set "_output=!_output! !_tok!"
+    if "!_tp!"=="REM_" set "_output=!_output! !_tok!"
+    if "!_tp!"=="HEX_" set "_output=!_output! !_tok!"
+    if "!_tp!"=="OCT_" set "_output=!_output! !_tok!"
     @REM Pop stack
     set "_stack=!_stail!"
     @REM Advance input
