@@ -24,6 +24,7 @@
 @REM
 @REM Error 13 = Type mismatch (wrong prefix)
 
+set "PATH=%~dp0;%PATH%"
 if "%~1"=="" goto :_start
 set "_fn=%~1"
 shift
@@ -31,10 +32,10 @@ goto :%_fn%
 
 
 :fromDec
+  setlocal EnableDelayedExpansion
   call _xword fromDec %~1
-  if errorlevel 1 exit /B %ERRORLEVEL%
-  set "__=i%__%"
-  exit /B 0
+  if errorlevel 1 (endlocal & exit /B !ERRORLEVEL!)
+  endlocal & set "__=i%__%" & exit /B 0
 
 :toDec
   setlocal EnableDelayedExpansion

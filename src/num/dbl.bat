@@ -3,16 +3,17 @@
 @REM Tagged representation: "d" prefix + 16-char hex (xqword)
 @REM Error 6=Overflow, 11=Division by zero, 13=Type mismatch
 
+set "PATH=%~dp0;%PATH%"
 if "%~1"=="" goto :_start
 set "_fn=%~1"
 shift
 goto :%_fn%
 
 :fromDec
+  setlocal EnableDelayedExpansion
   call _mbfd fromDec %~1
-  if errorlevel 1 exit /B %ERRORLEVEL%
-  set "__=d%__%"
-  exit /B 0
+  if errorlevel 1 (endlocal & exit /B !ERRORLEVEL!)
+  endlocal & set "__=d%__%" & exit /B 0
 
 :toDec
   setlocal EnableDelayedExpansion
