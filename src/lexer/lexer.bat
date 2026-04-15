@@ -450,7 +450,7 @@ goto :%_fn%
 
 :_start
   if not defined GWSRC set "GWSRC=%~dp0.."
-  set "PATH=%~dp0;%GWSRC%\num;%PATH%"
+  set "PATH=%~dp0;%PATH%"
   call %GWSRC%\lexer\keyword init
   echo GW-BASIC Lexer. Enter a line to tokenize. Empty line to quit.
 :_repl

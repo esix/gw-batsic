@@ -48,6 +48,32 @@ goto :%_fn%
   endlocal & set "%~1=%_v%" & exit /B 0
 
 
+@REM --- back vecName retVar ---
+@REM Gets last element without removing it.
+:back
+  setlocal EnableDelayedExpansion
+  set "_v=!%~1!"
+  set "_r="
+  for %%a in (!_v!) do set "_r=%%a"
+  endlocal & set "%~2=%_r%" & exit /B 0
+
+
+@REM --- pop vecName retVar ---
+@REM Removes last element and returns it.
+:pop
+  setlocal EnableDelayedExpansion
+  set "_v=!%~1!"
+  set "_r="
+  set "_rest="
+  for %%a in (!_v!) do (
+    if defined _r (
+      if "!_rest!"=="" (set "_rest=!_r!") else (set "_rest=!_rest! !_r!")
+    )
+    set "_r=%%a"
+  )
+  endlocal & set "%~1=%_rest%" & set "%~2=%_r%" & exit /B 0
+
+
 @REM --- includes vecName value ---
 @REM Returns errorlevel 0 if found, 1 if not.
 :includes

@@ -136,7 +136,7 @@ goto :%_fn%
 
 :_start
   if not defined GWSRC set "GWSRC=%~dp0.."
-  set "PATH=%~dp0;%~dp0..\stl;%GWSRC%\num;%PATH%"
+  set "PATH=%~dp0;%PATH%"
   call _table loadCache "%~dp0_table.dat"
   if errorlevel 1 (echo _table.dat not found. Run _rebuild.bat & exit /B 1)
   call %GWSRC%\lexer\keyword init
