@@ -119,4 +119,25 @@ goto :%_fn%
 
 
 :_start
-echo int.bat - GW-BASIC 16-bit signed integer facade
+  setlocal EnableDelayedExpansion
+  echo Integer calculator. Enter: NUMBER + NUMBER (empty to quit)
+:_repl
+  set "_in="
+  set /p "_in=> " || goto :_repl_end
+  if "!_in!"=="" goto :_repl_end
+  for /f "tokens=1,2,3" %%a in ("!_in!") do (
+    set "_a=%%a"& set "_op=%%b"& set "_b=%%c"
+  )
+  call %~dp0int.bat fromDec !_a!
+  set "_va=!__!"
+  call %~dp0int.bat fromDec !_b!
+  set "_vb=!__!"
+  if "!_op!"=="+" call %~dp0int.bat add !_va! !_vb!
+  if "!_op!"=="-" call %~dp0int.bat sub !_va! !_vb!
+  if "!_op!"=="*" call %~dp0int.bat mul !_va! !_vb!
+  if "!_op!"=="/" call %~dp0int.bat div !_va! !_vb!
+  call %~dp0int.bat toDec !__!
+  echo !__!
+  goto :_repl
+:_repl_end
+  endlocal

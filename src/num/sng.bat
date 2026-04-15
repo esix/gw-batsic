@@ -124,4 +124,25 @@ goto :%_fn%
 
 
 :_start
-echo sng.bat - GW-BASIC single-precision float facade
+  setlocal EnableDelayedExpansion
+  echo Single calculator. Enter: NUMBER + NUMBER (empty to quit)
+:_repl
+  set "_in="
+  set /p "_in=> " || goto :_repl_end
+  if "!_in!"=="" goto :_repl_end
+  for /f "tokens=1,2,3" %%a in ("!_in!") do (
+    set "_a=%%a"& set "_op=%%b"& set "_b=%%c"
+  )
+  call %~dp0sng.bat fromDec !_a!
+  set "_va=!__!"
+  call %~dp0sng.bat fromDec !_b!
+  set "_vb=!__!"
+  if "!_op!"=="+" call %~dp0sng.bat add !_va! !_vb!
+  if "!_op!"=="-" call %~dp0sng.bat sub !_va! !_vb!
+  if "!_op!"=="*" call %~dp0sng.bat mul !_va! !_vb!
+  if "!_op!"=="/" call %~dp0sng.bat div !_va! !_vb!
+  call %~dp0sng.bat toDec !__!
+  echo !__!
+  goto :_repl
+:_repl_end
+  endlocal
