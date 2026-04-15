@@ -41,6 +41,15 @@ goto :%_fn%
   setlocal EnableDelayedExpansion
   set "_name=%~1"
   set "_val=%~2"
+  @REM Resolve VAR_UNK_ to canonical typed name
+  call %GWSRC%\exec\_vars typeof !_name! _tp
+  if "!_name:~0,8!"=="VAR_UNK_" (
+    set "_base=!_name:~8!"
+    if "!_tp!"=="i" set "_name=VAR_INT_!_base!"
+    if "!_tp!"=="s" set "_name=VAR_SNG_!_base!"
+    if "!_tp!"=="d" set "_name=VAR_DBL_!_base!"
+    if "!_tp!"=="t" set "_name=VAR_STR_!_base!"
+  )
   set "_vf=%GWTEMP%\vars.dat"
   @REM Remove existing entry if present
   set "_tmp=%GWTEMP%\_vars.tmp"
@@ -60,6 +69,15 @@ goto :%_fn%
 :get
   setlocal EnableDelayedExpansion
   set "_name=%~1"
+  @REM Resolve VAR_UNK_ to canonical typed name
+  call %GWSRC%\exec\_vars typeof !_name! _tp
+  if "!_name:~0,8!"=="VAR_UNK_" (
+    set "_base=!_name:~8!"
+    if "!_tp!"=="i" set "_name=VAR_INT_!_base!"
+    if "!_tp!"=="s" set "_name=VAR_SNG_!_base!"
+    if "!_tp!"=="d" set "_name=VAR_DBL_!_base!"
+    if "!_tp!"=="t" set "_name=VAR_STR_!_base!"
+  )
   set "_val="
   set "_vf=%GWTEMP%\vars.dat"
   for /f "usebackq tokens=1* delims==" %%a in ("!_vf!") do (
@@ -80,6 +98,14 @@ goto :%_fn%
 :del
   setlocal EnableDelayedExpansion
   set "_name=%~1"
+  call %GWSRC%\exec\_vars typeof !_name! _tp
+  if "!_name:~0,8!"=="VAR_UNK_" (
+    set "_base=!_name:~8!"
+    if "!_tp!"=="i" set "_name=VAR_INT_!_base!"
+    if "!_tp!"=="s" set "_name=VAR_SNG_!_base!"
+    if "!_tp!"=="d" set "_name=VAR_DBL_!_base!"
+    if "!_tp!"=="t" set "_name=VAR_STR_!_base!"
+  )
   set "_vf=%GWTEMP%\vars.dat"
   set "_tmp=%GWTEMP%\_vars.tmp"
   type nul > "!_tmp!"
