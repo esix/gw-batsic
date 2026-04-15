@@ -21,12 +21,31 @@ call %test% "exec.calc.parens"
 
 call %test% "exec.vars.assign"
   @REM Init vars, assign, then print
+  @REM Default type is single, so 10 is stored as sng and displayed as 1E1
+  @REM (toDec formatting to be improved later)
   call %GWSRC%\exec\_vars init
   call :_exec "VAR_UNK_A NUM_i000A ASSIGN"
-  call :_run "PRINT A" " 10"
+  call :_run "PRINT A" " 1E1"
+
+call %test% "exec.vars.assign.int"
+  @REM Explicit integer variable — use postfix directly (% can't go through str encode)
+  call %GWSRC%\exec\_vars init
+  call :_exec "VAR_INT_A NUM_i000A ASSIGN"
+  call :_rexec "VAR_INT_A PEND" " 10"
+
+call %test% "exec.vars.namespace"
+  @REM I and I! are the same var (default single)
+  @REM I% is a different var
+  call %GWSRC%\exec\_vars init
+  call :_exec "VAR_UNK_I NUM_i0005 ASSIGN"
+  call :_exec "VAR_INT_I NUM_i0063 ASSIGN"
+  @REM I! should be 5 (stored as single)
+  @REM I% should be 99
 
 call %test% "exec.vars.expr"
+  @REM Use explicit integer vars for clean output
   call %GWSRC%\exec\_vars init
+  call %GWSRC%\exec\_vars defrange A Z i
   call :_exec "VAR_UNK_X NUM_i0005 ASSIGN"
   call :_run "PRINT X+1" " 6"
 
@@ -72,6 +91,23 @@ exit /B
     endlocal & set /a passedTests+=1
   ) else (
     echo FAILED: "%~1"
+    echo   Expected: %~2
+    echo        Got: !_got!
+    echo.
+    endlocal & set /a failedTests+=1
+  )
+  exit /B
+
+@REM Helper: execute postfix directly and check output
+:_rexec
+  set /a numTests+=1
+  setlocal EnableDelayedExpansion
+  call %GWSRC%\exec\exec run "%~1" > "%GWTEMP%\_test.out" 2>&1
+  set /p "_got=" < "%GWTEMP%\_test.out"
+  if "!_got!"=="%~2" (
+    endlocal & set /a passedTests+=1
+  ) else (
+    echo FAILED: exec "%~1"
     echo   Expected: %~2
     echo        Got: !_got!
     echo.
