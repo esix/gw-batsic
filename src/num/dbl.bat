@@ -102,4 +102,25 @@ goto :%_fn%
   endlocal & set "__=%__%" & exit /B 0
 
 :_start
-echo dbl.bat - GW-BASIC double-precision float facade
+  setlocal EnableDelayedExpansion
+  echo Double calculator. Enter: NUMBER + NUMBER (empty to quit)
+:_repl
+  set "_in="
+  set /p "_in=> " || goto :_repl_end
+  if "!_in!"=="" goto :_repl_end
+  for /f "tokens=1,2,3" %%a in ("!_in!") do (
+    set "_a=%%a"& set "_op=%%b"& set "_b=%%c"
+  )
+  call %~dp0dbl.bat fromDec !_a!
+  set "_va=!__!"
+  call %~dp0dbl.bat fromDec !_b!
+  set "_vb=!__!"
+  if "!_op!"=="+" call %~dp0dbl.bat add !_va! !_vb!
+  if "!_op!"=="-" call %~dp0dbl.bat sub !_va! !_vb!
+  if "!_op!"=="*" call %~dp0dbl.bat mul !_va! !_vb!
+  if "!_op!"=="/" call %~dp0dbl.bat div !_va! !_vb!
+  call %~dp0dbl.bat toDec !__!
+  echo !__!
+  goto :_repl
+:_repl_end
+  endlocal
