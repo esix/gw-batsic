@@ -758,7 +758,7 @@ goto :%_fn%
   set "dg="
   set /a "i=0"
 :_td_dg
-  if !i!==7 goto :_td_fmt
+  if !i!==8 goto :_td_fmt
   @REM Inline toInt: extract integer part from MBF
   @REM If exp < 0x80: digit is 0 (fractional value)
   set "_de=!v:~0,2!"
@@ -816,6 +816,18 @@ goto :%_fn%
   set /a "i+=1"
   goto :_td_dg
 :_td_fmt
+  @REM Round 7-digit result based on extracted 8th digit
+  set "_d8=!dg:~7,1!"
+  set "dg=!dg:~0,7!"
+  if "!_d8!" geq "5" (
+    set /a "_rn=1!dg!+1"
+    set "_rs=!_rn!"
+    set "dg=!_rs:~-7!"
+    if "!_rs:~0,1!"=="2" (
+      set "dg=1000000"
+      set /a "exp10+=1"
+    )
+  )
   @REM Trim trailing zeros (keep at least first digit)
 :_td_trim
   if "!dg:~1!"=="" goto :_td_bld
@@ -823,12 +835,40 @@ goto :%_fn%
 :_td_bld
   set "r="
   if "!neg!"=="1" set "r=-"
-  if "!dg:~1!"=="" (
+  @REM Length of dg (1..7 after trim)
+  set /a "_L=0"
+  for /L %%i in (0,1,6) do if "!dg:~%%i,1!" neq "" set /a "_L=%%i+1"
+  @REM intDigits = digits before decimal point in positional form
+  set /a "_id=exp10+1"
+  if !_id! GEQ 1 if !_id! LEQ 7 goto :_td_fix
+  if !_id!==0 goto :_td_frac0
+  if !_id!==-1 goto :_td_frac1
+  goto :_td_sci
+:_td_fix
+  set /a "_np=_id-_L"
+  if !_np! GEQ 0 (
+    @REM Integer: pad trailing zeros, no decimal point
+    for /L %%i in (1,1,6) do if %%i LEQ !_np! set "dg=!dg!0"
     set "r=!r!!dg!"
   ) else (
-    set "r=!r!!dg:~0,1!.!dg:~1!"
+    @REM Decimal insert at position _id
+    for %%x in (!_id!) do set "r=!r!!dg:~0,%%x!.!dg:~%%x!"
   )
-  if !exp10! neq 0 set "r=!r!E!exp10!"
+  goto :_td_done
+:_td_frac0
+  set "r=!r!.!dg!"
+  goto :_td_done
+:_td_frac1
+  set "r=!r!.0!dg!"
+  goto :_td_done
+:_td_sci
+  if !_L!==1 (set "r=!r!!dg!") else (set "r=!r!!dg:~0,1!.!dg:~1!")
+  set "_es=+"
+  set /a "_ev=exp10"
+  if !_ev! LSS 0 (set "_es=-"& set /a "_ev=-_ev")
+  if !_ev! LSS 10 set "_ev=0!_ev!"
+  set "r=!r!E!_es!!_ev!"
+:_td_done
   endlocal & set "__=%r%" & exit /B 0
 
 

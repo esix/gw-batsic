@@ -160,15 +160,15 @@ call %test% "mbfs.toDec"
   call expect "_mbfs toDec 80000000" "1"
   call expect "_mbfs toDec 80800000" "-1"
   call expect "_mbfs toDec 81000000" "2"
-  call expect "_mbfs toDec 83200000" "1E1"
+  call expect "_mbfs toDec 83200000" "10"
 
 call %test% "mbfs.toDec.more"
-  @REM 100 = 86480000: should output "1E2" (1.0 * 10^2)
-  call expect "_mbfs toDec 86480000" "1E2"
+  @REM 100 = 86480000
+  call expect "_mbfs toDec 86480000" "100"
   @REM 0.5 = 7F000000
-  call expect "_mbfs toDec 7F000000" "5E-1"
+  call expect "_mbfs toDec 7F000000" ".5"
   @REM -10
-  call expect "_mbfs toDec 83A00000" "-1E1"
+  call expect "_mbfs toDec 83A00000" "-10"
 
 call %test% "mbfs.fromDec.Enotation"
   @REM 1E2 = 100
