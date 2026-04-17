@@ -21,11 +21,10 @@ call %test% "exec.calc.parens"
 
 call %test% "exec.vars.assign"
   @REM Init vars, assign, then print
-  @REM Default type is single, so 10 is stored as sng and displayed as 1E1
-  @REM (toDec formatting to be improved later)
+  @REM Default type is single, so 10 is stored as sng and displayed as 10.
   call %GWSRC%\exec\_vars init
   call :_exec "VAR_UNK_A NUM_i000A ASSIGN"
-  call :_run "PRINT A" " 1E1"
+  call :_run "PRINT A" " 10"
 
 call %test% "exec.vars.assign.int"
   @REM Explicit integer variable — use postfix directly (% can't go through str encode)
