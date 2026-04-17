@@ -36,5 +36,5 @@ if "!_tp!"=="d" if "!_vtp!" neq "d" (
   )
 )
 call %GWSRC%\exec\_vars set !_var! !_val!
-endlocal
-exit /B 0
+set "_final=!%_s%!"
+endlocal & set "%~1=%_final%" & exit /B 0

@@ -1,11 +1,15 @@
 @echo off
-@REM MUL: pop two values, multiply, push result
+@REM MUL: pop two values, promote to common numeric type, multiply, push result
 setlocal EnableDelayedExpansion
 set "_s=%~1"
 call %GWSRC%\stl\vec pop %_s% _b
 call %GWSRC%\stl\vec pop %_s% _a
 call %GWSRC%\exec\_resolve !_a! _a
 call %GWSRC%\exec\_resolve !_b! _b
-call %GWSRC%\num\int mul !_a! !_b!
-endlocal & call %GWSRC%\stl\vec push %~1 %__%
-exit /B 0
+call %GWSRC%\exec\_promote !_a! !_b!
+if "!__t!"=="i" call %GWSRC%\num\int mul !__a! !__b!
+if "!__t!"=="s" call %GWSRC%\num\sng mul !__a! !__b!
+if "!__t!"=="d" call %GWSRC%\num\dbl mul !__a! !__b!
+call %GWSRC%\stl\vec push %_s% !__!
+set "_final=!%_s%!"
+endlocal & set "%~1=%_final%" & exit /B 0

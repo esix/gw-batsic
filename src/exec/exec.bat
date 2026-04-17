@@ -46,7 +46,73 @@ goto :%_fn%
     )
   )
 
-  endlocal & exit /B %_err%
+  @REM Propagate flow-control state back to caller (RUN loop)
+  endlocal & set "_next_line=%_next_line%" & set "_gosub_stack=%_gosub_stack%" & exit /B %_err%
+
+
+@REM --- runProgram: execute the stored program from lowest line number ---
+@REM Iterates lines via _next_line; RTLs (GOTO/GOSUB/RETURN) override it.
+:runProgram
+  setlocal EnableDelayedExpansion
+  set "_gosub_stack="
+  @REM Find the lowest line number from sorted program.dat
+  set "_first="
+  for /f "usebackq tokens=1 delims= " %%k in (`sort "%GWTEMP%\program.dat"`) do (
+    if not defined _first set "_first=%%k"
+  )
+  if not defined _first (endlocal & exit /B 0)
+  call :_keyToLn !_first! _next_line
+
+:_runProg_loop
+  if not defined _next_line goto :_runProg_done
+  if "!_next_line!"=="" goto :_runProg_done
+  call %GWSRC%\exec\_program get !_next_line! _line_tokens
+  if not defined _line_tokens (
+    echo Undefined line !_next_line!
+    goto :_runProg_done
+  )
+  @REM Strip leading LN__nnn token
+  for /f "tokens=1*" %%a in ("!_line_tokens!") do set "_line_tokens=%%b"
+  @REM Compute the natural-next line (smallest key > current); RTLs may override
+  call :_naturalNext !_next_line! _next_line
+  call %GWSRC%\parser\parse parse "!_line_tokens!" _postfix
+  if errorlevel 1 goto :_runProg_done
+  call :run "!_postfix!"
+  set "_e=!ERRORLEVEL!"
+  if !_e! neq 0 goto :_runProg_done
+  goto :_runProg_loop
+
+:_runProg_done
+  endlocal
+  exit /B 0
+
+
+@REM --- _keyToLn KEY retVar: convert "00010" to "10" (strip leading zeros) ---
+:_keyToLn
+  setlocal EnableDelayedExpansion
+  set "_k=%~1"
+:_kln_strip
+  if "!_k:~0,1!"=="0" if not "!_k:~1!"=="" (set "_k=!_k:~1!" & goto :_kln_strip)
+  endlocal & set "%~2=%_k%" & exit /B 0
+
+
+@REM --- _naturalNext CUR retVar: find smallest line > CUR (or empty) ---
+:_naturalNext
+  setlocal EnableDelayedExpansion
+  set "_pad=00000%~1"
+  set "_pad=!_pad:~-5!"
+  set "_found="
+  set "_natural="
+  for /f "usebackq tokens=1 delims= " %%k in (`sort "%GWTEMP%\program.dat"`) do (
+    if defined _found if not defined _natural set "_natural=%%k"
+    if "%%k"=="!_pad!" set "_found=1"
+  )
+  if defined _natural (
+    call :_keyToLn !_natural! _r
+  ) else (
+    set "_r="
+  )
+  endlocal & set "%~2=%_r%" & exit /B 0
 
 
 :_start
@@ -91,6 +157,11 @@ goto :%_fn%
   if "!_first!"=="SYSTEM" (
     endlocal
     goto :_repl_end
+  )
+  if "!_first!"=="RUN" (
+    call :runProgram
+    endlocal
+    goto :_repl
   )
   @REM Immediate mode: parse and execute
   call %GWSRC%\parser\parse parse "!_tokens!" _postfix
