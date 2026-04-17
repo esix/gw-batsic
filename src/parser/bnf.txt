@@ -82,7 +82,9 @@ PrintRest     ::= e
 
 ; --- LET / assignment ---
 LetStmt       ::= LET AssignStmt
-AssignStmt    ::= VarRef EQ Expr @ASSIGN
+AssignStmt    ::= VAR AssignTail
+AssignTail    ::= EQ Expr @ASSIGN
+AssignTail    ::= @ARR_START OPAR ExprList CPAR EQ Expr @ASSIGN_ARR
 
 ; --- IF / THEN ---
 IfStmt        ::= IF Expr @IF THEN ThenClause ElseClause @ENDIF
@@ -133,7 +135,7 @@ DataListRest  ::= e
 
 ; --- DIM ---
 DimStmt       ::= DIM DimVar DimVarRest
-DimVar        ::= VAR OPAR ExprList CPAR @DIM
+DimVar        ::= VAR @ARR_START OPAR ExprList CPAR @DIM
 DimVarRest    ::= COMA DimVar DimVarRest
 DimVarRest    ::= e
 
@@ -332,7 +334,7 @@ Primary       ::= BuiltinCall
 
 ; --- Variable reference or array access ---
 VarOrCall     ::= VAR ArrayIndex
-ArrayIndex    ::= OPAR ExprList CPAR @AIDX
+ArrayIndex    ::= @ARR_START OPAR ExprList CPAR @AIDX
 ArrayIndex    ::= e
 
 ; --- FN user function call ---
