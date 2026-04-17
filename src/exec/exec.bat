@@ -65,20 +65,39 @@ goto :%_fn%
   setlocal EnableDelayedExpansion
   @REM Lexer
   call %GWSRC%\lexer\lexer ParseTxt !_hex! _tokens
-  @REM Strip LN__
   set "_first="
+  set "_rest="
   for /f "tokens=1*" %%a in ("!_tokens!") do (
     set "_first=%%a"
     set "_rest=%%b"
   )
-  if "!_first:~0,4!"=="LN__" set "_tokens=!_rest!"
-  @REM Parser
+  @REM Program line entry: first token is LN__nnn — store (or delete if empty)
+  if "!_first:~0,4!"=="LN__" (
+    set "_lineno=!_first:~4!"
+    if "!_rest!"=="EOL" (
+      call %GWSRC%\exec\_program del !_lineno!
+    ) else (
+      call %GWSRC%\exec\_program add !_lineno! "!_tokens!"
+    )
+    endlocal
+    goto :_repl
+  )
+  @REM Direct commands
+  if "!_first!"=="LIST" (
+    call %GWSRC%\exec\_program list
+    endlocal
+    goto :_repl
+  )
+  if "!_first!"=="SYSTEM" (
+    endlocal
+    goto :_repl_end
+  )
+  @REM Immediate mode: parse and execute
   call %GWSRC%\parser\parse parse "!_tokens!" _postfix
   if errorlevel 1 (
     endlocal
     goto :_repl
   )
-  @REM Execute
   call :run "!_postfix!"
   endlocal
   goto :_repl

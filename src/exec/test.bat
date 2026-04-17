@@ -10,6 +10,7 @@ call %GWSRC%\exec\_vars init
 
 echo [exec] Running tests...
 
+call :_run _program.test.bat
 call :_run exec.test.bat
 
 echo [exec] Done.
