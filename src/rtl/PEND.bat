@@ -22,5 +22,5 @@ if "!_tp!"=="i" (
 ) else (
   echo !_a!
 )
-endlocal
-exit /B 0
+set "_final=!%_s%!"
+endlocal & set "%~1=%_final%" & exit /B 0
