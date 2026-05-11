@@ -19,6 +19,8 @@ goto :%_fn%
   set "_postfix=%~1"
   set "_stk="
   set "_err=0"
+  @REM _cur_line is set by the caller (RUN loop sets it per line; REPL sets 65535)
+  if not defined _cur_line set "_cur_line=65535"
 
   for %%t in (!_postfix!) do if !_err!==0 (
     set "_tok=%%t"
@@ -46,8 +48,14 @@ goto :%_fn%
     )
   )
 
-  @REM Propagate flow-control state back to caller (RUN loop)
-  endlocal & set "_next_line=%_next_line%" & set "_gosub_stack=%_gosub_stack%" & exit /B %_err%
+  @REM On error, capture ERR / ERL
+  if !_err! neq 0 (
+    set "_err_code=!_err!"
+    set "_err_line=!_cur_line!"
+  )
+
+  @REM Propagate flow-control + error state back to caller
+  endlocal & set "_next_line=%_next_line%" & set "_gosub_stack=%_gosub_stack%" & set "_err_code=%_err_code%" & set "_err_line=%_err_line%" & exit /B %_err%
 
 
 @REM --- runProgram: execute the stored program from lowest line number ---
@@ -55,12 +63,15 @@ goto :%_fn%
 :runProgram
   setlocal EnableDelayedExpansion
   set "_gosub_stack="
+  @REM RUN clears error state
+  set "_err_code=0"
+  set "_err_line=0"
   @REM Find the lowest line number from sorted program.dat
   set "_first="
   for /f "usebackq tokens=1 delims= " %%k in (`sort "%GWTEMP%\program.dat"`) do (
     if not defined _first set "_first=%%k"
   )
-  if not defined _first (endlocal & exit /B 0)
+  if not defined _first goto :_runProg_done
   call :_keyToLn !_first! _next_line
 
 :_runProg_loop
@@ -73,6 +84,8 @@ goto :%_fn%
   )
   @REM Strip leading LN__nnn token
   for /f "tokens=1*" %%a in ("!_line_tokens!") do set "_line_tokens=%%b"
+  @REM Set current line number (for ERL on error)
+  set "_cur_line=!_next_line!"
   @REM Compute the natural-next line (smallest key > current); RTLs may override
   call :_naturalNext !_next_line! _next_line
   call %GWSRC%\parser\parse parse "!_line_tokens!" _postfix
@@ -83,8 +96,8 @@ goto :%_fn%
   goto :_runProg_loop
 
 :_runProg_done
-  endlocal
-  exit /B 0
+  @REM Propagate error state to caller (so ERR / ERL can be read in REPL after RUN)
+  endlocal & set "_err_code=%_err_code%" & set "_err_line=%_err_line%" & exit /B 0
 
 
 @REM --- _keyToLn KEY retVar: convert "00010" to "10" (strip leading zeros) ---
@@ -123,6 +136,9 @@ goto :%_fn%
   call %GWSRC%\lexer\keyword init
   call %GWSRC%\parser\_table loadCache "%GWSRC%\parser\_table.dat"
   call %GWSRC%\exec\_vars init
+  @REM Error state: ERR / ERL accessible via _resolve's pseudo-vars
+  set "_err_code=0"
+  set "_err_line=0"
 
   echo GW-BASIC Executor. Enter a line. Empty to quit.
 :_repl
@@ -163,13 +179,15 @@ goto :%_fn%
     endlocal
     goto :_repl
   )
-  @REM Immediate mode: parse and execute
+  @REM Immediate mode: parse and execute. Line number for ERL is 65535.
+  set "_cur_line=65535"
   call %GWSRC%\parser\parse parse "!_tokens!" _postfix
   if errorlevel 1 (
     endlocal
     goto :_repl
   )
   call :run "!_postfix!"
-  endlocal
+  @REM Propagate error state out of setlocal so next iteration can read ERR/ERL
+  endlocal & set "_err_code=%_err_code%" & set "_err_line=%_err_line%"
   goto :_repl
 :_repl_end

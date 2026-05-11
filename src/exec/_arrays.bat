@@ -195,7 +195,7 @@ goto :%_fn%
   if "!_nd!"=="2" set "_e=!ERRORLEVEL!"
   if "!_nd!"=="3" call :_offset 3 !_bnds! %~2 %~3 %~4 _off
   if "!_nd!"=="3" set "_e=!ERRORLEVEL!"
-  if !_e! neq 0 (endlocal & exit /B !_e!)
+  if !_e! neq 0 (endlocal & exit /B %_e%)
   call :_nthToken "!_rest!" !_off! _val
   if "!_nd!"=="1" (endlocal & set "%~3=%_val%" & exit /B 0)
   if "!_nd!"=="2" (endlocal & set "%~4=%_val%" & exit /B 0)
@@ -236,7 +236,7 @@ goto :%_fn%
   if "!_nd!"=="3" call :_offset 3 !_bnds! %~2 %~3 %~4 _off
   if "!_nd!"=="3" set "_e=!ERRORLEVEL!"
   if "!_nd!"=="3" set "_val=%~5"
-  if !_e! neq 0 (endlocal & exit /B !_e!)
+  if !_e! neq 0 (endlocal & exit /B %_e%)
   call :_replaceNth "!_rest!" !_off! "!_val!" _newvals
   call :_rewrite !_n! !_nd! "!_bnds!" "!_newvals!"
   endlocal & exit /B 0
