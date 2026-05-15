@@ -112,39 +112,36 @@ goto :%_fn%
   exit /B 0
 
 
-@REM === Check if cache exists ===
+@REM === Load cache file into env vars ===
+@REM Reads every `KEY=VALUE` line into an env var named KEY. Comment lines
+@REM (starting with `;`) are auto-skipped by for /f's default eol behaviour.
+@REM After loadCache, `lookup` / `rule` / `meta` are pure env-var dereferences
+@REM (no findstr spawned per query).
 :loadCache
   if not exist "%~1" exit /B 1
   set "_tablefile=%~1"
+  for /f "usebackq tokens=1,* delims==" %%a in ("%~1") do set "%%a=%%b"
   exit /B 0
 
 
 @REM === Look up a table entry: table.Nonterminal.Terminal -> rule number ===
+@REM Requires caller scope to have EnableDelayedExpansion.
 :lookup
-  set "%~3="
-  for /f "tokens=2 delims==" %%v in ('findstr /B /C:"table.%~1.%~2=" "!_tablefile!"') do (
-    set "%~3=%%v"
-  )
+  set "%~3=!table.%~1.%~2!"
   if "!%~3!"=="" exit /B 1
   exit /B 0
 
 
 @REM === Look up a rule by number: rule.N -> "LHS sym sym ..." ===
 :rule
-  set "%~2="
-  for /f "tokens=2* delims==" %%a in ('findstr /B /C:"rule.%~1=" "!_tablefile!"') do (
-    set "%~2=%%a"
-  )
+  set "%~2=!rule.%~1!"
   if "!%~2!"=="" exit /B 1
   exit /B 0
 
 
-@REM === Look up grammar metadata ===
+@REM === Look up grammar metadata (grammar.start, grammar.nonterminals, ...) ===
 :meta
-  set "%~2="
-  for /f "tokens=2* delims==" %%a in ('findstr /B /C:"%~1=" "!_tablefile!"') do (
-    set "%~2=%%a"
-  )
+  set "%~2=!%~1!"
   if "!%~2!"=="" exit /B 1
   exit /B 0
 
