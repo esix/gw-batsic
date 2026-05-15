@@ -140,10 +140,13 @@ goto :%_fn%
   set "_err_code=0"
   set "_err_line=0"
 
-  echo GW-BASIC Executor. Enter a line. Empty to quit.
+  echo GW-BASIC 3.23
+  echo (C) Copyright Microsoft 1983,1984,1985,1986,1987,1988
+  echo Ok
 :_repl
-  call %GWSRC%\str\str input "> " _hex
-  if errorlevel 1 goto :_repl_end
+  call %GWSRC%\str\str input "" _hex
+  @REM Empty line: just re-prompt (no Ok)
+  if errorlevel 1 goto :_repl
   setlocal EnableDelayedExpansion
   @REM Lexer
   call %GWSRC%\lexer\lexer ParseTxt !_hex! _tokens
@@ -153,7 +156,7 @@ goto :%_fn%
     set "_first=%%a"
     set "_rest=%%b"
   )
-  @REM Program line entry: first token is LN__nnn — store (or delete if empty)
+  @REM Program line entry: first token is LN__nnn — store (or delete if empty). Silent.
   if "!_first:~0,4!"=="LN__" (
     set "_lineno=!_first:~4!"
     if "!_rest!"=="EOL" (
@@ -164,19 +167,22 @@ goto :%_fn%
     endlocal
     goto :_repl
   )
-  @REM Direct commands
-  if "!_first!"=="LIST" (
-    call %GWSRC%\exec\_program list
-    endlocal
-    goto :_repl
-  )
+  @REM SYSTEM: exit interpreter, no Ok.
   if "!_first!"=="SYSTEM" (
     endlocal
     goto :_repl_end
   )
+  @REM Direct commands and immediate-mode statements both print Ok when done.
+  if "!_first!"=="LIST" (
+    call %GWSRC%\exec\_program list
+    endlocal
+    echo Ok
+    goto :_repl
+  )
   if "!_first!"=="RUN" (
     call :runProgram
     endlocal
+    echo Ok
     goto :_repl
   )
   @REM Immediate mode: parse and execute. Line number for ERL is 65535.
@@ -184,10 +190,12 @@ goto :%_fn%
   call %GWSRC%\parser\parse parse "!_tokens!" _postfix
   if errorlevel 1 (
     endlocal
+    echo Ok
     goto :_repl
   )
   call :run "!_postfix!"
   @REM Propagate error state out of setlocal so next iteration can read ERR/ERL
   endlocal & set "_err_code=%_err_code%" & set "_err_line=%_err_line%"
+  echo Ok
   goto :_repl
 :_repl_end
