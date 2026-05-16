@@ -143,7 +143,11 @@ DimVarRest    ::= e
 WhileStmt     ::= WHILE Expr @WHILE
 
 ; --- REM / ' ---
+;   REM REM_TEXT  comes from "REM body" - explicit keyword form.
+;   REM_TEXT      comes from "'body"   - apostrophe shorthand, lexer
+;                                        emits the body token only.
 RemStmt       ::= REM REM_TEXT @REM
+RemStmt       ::= REM_TEXT @REM
 
 ; --- END ---
 EndStmt       ::= END @END

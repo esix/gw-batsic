@@ -178,14 +178,23 @@ or 2-byte codes like `FE83` for `SYSTEM`. The table is bidirectional:
 | `keyword fromCode <code>` | `__` ← keyword for the binary code. |
 
 The binary codes match Microsoft's original GW-BASIC program file
-format. Right now only `isKeyword` and `isKeywordStr` get called from
-the lexer, but the `toCode` / `fromCode` pair is what will be used when
-the loader / saver for `.BAS` binary files gets written: each tokenised
-line in a GW-BASIC program file is a length byte, a line-number word,
-then a sequence of bytes where keywords appear as their token codes
-(single-byte `91 …`, or two-byte `FE 83`) and literals are interleaved
-in a fixed format. So the table is already in place; it just isn't
-fully wired up yet.
+format. The lexer itself only needs `isKeyword` / `isKeywordStr`, but
+`toCode` / `fromCode` are actively used by the `.BAS` binary converter
+in `src/file/_binary.bat` to translate between our internal token names
+and the on-disk byte stream (see "Binary `.BAS` format" below).
+
+The table holds three kinds of entry:
+
+- **User-typed keywords** (`PRINT`, `FOR`, `LEFT$`, …) — both `_k_XX` and
+  `_c_NAME` are set, so the keyword is reachable in both directions.
+- **Operator tokens** at `E6`–`ED` and `F4` (`GT`, `EQ`, `LT`, `PLUS`,
+  `MINUS`, `MUL`, `DIV`, `POW`, `IDIV`) — only `_k_XX` is set. These
+  bytes appear in the binary format the same way keywords do, but their
+  internal names aren't things a user can type as identifiers, and we
+  don't want `isKeyword` to return true for `"PLUS"`. The binary
+  converter has its own op-name → byte lookup for the reverse direction.
+- **`_k_D9 = '`** (apostrophe shorthand for `REM`) — also reverse-only.
+  Same reasoning: `'` is never an identifier, so there's no `_c_'`.
 
 ## Unlexer
 
@@ -198,20 +207,101 @@ eating it. The unlexer's `print` entrypoint sidesteps the return-value
 problem entirely by writing directly to stdout — see the unlexer file
 for the comment about it.
 
+## Binary `.BAS` format
+
+GW-BASIC saves programs by default in a tokenised binary format. The
+lexer doesn't read these files directly — instead, `src/file/_binary.bat`
+is a **token-level converter** that sits at the file boundary: bytes on
+disk in, our internal token stream out (and vice versa). Once a binary
+file is loaded, every layer above it (parser, executor, REPL) is
+oblivious to where the program came from.
+
+File layout:
+
+```
+FF <line> <line> ... 00 00 1A
+```
+
+Each `<line>`:
+
+```
+<next_ptr_lo><next_ptr_hi> <num_lo><num_hi> <content...> 00
+```
+
+The `content` bytes inside a line:
+
+| Byte(s) | Meaning |
+|---|---|
+| `0B xx xx` | Octal literal (2-byte LE) |
+| `0C xx xx` | Hex literal (2-byte LE) |
+| `0E xx xx` | Line-number reference (after `GOTO` / `THEN` / etc.) |
+| `0F nn` | 1-byte unsigned int (11..255) |
+| `11..1A` | Small int constants 0..9 (note: 10 uses `0F 0A`) |
+| `1C xx xx` | 2-byte LE signed int (256..32767) |
+| `1D <4 bytes>` | MBF single, LE mantissa + exp last, bias 129 |
+| `1F <8 bytes>` | MBF double, same layout, bias 129 |
+| `20..7E` | ASCII (var name chars, `$%!#`, `()[],;:`, `"`, …) |
+| `81..FC` | Single-byte keyword token |
+| `FD xx` / `FE xx` / `FF xx` | Two-byte keyword token |
+
+Two things bridge directly to the lexer:
+
+- **Keyword codes.** `_binary` looks each keyword byte up via
+  `keyword fromCode`. The single-byte form is `91 → PRINT`; the two-byte
+  forms (`FD`, `FE`, `FF` prefixes) cover file I/O, system, and function
+  keywords respectively. This is why `keyword.bat` carries the full
+  bidirectional table even though the live lexer only needs `isKeyword`.
+- **MBF bias.** Our MBF uses bias 128; GW-BASIC's binary format uses
+  bias 129. The converter adds 1 when writing, subtracts 1 when reading.
+  Everything else about the mantissa layout (little-endian, exp last) is
+  identical — see [02 — Numerics](02-numerics.md).
+
+The converter also handles a few less obvious cases:
+
+- **Multi-byte comparisons.** `>=` is stored as `E6 E7` (two bytes,
+  `GT` followed by `EQ`); `<=` is `E8 E7`; `<>` is `E8 E6`. The reader
+  peeks one byte ahead after seeing `E6` or `E8` and emits a single
+  `GE` / `LE` / `NE` token rather than two.
+- **Apostrophe vs REM.** `8F` introduces a comment body that runs until
+  the line's terminating `00`. The two forms are distinguished by what
+  follows the `8F`:
+    - `REM body` is stored as `8F <body>`. The reader emits
+      `REM REM_<body>` (two tokens).
+    - `'body` is stored as `3A 8F D9 <body>` (GW-BASIC inserts the
+      leading colon automatically). The reader strips the `D9` marker
+      and emits only `REM_<body>` — no preceding `REM` keyword. This
+      matches what the ASCII lexer emits for `'body`, so a `'` survives
+      a binary→tokens→binary round-trip.
+  The writer reconstructs the two forms by looking at whether `REM_<body>`
+  is preceded by a `REM` token (explicit form) or stands alone
+  (apostrophe form).
+- **Line-number references.** After certain keywords (`GOTO`, `GOSUB`,
+  `THEN`, `ELSE`, `RESUME`, `RESTORE`, `RUN`, `LIST`, `DELETE`, `EDIT`,
+  `AUTO`, `RENUM`, `RETURN`), integer arguments are stored with the
+  `0E xx xx` marker rather than the generic `0F` / `1C` integer
+  encoding. The marker is what `RENUM` walks to find every reference
+  that needs updating. The writer arms a "line-ref mode" flag when it
+  emits any of those keywords; subsequent `NUM_i` tokens go out as
+  `0E xx xx` until the mode is cleared (any non-integer, non-`MINUS`,
+  non-`COMA` token clears it — so `LIST 10-20` and `ON X GOTO 10,20,30`
+  both produce a series of `0E` references).
+- **Cosmetic `0x20` spaces.** GW-BASIC scatters single spaces into the
+  binary form for readability when re-listed. The reader treats them as
+  separators and drops them.
+
+The reader/writer use `certutil -encodehex … 12` (the "no-offset, no
+ASCII column" format) and `-decodehex` for file I/O, then walk the
+hex pairs the same way the lexer's main loop walks an input line.
+
 ## Where this is heading
 
-Two things outside this article that connect back to the lexer:
-
-- **`.BAS` binary loading / saving.** The byte-level format of a saved
-  GW-BASIC program uses the same token codes the lexer's keyword table
-  already knows. The plan is to add `loadBin` / `saveBin` actions that
-  walk a `.BAS` file, emit our token stream, and store it via
-  `_program add` — or, in reverse, read a stored line's tokens and
-  serialise to the binary format. This is the main motivation for
-  keeping `toCode` / `fromCode` available even though the live lexer
-  doesn't need them.
 - **Error recovery.** The lexer currently fails fast (`:_Error` echoes
   some debug and returns errorlevel 2). A real GW-BASIC would surface a
   "Syntax error" with `ERL` set. Now that the error mechanism is in
   place ([article 08, planned](README.md)), the lexer should plug into it
   and return a proper error code that propagates through the run loop.
+- **Protected / encrypted programs.** GW-BASIC also supports `SAVE
+  "name",P` (protected, header byte `FE`) which XOR-encrypts the
+  tokenised body. We detect the binary format by the `FF` header byte
+  only, so protected files are currently rejected. The converter would
+  need an unscramble pass before the byte loop.

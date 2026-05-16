@@ -185,6 +185,18 @@ goto :%_fn%
     echo Ok
     goto :_repl
   )
+  if "!_first!"=="LOAD" (
+    call :_replFile load "!_tokens!"
+    endlocal
+    echo Ok
+    goto :_repl
+  )
+  if "!_first!"=="SAVE" (
+    call :_replFile save "!_tokens!"
+    endlocal
+    echo Ok
+    goto :_repl
+  )
   @REM Immediate mode: parse and execute. Line number for ERL is 65535.
   set "_cur_line=65535"
   call %GWSRC%\parser\parse parse "!_tokens!" _postfix
@@ -199,3 +211,29 @@ goto :%_fn%
   echo Ok
   goto :_repl
 :_repl_end
+  exit /B 0
+
+
+@REM --- _replFile OP TOKENS: extract filename STR_ from TOKENS, call file OP ---
+@REM TOKENS is the full lexer-emitted line including the LOAD/SAVE keyword.
+:_replFile
+  setlocal EnableDelayedExpansion
+  set "_op=%~1"
+  set "_toks=%~2"
+  set "_path="
+  for %%t in (!_toks!) do (
+    if not defined _path (
+      set "_tt=%%t"
+      if "!_tt:~0,4!"=="STR_" (
+        call %GWSRC%\str\str decode !_tt:~4! _path
+      )
+    )
+  )
+  if not defined _path (
+    echo Bad file name 1>&2
+    endlocal
+    exit /B 1
+  )
+  call %GWSRC%\file\file !_op! "!_path!"
+  endlocal
+  exit /B 0

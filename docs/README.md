@@ -7,7 +7,7 @@ Notes on how the GW-BASIC interpreter is built, in batch.
 - [01 — Architecture overview](01-architecture.md) — the pipeline (lex → parse → exec), where state lives, the tagged-value convention.
 - [02 — Numerics & MBF](02-numerics.md) — 4-bit → 64-bit hex arithmetic, MBF singles and doubles, the `int`/`sng`/`dbl` facades, conversion quirks.
 - [03 — Strings & hex encoding](03-strings-hex.md) — why we represent text as hex, the `str` module, `certutil`-based input, batch metacharacter problems it solves.
-- [04 — Lexer](04-lexer.md) — state machine, token format, keyword table, GW-BASIC binary codes (groundwork for future `.BAS` loading).
+- [04 — Lexer](04-lexer.md) — state machine, token format, keyword table, and the `.BAS` binary load/save converter at the file boundary.
 - [05 — Parser](05-parser.md) — LL(1) grammar, table generation, `@action` markers, the postfix-output trick, the two known conflicts.
 
 ## Planned
