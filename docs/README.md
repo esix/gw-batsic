@@ -9,10 +9,11 @@ Notes on how the GW-BASIC interpreter is built, in batch.
 - [03 — Strings & hex encoding](03-strings-hex.md) — why we represent text as hex, the `str` module, `certutil`-based input, batch metacharacter problems it solves.
 - [04 — Lexer](04-lexer.md) — state machine, token format, keyword table, and the `.BAS` binary load/save converter at the file boundary.
 - [05 — Parser](05-parser.md) — LL(1) grammar, table generation, `@action` markers, the postfix-output trick, the two known conflicts.
+- [06 — Grammar (BNF)](06-bnf.md) — reading guide to `bnf.txt`: notation, statement vocabulary, expression precedence ladder, known conflicts, how to extend.
 
 ## Planned
-- 06 — Executor & RTL (stack machine, dispatch, propagation idioms).
-- 07 — Program storage, RUN loop, control flow (`GOTO` / `GOSUB` / `RETURN`).
-- 08 — Errors (`ERR` / `ERL`).
-- 09 — Arrays.
-- 10 — Batch quirks encountered along the way.
+- 07 — Executor & RTL (stack machine, dispatch, propagation idioms).
+- 08 — Program storage, RUN loop, control flow (`GOTO` / `GOSUB` / `RETURN`).
+- 09 — Errors (`ERR` / `ERL`).
+- 10 — Arrays.
+- 11 — Batch quirks encountered along the way.
