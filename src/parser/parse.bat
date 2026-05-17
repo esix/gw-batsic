@@ -129,7 +129,11 @@ goto :%_fn%
   exit /B 0
 
 :_parse_err
-  echo Syntax error: !_err! 1>&2
+  @REM Silent: caller maps exit code 2 → GW-BASIC "Syntax error" and prints
+  @REM the canonical message via _printErr.  When running the parser REPL
+  @REM standalone (PATH set up by :_start), the dev message is still useful,
+  @REM so emit it only when invoked from there (signalled by _parserRepl=1).
+  if defined _parserRepl echo Syntax error: !_err! 1>&2
   endlocal
   exit /B 2
 
@@ -140,6 +144,8 @@ goto :%_fn%
   call _table loadCache "%~dp0_table.dat"
   if errorlevel 1 (echo _table.dat not found. Run _rebuild.bat & exit /B 1)
   call %GWSRC%\lexer\keyword init
+  @REM Standalone REPL — turn on the parser's own diagnostic message
+  set "_parserRepl=1"
   echo GW-BASIC Parser. Enter a line to parse. Empty line to quit.
 :_repl
   call %GWSRC%\str\str input "> " _hex

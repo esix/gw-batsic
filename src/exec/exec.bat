@@ -48,8 +48,9 @@ goto :%_fn%
     )
   )
 
-  @REM On error, capture ERR / ERL
-  if !_err! neq 0 (
+  @REM On real error, capture ERR / ERL.  Code 99 is the END/STOP flow-control
+  @REM signal — not a user-visible error, so don't surface it via ERR.
+  if !_err! neq 0 if !_err! neq 99 (
     set "_err_code=!_err!"
     set "_err_line=!_cur_line!"
   )
@@ -79,7 +80,12 @@ goto :%_fn%
   if "!_next_line!"=="" goto :_runProg_done
   call %GWSRC%\exec\_program get !_next_line! _line_tokens
   if not defined _line_tokens (
-    echo Undefined line !_next_line!
+    @REM "Undefined line number" — error code 8.  Reported against the line
+    @REM that issued the jump (still in _cur_line from the previous iteration);
+    @REM in direct mode it's 65535.
+    set "_err_code=8"
+    if not defined _cur_line set "_cur_line=65535"
+    set "_err_line=!_cur_line!"
     goto :_runProg_done
   )
   @REM Strip leading LN__nnn token
@@ -89,15 +95,50 @@ goto :%_fn%
   @REM Compute the natural-next line (smallest key > current); RTLs may override
   call :_naturalNext !_next_line! _next_line
   call %GWSRC%\parser\parse parse "!_line_tokens!" _postfix
-  if errorlevel 1 goto :_runProg_done
+  if errorlevel 1 (
+    @REM Parser failure → Syntax error (code 2) at this line
+    set "_err_code=2"
+    set "_err_line=!_cur_line!"
+    goto :_runProg_done
+  )
   call :run "!_postfix!"
   set "_e=!ERRORLEVEL!"
-  if !_e! neq 0 goto :_runProg_done
+  if !_e! neq 0 (
+    if !_e! equ 99 (
+      @REM END / STOP — graceful halt, no error
+      set "_err_code=0"
+      goto :_runProg_done
+    )
+    goto :_runProg_done
+  )
   goto :_runProg_loop
 
 :_runProg_done
+  @REM Print canonical error message if a real error halted the run.
+  if !_err_code! neq 0 call :_printErr !_err_code! !_err_line!
   @REM Propagate error state to caller (so ERR / ERL can be read in REPL after RUN)
   endlocal & set "_err_code=%_err_code%" & set "_err_line=%_err_line%" & exit /B 0
+
+
+@REM --- _printErr CODE LINE: print GW-BASIC-style error message ---
+@REM   "<Message>"             when LINE is 65535 (direct mode) or empty
+@REM   "<Message> in <LINE>"   when LINE is a program line
+@REM Message text comes from src/gwerror.bat (Appendix A from the GW-BASIC
+@REM manual).  If the code is unknown, prints "Unprintable error".
+:_printErr
+  setlocal EnableDelayedExpansion
+  set "_c=%~1"
+  set "_l=%~2"
+  set "_msg="
+  call %GWSRC%\gwerror ErrorCodeToString !_c! _msg
+  if not defined _msg set "_msg=Unprintable error"
+  if "!_l!"=="" set "_l=65535"
+  if "!_l!"=="65535" (
+    echo !_msg!
+  ) else (
+    echo !_msg! in !_l!
+  )
+  endlocal & exit /B 0
 
 
 @REM --- _keyToLn KEY retVar: convert "00010" to "10" (strip leading zeros) ---
@@ -201,11 +242,17 @@ goto :%_fn%
   set "_cur_line=65535"
   call %GWSRC%\parser\parse parse "!_tokens!" _postfix
   if errorlevel 1 (
-    endlocal
+    @REM Parser failure → Syntax error (code 2)
+    set "_err_code=2"
+    set "_err_line=65535"
+    call :_printErr 2 65535
+    endlocal & set "_err_code=2" & set "_err_line=65535"
     echo Ok
     goto :_repl
   )
   call :run "!_postfix!"
+  @REM On error, print the canonical message before "Ok"
+  if !_err_code! neq 0 call :_printErr !_err_code! !_err_line!
   @REM Propagate error state out of setlocal so next iteration can read ERR/ERL
   endlocal & set "_err_code=%_err_code%" & set "_err_line=%_err_line%"
   echo Ok

@@ -14,6 +14,7 @@ call :_run _program.test.bat
 call :_run _arrays.test.bat
 call :_run arrays.test.bat
 call :_run exec.test.bat
+call :_run errors.test.bat
 
 echo [exec] Done.
 exit /B

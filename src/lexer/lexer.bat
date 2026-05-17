@@ -438,12 +438,17 @@ goto :%_fn%
   exit /b 0
 
 :_Error
-    echo "tokens=%tokens%"
-    call buffer decode !buffer! wholeLine
-    echo "LEXER ERROR:"
-    echo "LEXER ERROR: !wholeLine!"
-    echo "LEXER ERROR: state=%state%: undefined char !c! at index !i!"
-    echo "LEXER ERROR:"
+    @REM Exit code 2 maps to GW-BASIC "Syntax error"; the central printer in
+    @REM exec.bat emits the canonical message.  Verbose state dump is only
+    @REM useful when running the lexer REPL standalone.
+    if defined _lexerRepl (
+      echo "tokens=%tokens%"
+      call buffer decode !buffer! wholeLine
+      echo "LEXER ERROR:"
+      echo "LEXER ERROR: !wholeLine!"
+      echo "LEXER ERROR: state=%state%: undefined char !c! at index !i!"
+      echo "LEXER ERROR:"
+    )
     endlocal && set "%~2=%tokens:~1%"
   exit /b 2
 
@@ -452,6 +457,7 @@ goto :%_fn%
   if not defined GWSRC set "GWSRC=%~dp0.."
   set "PATH=%~dp0;%PATH%"
   call %GWSRC%\lexer\keyword init
+  set "_lexerRepl=1"
   echo GW-BASIC Lexer. Enter a line to tokenize. Empty line to quit.
 :_repl
   call %GWSRC%\str\str input "> " _hex
