@@ -117,6 +117,22 @@ goto :%_fn%
   call _xword xor !a:~1! !b:~1!
   endlocal & set "__=i%__%" & exit /B 0
 
+@REM cmp a b → __ = "0" (eq) / "1" (a>b) / "2" (a<b)
+@REM Same convention as sng / dbl cmp (which come from _mbfs / _mbfd).
+:cmp
+  setlocal EnableDelayedExpansion
+  set "a=%~1"& set "b=%~2"
+  if "!a:~0,1!" neq "i" endlocal & exit /B 13
+  if "!b:~0,1!" neq "i" endlocal & exit /B 13
+  set /a "_va=0x!a:~1!"
+  set /a "_vb=0x!b:~1!"
+  if !_va! GTR 32767 set /a "_va=_va-65536"
+  if !_vb! GTR 32767 set /a "_vb=_vb-65536"
+  set "_r=0"
+  if !_va! GTR !_vb! set "_r=1"
+  if !_va! LSS !_vb! set "_r=2"
+  endlocal & set "__=%_r%" & exit /B 0
+
 
 :_start
   setlocal EnableDelayedExpansion

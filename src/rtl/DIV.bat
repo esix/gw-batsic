@@ -1,6 +1,7 @@
 @echo off
-@REM DIV: pop two values, promote to common numeric type, divide, push result.
-@REM Propagates the num-layer errorlevel (11=Division by zero, 6=Overflow,
+@REM DIV: real division (/).  GW-BASIC always produces at least single
+@REM precision — int/int → single (NOT truncated int div; that's \ IDIV).
+@REM Propagates num-layer errorlevel (11=Division by zero, 6=Overflow,
 @REM 13=Type mismatch).
 setlocal EnableDelayedExpansion
 set "_s=%~1"
@@ -9,8 +10,15 @@ call %GWSRC%\stl\vec pop %_s% _a
 call %GWSRC%\exec\_resolve !_a! _a
 call %GWSRC%\exec\_resolve !_b! _b
 call %GWSRC%\exec\_promote !_a! !_b!
+@REM Promote int → single so / always gives a fractional result.
+if "!__t!"=="i" (
+  call %GWSRC%\num\sng fromInt !__a!
+  set "__a=!__!"
+  call %GWSRC%\num\sng fromInt !__b!
+  set "__b=!__!"
+  set "__t=s"
+)
 set "_mod="
-if "!__t!"=="i" set "_mod=int"
 if "!__t!"=="s" set "_mod=sng"
 if "!__t!"=="d" set "_mod=dbl"
 if not defined _mod (

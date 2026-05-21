@@ -19,35 +19,111 @@ goto :%_fn%
   set "_postfix=%~1"
   set "_stk="
   set "_err=0"
+  @REM Skip state for IF/ELSE/ENDIF control flow within one line.
+  @REM   _skipMode = "ELSE_OR_ENDIF"  (set by IF when condition is false)
+  @REM             = "ENDIF"          (set by ELSE after THEN body executed)
+  @REM   _skipDepth tracks nested IFs encountered while skipping.
+  set "_skipMode="
+  set "_skipDepth=0"
   @REM _cur_line is set by the caller (RUN loop sets it per line; REPL sets 65535)
   if not defined _cur_line set "_cur_line=65535"
 
-  for %%t in (!_postfix!) do if !_err!==0 (
-    set "_tok=%%t"
-    set "_tp=!_tok:~0,4!"
-    @REM Values: push onto stack
-    if "!_tp!"=="NUM_" (
-      call %GWSRC%\stl\vec push _stk !_tok:~4!
-    ) else if "!_tp!"=="VAR_" (
-      @REM TODO: look up variable value
-      call %GWSRC%\stl\vec push _stk !_tok!
-    ) else if "!_tp!"=="STR_" (
-      call %GWSRC%\stl\vec push _stk !_tok!
-    ) else if "!_tp!"=="REM_" (
-      @REM Comment: ignore
-      set "_nop=1"
-    ) else (
-      @REM Action: call RTL handler
-      if exist "%GWSRC%\rtl\!_tok!.bat" (
-        call %GWSRC%\rtl\!_tok!.bat _stk
-        set "_err=!ERRORLEVEL!"
-      ) else (
-        echo RTL: unknown action !_tok! 1>&2
-        set "_err=1"
-      )
-    )
+:_run_loop
+  if not defined _postfix goto :_run_end
+  if "!_postfix!"=="" goto :_run_end
+  if !_err! neq 0 goto :_run_end
+  for /f "tokens=1*" %%a in ("!_postfix!") do (
+    set "_tok=%%a"
+    set "_postfix=%%b"
   )
 
+  @REM ---- Skip mode: scan forward to matching ELSE / ENDIF ----
+  if defined _skipMode (
+    if "!_tok!"=="IF" (
+      set /a "_skipDepth+=1"
+      goto :_run_loop
+    )
+    if "!_tok!"=="ENDIF" (
+      if !_skipDepth! GTR 0 (
+        set /a "_skipDepth-=1"
+        goto :_run_loop
+      )
+      set "_skipMode="
+      goto :_run_loop
+    )
+    if "!_tok!"=="ELSE" (
+      if !_skipDepth! GTR 0 goto :_run_loop
+      if "!_skipMode!"=="ELSE_OR_ENDIF" set "_skipMode="
+      goto :_run_loop
+    )
+    goto :_run_loop
+  )
+
+  @REM ---- Normal mode ----
+  set "_tp=!_tok:~0,4!"
+  if "!_tp!"=="NUM_" (
+    call %GWSRC%\stl\vec push _stk !_tok:~4!
+    goto :_run_loop
+  )
+  if "!_tp!"=="VAR_" (
+    @REM TODO: look up variable value
+    call %GWSRC%\stl\vec push _stk !_tok!
+    goto :_run_loop
+  )
+  if "!_tp!"=="STR_" (
+    call %GWSRC%\stl\vec push _stk !_tok!
+    goto :_run_loop
+  )
+  if "!_tp!"=="REM_" (
+    @REM Comment: ignore
+    goto :_run_loop
+  )
+
+  @REM IF / ELSE / ENDIF / IF_GOTO are control-flow markers handled inline.
+  if "!_tok!"=="IF" (
+    @REM Pop condition; falsy → skip to ELSE or ENDIF.
+    call %GWSRC%\stl\vec pop _stk _cond
+    call %GWSRC%\exec\_resolve !_cond! _cond
+    call :_isTruthy !_cond! _t
+    if "!_t!"=="0" (
+      set "_skipMode=ELSE_OR_ENDIF"
+      set "_skipDepth=0"
+    )
+    goto :_run_loop
+  )
+  if "!_tok!"=="ELSE" (
+    @REM Reached naturally after THEN body — skip to ENDIF.
+    set "_skipMode=ENDIF"
+    set "_skipDepth=0"
+    goto :_run_loop
+  )
+  if "!_tok!"=="ENDIF" (
+    goto :_run_loop
+  )
+  if "!_tok!"=="IF_GOTO" (
+    @REM Pop line number, set _next_line — same as GOTO.
+    call %GWSRC%\stl\vec pop _stk _t
+    call %GWSRC%\exec\_resolve !_t! _t
+    set "_tt=!_t:~0,1!"
+    if "!_tt!"=="i" call %GWSRC%\num\int toDec !_t!
+    if "!_tt!"=="s" call %GWSRC%\num\sng toDec !_t!
+    if "!_tt!"=="d" call %GWSRC%\num\dbl toDec !_t!
+    set "_next_line=!__!"
+    goto :_run_loop
+  )
+
+  @REM Action: call RTL handler
+  if exist "%GWSRC%\rtl\!_tok!.bat" (
+    call %GWSRC%\rtl\!_tok!.bat _stk
+    set "_err=!ERRORLEVEL!"
+    goto :_run_loop
+  )
+  @REM Unimplemented in this build → "Advanced Feature" (code 73).
+  echo RTL: unknown action !_tok! 1>&2
+  set "_err=73"
+  goto :_run_loop
+
+:_run_end
   @REM On real error, capture ERR / ERL.  Code 99 is the END/STOP flow-control
   @REM signal — not a user-visible error, so don't surface it via ERR.
   if !_err! neq 0 if !_err! neq 99 (
@@ -56,7 +132,31 @@ goto :%_fn%
   )
 
   @REM Propagate flow-control + error state back to caller
-  endlocal & set "_next_line=%_next_line%" & set "_gosub_stack=%_gosub_stack%" & set "_err_code=%_err_code%" & set "_err_line=%_err_line%" & exit /B %_err%
+  endlocal ^
+    & set "_next_line=%_next_line%" ^
+    & set "_gosub_stack=%_gosub_stack%" ^
+    & set "_for_vars=%_for_vars%" ^
+    & set "_for_limits=%_for_limits%" ^
+    & set "_for_steps=%_for_steps%" ^
+    & set "_for_lines=%_for_lines%" ^
+    & set "_while_stack=%_while_stack%" ^
+    & set "_err_code=%_err_code%" ^
+    & set "_err_line=%_err_line%" ^
+    & exit /B %_err%
+
+
+@REM --- _isTruthy VALUE retVar: 1 if numeric value is non-zero, else 0 ---
+@REM Used by IF.  STR is treated as truthy if non-empty (GW-BASIC actually
+@REM rejects this as Type Mismatch, but we mirror the int-or-real cases.)
+:_isTruthy
+  setlocal EnableDelayedExpansion
+  set "_v=%~1"
+  set "_t=!_v:~0,1!"
+  set "_r=0"
+  if "!_t!"=="i" if not "!_v:~1!"=="0000" set "_r=1"
+  if "!_t!"=="s" if not "!_v:~1!"=="00000000" set "_r=1"
+  if "!_t!"=="d" if not "!_v:~1!"=="0000000000000000" set "_r=1"
+  endlocal & set "%~2=%_r%" & exit /B 0
 
 
 @REM --- runProgram: execute the stored program from lowest line number ---
@@ -64,6 +164,13 @@ goto :%_fn%
 :runProgram
   setlocal EnableDelayedExpansion
   set "_gosub_stack="
+  @REM FOR loop stacks: parallel — same depth, popped together.
+  set "_for_vars="
+  set "_for_limits="
+  set "_for_steps="
+  set "_for_lines="
+  @REM WHILE loop stack: just line numbers (re-evaluate cond on each iteration).
+  set "_while_stack="
   @REM RUN clears error state
   set "_err_code=0"
   set "_err_line=0"

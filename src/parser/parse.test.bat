@@ -39,7 +39,8 @@ call %test% "parse.if"
   call :_p "IF VAR_UNK_A THEN GOTO NUM_i0064 EOL" "VAR_UNK_A IF NUM_i0064 GOTO ENDIF"
 
 call %test% "parse.for"
-  call :_p "FOR VAR_UNK_I EQ NUM_i0001 TO NUM_i000A EOL" "VAR_UNK_I NUM_i0001 NUM_i000A FOR"
+  @REM No STEP → grammar emits FOR_DEFAULT_STEP marker, which pushes i0001 at run time.
+  call :_p "FOR VAR_UNK_I EQ NUM_i0001 TO NUM_i000A EOL" "VAR_UNK_I NUM_i0001 NUM_i000A FOR_DEFAULT_STEP FOR"
   call :_p "FOR VAR_UNK_I EQ NUM_i0001 TO NUM_i000A STEP NUM_i0002 EOL" "VAR_UNK_I NUM_i0001 NUM_i000A NUM_i0002 FOR"
   call :_p "NEXT VAR_UNK_I EOL" "VAR_UNK_I NEXT"
   call :_p "NEXT EOL" "NEXT"

@@ -90,6 +90,91 @@ call %test% "err.stop.is.not.an.error"
 
 
 @REM ============================================================
+@REM  Unimplemented RTL → "Advanced Feature" (73)
+@REM ============================================================
+
+call %test% "err.unknown.rtl.is.advanced.feature"
+  @REM Pick something the grammar accepts but no RTL implements — DEF FN does.
+  @REM Should surface as code 73 ("Advanced Feature"), not code 1.
+  call :_clear
+  call :_addLine "10 DEF FN F(X) = X + 1"
+  call :_progErr 73 10
+
+
+@REM ============================================================
+@REM  Control flow: IF / ELSE / IF_GOTO
+@REM ============================================================
+
+call %test% "ctrl.if.true.takes.then"
+  call :_clear
+  call :_addLine "10 IF 1 = 1 THEN PRINT 7"
+  call :_progOut " 7"
+
+call %test% "ctrl.if.false.skips.then"
+  call :_clear
+  call :_addLine "10 IF 1 = 2 THEN PRINT 7"
+  call :_progOut ""
+
+call %test% "ctrl.if.else.takes.else.when.false"
+  call :_clear
+  call :_addLine "10 IF 1 = 2 THEN PRINT 7 ELSE PRINT 8"
+  call :_progOut " 8"
+
+call %test% "ctrl.if.then.line.jumps"
+  call :_clear
+  call :_addLine "10 IF 1 = 1 THEN 30"
+  call :_addLine "20 PRINT 100"
+  call :_addLine "30 PRINT 200"
+  call :_progOut " 200"
+
+
+@REM ============================================================
+@REM  Control flow: FOR / NEXT
+@REM ============================================================
+
+call %test% "ctrl.for.next.no.step"
+  call :_clear
+  call :_addLine "10 FOR I = 1 TO 3"
+  call :_addLine "20 PRINT I"
+  call :_addLine "30 NEXT"
+  call :_progErr 0 0
+
+call %test% "ctrl.for.next.with.step"
+  call :_clear
+  call :_addLine "10 FOR I = 5 TO 1 STEP -2"
+  call :_addLine "20 PRINT I"
+  call :_addLine "30 NEXT I"
+  call :_progErr 0 0
+
+
+@REM ============================================================
+@REM  Control flow: WHILE / WEND
+@REM ============================================================
+
+call %test% "ctrl.while.wend.runs.until.false"
+  call :_clear
+  call :_addLine "10 I = 0"
+  call :_addLine "20 WHILE I < 3"
+  call :_addLine "30 I = I + 1"
+  call :_addLine "40 WEND"
+  call :_addLine "50 PRINT I"
+  call :_progOut " 3"
+
+call %test% "ctrl.while.false.immediately.skips"
+  call :_clear
+  call :_addLine "10 WHILE 1 = 2"
+  call :_addLine "20 PRINT 7"
+  call :_addLine "30 WEND"
+  call :_addLine "40 PRINT 8"
+  call :_progOut " 8"
+
+call %test% "ctrl.wend.without.while"
+  call :_clear
+  call :_addLine "10 WEND"
+  call :_progErr 30 10
+
+
+@REM ============================================================
 @REM  End-to-end formatting test — captured stdout matches "Msg in <line>"
 @REM ============================================================
 
@@ -149,6 +234,27 @@ exit /B
   echo        Got: ERR=!_gotCode! ERL=!_gotLine!
   echo.
   endlocal & set /a failedTests+=1
+  exit /B 0
+
+@REM Run program; expect the entire captured stdout (last line) to equal %~1.
+@REM Use a per-test unique tempfile to dodge inter-test file-lock races.
+:_progOut
+  set /a numTests+=1
+  setlocal EnableDelayedExpansion
+  set "_of=%GWTEMP%\_progout_!numTests!.out"
+  del "!_of!" 2>nul
+  call %GWSRC%\exec\exec runProgram > "!_of!" 2>&1
+  set "_got="
+  for /f "usebackq delims=" %%L in ("!_of!") do set "_got=%%L"
+  del "!_of!" 2>nul
+  if "!_got!"=="%~1" (
+    endlocal & set /a passedTests+=1
+  ) else (
+    echo FAILED: expected output "%~1"
+    echo        Got: !_got!
+    echo.
+    endlocal & set /a failedTests+=1
+  )
   exit /B 0
 
 @REM Run program and verify the last line of captured stdout matches.  Uses a

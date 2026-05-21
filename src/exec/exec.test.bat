@@ -11,7 +11,32 @@ call %test% "exec.calc.sub"
   call :_run "PRINT 100-37" " 63"
 
 call %test% "exec.calc.div"
-  call :_run "PRINT 10/3" " 3"
+  @REM / always promotes to single (or higher); IDIV (\) is the int-truncating one.
+  call :_run "PRINT 10/4" " 2.5"
+
+call %test% "exec.calc.idiv"
+  call :_run "PRINT 10\3" " 3"
+
+call %test% "exec.calc.mod"
+  call :_run "PRINT 10 MOD 3" " 1"
+
+call %test% "exec.calc.pow"
+  @REM Direct postfix to avoid `^` being eaten by CMD escape on the source.
+  call :_rexec "NUM_i0002 NUM_i000A POW PEND" " 1024"
+
+call %test% "exec.calc.pow.zero"
+  call :_rexec "NUM_i0007 NUM_i0000 POW PEND" " 1"
+
+call %test% "exec.calc.xor"
+  call :_run "PRINT 3 XOR 5" " 6"
+
+call %test% "exec.calc.eqv"
+  @REM EQV = NOT (a XOR b); 3 EQV 5 = NOT 6 = -7
+  call :_run "PRINT 3 EQV 5" " -7"
+
+call %test% "exec.calc.imp"
+  @REM IMP = (NOT a) OR b; 3 IMP 5 = (NOT 3) OR 5 = -4 OR 5 = -3
+  call :_run "PRINT 3 IMP 5" " -3"
 
 call %test% "exec.calc.neg"
   call :_run "PRINT -42" " -42"

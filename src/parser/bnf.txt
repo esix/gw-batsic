@@ -94,9 +94,11 @@ ElseClause    ::= ELSE @ELSE ThenClause
 ElseClause    ::= e
 
 ; --- FOR / NEXT ---
+;   @FOR_DEFAULT_STEP pushes i0001 onto the stack so @FOR always sees a step
+;   value (whether the user wrote STEP or not).
 ForStmt       ::= FOR VAR EQ Expr TO Expr StepClause @FOR
 StepClause    ::= STEP Expr
-StepClause    ::= e
+StepClause    ::= @FOR_DEFAULT_STEP
 NextStmt      ::= NEXT NextVars @NEXT
 NextVars      ::= VAR NextVarRest
 NextVars      ::= e
@@ -423,9 +425,11 @@ RightFn       ::= RIGHT$ OPAR Expr COMA Expr CPAR @FN_RIGHT
 StringFn      ::= STRING$ OPAR Expr COMA Expr CPAR @FN_STRING
 
 ; 2-3 arg
+;   @MID_DEFAULT_LEN pushes a sentinel large length so @FN_MID always sees
+;   three values on the stack.
 MidFn         ::= MID$ OPAR Expr COMA Expr MidLen CPAR @FN_MID
 MidLen        ::= COMA Expr
-MidLen        ::= e
+MidLen        ::= @MID_DEFAULT_LEN
 
 ; 2-3 arg
 InstrFn       ::= INSTR OPAR Expr COMA Expr InstrLen CPAR @FN_INSTR
