@@ -140,6 +140,8 @@ goto :%_fn%
     & set "_for_steps=%_for_steps%" ^
     & set "_for_lines=%_for_lines%" ^
     & set "_while_stack=%_while_stack%" ^
+    & set "_print_col=%_print_col%" ^
+    & set "_input_prompted=%_input_prompted%" ^
     & set "_err_code=%_err_code%" ^
     & set "_err_line=%_err_line%" ^
     & exit /B %_err%
@@ -171,6 +173,8 @@ goto :%_fn%
   set "_for_lines="
   @REM WHILE loop stack: just line numbers (re-evaluate cond on each iteration).
   set "_while_stack="
+  @REM PRINT cursor column (0-based; PEND resets to 0).
+  set "_print_col=0"
   @REM RUN clears error state
   set "_err_code=0"
   set "_err_line=0"

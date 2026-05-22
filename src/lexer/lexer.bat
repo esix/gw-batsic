@@ -213,7 +213,19 @@ goto :%_fn%
         set acc=
         goto :_Loop
       )
-      @REM End of identifier: check keyword, emit token
+      @REM End of identifier: check keyword, emit token.
+      @REM Two keywords have a literal `(` in their name: TAB( and SPC(.
+      @REM If we just accumulated TAB or SPC and the current char is `(`,
+      @REM consume the paren and emit "TAB(" / "SPC(" as a single token.
+      set "_paren="
+      if !c!==28 if "!acc!"=="TAB" set "_paren=1"
+      if !c!==28 if "!acc!"=="SPC" set "_paren=1"
+      if defined _paren (
+        set "tokens=!tokens! !acc!("
+        set acc=
+        set state=Normal
+        goto :_Loop
+      )
       call %GWSRC%\lexer\keyword isKeyword !acc!
       if ERRORLEVEL 1 set acc=VAR_UNK_!acc!
       set "tokens=!tokens! !acc!"

@@ -21,6 +21,11 @@ goto :%_fn%
 
 
 @REM --- load PATH: read file, detect format, populate _program ---
+@REM
+@REM ASCII source files: encode the WHOLE file to hex via certutil, then split
+@REM on line endings (0D0A / 0A) at the hex level.  Each per-line hex string
+@REM is handed straight to the lexer, bypassing CMD's argument quoting —
+@REM otherwise `"` and `^` in source get mangled by each `call` along the way.
 :load
   setlocal EnableDelayedExpansion
   set "_path=%~1"
@@ -34,18 +39,47 @@ goto :%_fn%
     endlocal
     exit /B 0
   )
-  for /f "usebackq delims=" %%L in ("!_path!") do call :_loadLine "%%L"
-  endlocal
-  exit /B 0
-
-:_loadLine
-  setlocal EnableDelayedExpansion
-  call %GWSRC%\str\str encode "%~1" _h
-  call %GWSRC%\lexer\lexer ParseTxt !_h! _tokens
+  @REM ASCII path: encode to hex first, then split on line boundaries.
+  set "_hf=%TEMP%\_gwbas_loadasc.hex"
+  del "!_hf!" 2>nul
+  certutil -encodehex "!_path!" "!_hf!" 12 >nul 2>nul
+  if errorlevel 1 (echo Cannot read: !_path! 1>&2 & endlocal & exit /B 1)
+  @REM Concatenate all hex into one stream (uppercase).
+  set "_all="
+  for /f "usebackq delims=" %%h in ("!_hf!") do set "_all=!_all!%%h"
+  set "_all=!_all:a=A!"
+  set "_all=!_all:b=B!"
+  set "_all=!_all:c=C!"
+  set "_all=!_all:d=D!"
+  set "_all=!_all:e=E!"
+  set "_all=!_all:f=F!"
+  @REM Normalize CRLF → LF: replace "0D0A" with "0A".  Drop trailing CR ("0D")
+  @REM in case the file ends without a final LF.
+  set "_all=!_all:0D0A=0A!"
+  set "_all=!_all:0D=!"
+  @REM Walk lines (delimited by hex "0A").
+:_load_line
+  if "!_all!"=="" goto :_load_done
+  set "_lh="
+  set "_rest=!_all!"
+:_load_split
+  if "!_rest!"=="" goto :_load_doline
+  set "_b=!_rest:~0,2!"
+  set "_rest=!_rest:~2!"
+  if "!_b!"=="0A" goto :_load_doline
+  set "_lh=!_lh!!_b!"
+  goto :_load_split
+:_load_doline
+  set "_all=!_rest!"
+  if "!_lh!"=="" goto :_load_line
+  @REM Lex the line's hex; emits a token stream.  Only store if it starts
+  @REM with a line-number token (LN__nnn).
+  call %GWSRC%\lexer\lexer ParseTxt !_lh! _tokens
   set "_first="
   for /f "tokens=1*" %%a in ("!_tokens!") do set "_first=%%a"
-  @REM Only store lines that start with a line number — silently skip anything else.
   if "!_first:~0,4!"=="LN__" call %GWSRC%\exec\_program add !_first:~4! "!_tokens!"
+  goto :_load_line
+:_load_done
   endlocal
   exit /B 0
 

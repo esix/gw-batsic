@@ -1,12 +1,14 @@
 @echo off
-@REM PEND: pop value, print with newline
+@REM PEND: pop value, print with newline.  Resets _print_col so the next
+@REM PRINT starts at column 0.
+@REM
+@REM GW-BASIC convention: numeric output gets a leading space placeholder for
+@REM the sign — " 42" for positive, "-42" for negative (sign is in place).
 setlocal EnableDelayedExpansion
 set "_s=%~1"
 call %GWSRC%\stl\vec pop %_s% _a
 call %GWSRC%\exec\_resolve !_a! _a
-@REM Convert tagged value to printable string.
-@REM IMPORTANT: check STR_ before single-char tag prefixes — batch `if`
-@REM is case-insensitive, so a literal "S" in "STR_" would match "s" (sng).
+@REM Check STR_ before single-char tag prefixes (batch `if` is case-insensitive).
 if "!_a:~0,4!"=="STR_" (
   if "!_a!"=="STR_" (
     echo(
@@ -16,18 +18,15 @@ if "!_a:~0,4!"=="STR_" (
   )
 ) else (
   set "_tp=!_a:~0,1!"
-  if "!_tp!"=="i" (
-    call %GWSRC%\num\int toDec !_a!
-    echo  !__!
-  ) else if "!_tp!"=="s" (
-    call %GWSRC%\num\sng toDec !_a!
-    echo  !__!
-  ) else if "!_tp!"=="d" (
-    call %GWSRC%\num\dbl toDec !_a!
-    echo  !__!
+  set "_d="
+  if "!_tp!"=="i" (call %GWSRC%\num\int toDec !_a! & set "_d=!__!")
+  if "!_tp!"=="s" (call %GWSRC%\num\sng toDec !_a! & set "_d=!__!")
+  if "!_tp!"=="d" (call %GWSRC%\num\dbl toDec !_a! & set "_d=!__!")
+  if defined _d (
+    if "!_d:~0,1!"=="-" (echo !_d!) else (echo  !_d!)
   ) else (
     echo !_a!
   )
 )
 set "_final=!%_s%!"
-endlocal & set "%~1=%_final%" & exit /B 0
+endlocal & set "%~1=%_final%" & set "_print_col=0" & exit /B 0

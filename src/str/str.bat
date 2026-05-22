@@ -87,6 +87,35 @@ goto :%_fn%
   endlocal & set "%~2=%_r%" & exit /B 0
 
 
+@REM --- encodeRaw "text" retVar ---
+@REM Same as encode but preserves letter case (used for INPUT data and other
+@REM contexts where source case matters).  Uses an escape via a temp file
+@REM through certutil to capture the exact bytes — avoids the case-insensitive
+@REM env-var comparison that `encode` relies on.
+:encodeRaw
+  setlocal EnableDelayedExpansion
+  set "_s=%~1"
+  @REM Use a per-call random suffix on the temp files so Windows file caching
+  @REM never hands back a stale read of the previous call's content.
+  set "_tf=%TEMP%\_strraw_!RANDOM!_!RANDOM!.txt"
+  set "_hf=!_tf!.hex"
+  @REM set /p strips leading whitespace from its prompt; prepend "." sentinel.
+  > "!_tf!" <nul set /p "=.!_s!"
+  certutil -encodehex "!_tf!" "!_hf!" 12 >nul 2>nul
+  set "_all="
+  for /f "usebackq delims=" %%h in ("!_hf!") do set "_all=!_all!%%h"
+  del "!_tf!" "!_hf!" 2>nul
+  set "_all=!_all:a=A!"
+  set "_all=!_all:b=B!"
+  set "_all=!_all:c=C!"
+  set "_all=!_all:d=D!"
+  set "_all=!_all:e=E!"
+  set "_all=!_all:f=F!"
+  @REM Drop the leading "2E" (the "." sentinel).
+  set "_all=!_all:~2!"
+  endlocal & set "%~2=%_all%" & exit /B 0
+
+
 @REM --- decode hexstr retVar ---
 :decode
   setlocal EnableDelayedExpansion

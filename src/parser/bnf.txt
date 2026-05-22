@@ -74,8 +74,8 @@ PrintStmt     ::= PRINT PrintList @PEND
 PrintList     ::= PrintItem PrintRest
 PrintList     ::= e
 PrintItem     ::= Expr
-PrintItem     ::= TAB( Expr CPAR @PTAB
-PrintItem     ::= SPC( Expr CPAR @PSPC
+PrintItem     ::= TAB( Expr CPAR @FN_TAB
+PrintItem     ::= SPC( Expr CPAR @FN_SPC
 PrintRest     ::= SEMICOLON @PSEMI PrintItem PrintRest
 PrintRest     ::= COMA @PTAB PrintItem PrintRest
 PrintRest     ::= e
@@ -118,7 +118,9 @@ NumListRest   ::= COMA NUM NumListRest
 NumListRest   ::= e
 
 ; --- INPUT ---
-InputStmt     ::= INPUT InputPrompt VarList @INPUT
+;   @INPUT_MARK pushes a sentinel between the prompt and the var list so
+;   @INPUT knows where the var list starts when popping the stack.
+InputStmt     ::= INPUT InputPrompt @INPUT_MARK VarList @INPUT
 InputPrompt   ::= STR SEMICOLON @PROMPT
 InputPrompt   ::= e
 VarList       ::= VarRef VarListRest

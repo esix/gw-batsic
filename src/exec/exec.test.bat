@@ -32,17 +32,89 @@ call %test% "exec.calc.xor"
 
 call %test% "exec.calc.eqv"
   @REM EQV = NOT (a XOR b); 3 EQV 5 = NOT 6 = -7
-  call :_run "PRINT 3 EQV 5" " -7"
+  @REM Negatives skip the GW-BASIC leading-space placeholder.
+  call :_run "PRINT 3 EQV 5" "-7"
 
 call %test% "exec.calc.imp"
-  @REM IMP = (NOT a) OR b; 3 IMP 5 = (NOT 3) OR 5 = -4 OR 5 = -3
-  call :_run "PRINT 3 IMP 5" " -3"
+  call :_run "PRINT 3 IMP 5" "-3"
 
 call %test% "exec.calc.neg"
-  call :_run "PRINT -42" " -42"
+  call :_run "PRINT -42" "-42"
 
 call %test% "exec.calc.parens"
   call :_run "PRINT (2+3)*4" " 20"
+
+
+@REM ============================================================
+@REM  Math built-ins
+@REM ============================================================
+
+call %test% "fn.abs.int.neg"
+  call :_run "PRINT ABS(-7)" " 7"
+
+call %test% "fn.abs.int.pos"
+  call :_run "PRINT ABS(7)" " 7"
+
+call %test% "fn.abs.float"
+  call :_run "PRINT ABS(-3.5)" " 3.5"
+
+call %test% "fn.sgn.neg"
+  call :_run "PRINT SGN(-5)" "-1"
+
+call %test% "fn.sgn.zero"
+  call :_run "PRINT SGN(0)" " 0"
+
+call %test% "fn.sgn.pos"
+  call :_run "PRINT SGN(3)" " 1"
+
+call %test% "fn.int.floor.negative"
+  @REM INT(-3.5) = -4  (floor toward -inf, NOT trunc toward zero)
+  call :_run "PRINT INT(-3.5)" "-4"
+
+call %test% "fn.int.positive"
+  call :_run "PRINT INT(3.7)" " 3"
+
+call %test% "fn.fix.trunc.negative"
+  @REM FIX(-3.5) = -3  (trunc toward zero)
+  call :_run "PRINT FIX(-3.5)" "-3"
+
+call %test% "fn.fix.positive"
+  call :_run "PRINT FIX(3.7)" " 3"
+
+call %test% "fn.cint.round.up"
+  call :_run "PRINT CINT(3.5)" " 4"
+
+call %test% "fn.cint.round.down"
+  call :_run "PRINT CINT(3.4)" " 3"
+
+call %test% "fn.csng"
+  call :_run "PRINT CSNG(5)" " 5"
+
+call %test% "fn.cdbl"
+  call :_run "PRINT CDBL(5)" " 5"
+
+
+@REM ============================================================
+@REM  PRINT formatting (PTAB comma, SPC, TAB)
+@REM ============================================================
+@REM Note: <nul set/p strips leading spaces from PSEMI/PTAB-emitted numbers,
+@REM so the GW-BASIC " 1" leading-space placeholder isn't preserved inline.
+@REM Padding via certutil is preserved, so comma-zones still align.
+
+call %test% "print.tab.padding"
+  @REM PRINT 1, 2 — comma-separator pads to next 14-col tab stop.  Inline
+  @REM PTAB strips its own leading space (set/p quirk), pads 12 chars,
+  @REM then PEND prints " 2" via echo.  Result: "1" + 13 chars + "2".
+  call :_run "PRINT 1, 2" "1             2"
+
+call %test% "print.tab.function"
+  @REM TAB(10) goes to column 10 (1-based, so 9 chars before).  PSEMI on
+  @REM the empty STR sentinel adds nothing; PEND prints " 42".
+  call :_run "PRINT TAB(10); 42" "          42"
+
+call %test% "print.spc.function"
+  @REM SPC(3) prints 3 spaces; PEND adds " 7".
+  call :_run "PRINT SPC(3); 7" "    7"
 
 call %test% "exec.vars.assign"
   @REM Init vars, assign, then print
