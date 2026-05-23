@@ -3,3 +3,5 @@ dummy.txt
 temp/
 node_modules
 .idea
+python-decoder/
+samples/
