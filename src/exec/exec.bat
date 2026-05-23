@@ -142,6 +142,7 @@ goto :%_fn%
     & set "_while_stack=%_while_stack%" ^
     & set "_print_col=%_print_col%" ^
     & set "_input_prompted=%_input_prompted%" ^
+    & set "_data_ptr=%_data_ptr%" ^
     & set "_err_code=%_err_code%" ^
     & set "_err_line=%_err_line%" ^
     & exit /B %_err%
@@ -178,6 +179,9 @@ goto :%_fn%
   @REM RUN clears error state
   set "_err_code=0"
   set "_err_line=0"
+  @REM Build the READ/DATA queue: scan all program lines for DATA items.
+  call :_buildDataQueue
+  set "_data_ptr=0"
   @REM Find the lowest line number from sorted program.dat
   set "_first="
   for /f "usebackq tokens=1 delims= " %%k in (`sort "%GWTEMP%\program.dat"`) do (
@@ -250,6 +254,94 @@ goto :%_fn%
     echo !_msg! in !_l!
   )
   endlocal & exit /B 0
+
+
+@REM --- _buildDataQueue: scan program.dat for DATA statements ---
+@REM Writes %GWTEMP%\data.dat, one item per line: "<source_line> <tagged_value>"
+@REM Values are in the same on-stack form the executor uses: NUM tags become
+@REM bare iXXXX / sXXXXXXXX / dXXXXXXXXXXXXXXXX; STR_ keeps its prefix.
+@REM Each program line is scanned token-by-token; after a DATA keyword we
+@REM accept NUM_*/STR_*/HEX_*/OCT_* (and an optional MINUS before NUM) until
+@REM a COLON or EOL ends the DATA statement.
+:_buildDataQueue
+  setlocal EnableDelayedExpansion
+  set "_df=%GWTEMP%\data.dat"
+  type nul > "!_df!"
+  for /f "usebackq tokens=1,* delims= " %%k in (`sort "%GWTEMP%\program.dat"`) do (
+    call :_keyToLn %%k _ln
+    call :_scanLineForData "%%l" !_ln!
+  )
+  endlocal
+  exit /B 0
+
+@REM _scanLineForData "TOKENS" LINE — walk tokens; on DATA, emit items.
+:_scanLineForData
+  setlocal EnableDelayedExpansion
+  set "_toks=%~1"
+  set "_ln=%~2"
+  set "_inData=0"
+  set "_neg=0"
+:_sl_next
+  if "!_toks!"=="" goto :_sl_done
+  for /f "tokens=1*" %%a in ("!_toks!") do (set "_tok=%%a" & set "_toks=%%b")
+  if "!_tok!"=="EOL"   (set "_inData=0" & set "_neg=0" & goto :_sl_next)
+  if "!_tok!"=="COLON" (set "_inData=0" & set "_neg=0" & goto :_sl_next)
+  if "!_tok!"=="DATA"  (set "_inData=1" & set "_neg=0" & goto :_sl_next)
+  if "!_inData!"=="0" goto :_sl_next
+  if "!_tok!"=="COMA"  (set "_neg=0" & goto :_sl_next)
+  if "!_tok!"=="MINUS" (set "_neg=1" & goto :_sl_next)
+  if "!_tok!"=="DATA_MRK" goto :_sl_next
+  call :_emitDataItem "!_tok!" !_neg! !_ln!
+  set "_neg=0"
+  goto :_sl_next
+:_sl_done
+  endlocal
+  exit /B 0
+
+@REM _emitDataItem "TOKEN" NEG LINE — write one row to data.dat.
+:_emitDataItem
+  setlocal EnableDelayedExpansion
+  set "_tok=%~1"
+  set "_neg=%~2"
+  set "_ln=%~3"
+  set "_pfx=!_tok:~0,4!"
+  set "_val="
+  if "!_pfx!"=="NUM_" goto :_em_num
+  if "!_pfx!"=="STR_" (set "_val=!_tok!" & goto :_em_write)
+  if "!_pfx!"=="HEX_" goto :_em_hex
+  if "!_pfx!"=="OCT_" goto :_em_oct
+  goto :_em_done
+:_em_num
+  set "_val=!_tok:~4!"
+  if "!_neg!"=="1" (
+    set "_t=!_val:~0,1!"
+    if "!_t!"=="i" call %GWSRC%\num\int neg !_val!
+    if "!_t!"=="s" call %GWSRC%\num\sng neg !_val!
+    if "!_t!"=="d" call %GWSRC%\num\dbl neg !_val!
+    set "_val=!__!"
+  )
+  goto :_em_write
+:_em_hex
+  set /a "_v=0x!_tok:~4!"
+  call %GWSRC%\num\int fromDec !_v!
+  set "_val=!__!"
+  goto :_em_write
+:_em_oct
+  set "_octStr=!_tok:~4!"
+  set /a "_v=0"
+:_oct_loop
+  if "!_octStr!"=="" goto :_oct_done
+  set /a "_v=_v*8 + !_octStr:~0,1!"
+  set "_octStr=!_octStr:~1!"
+  goto :_oct_loop
+:_oct_done
+  call %GWSRC%\num\int fromDec !_v!
+  set "_val=!__!"
+:_em_write
+  if defined _val >> "%GWTEMP%\data.dat" echo !_ln! !_val!
+:_em_done
+  endlocal
+  exit /B 0
 
 
 @REM --- _keyToLn KEY retVar: convert "00010" to "10" (strip leading zeros) ---

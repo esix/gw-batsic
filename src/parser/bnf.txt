@@ -41,6 +41,7 @@ Stmt          ::= RETURN @RETURN
 Stmt          ::= InputStmt
 Stmt          ::= ReadStmt
 Stmt          ::= DataStmt
+Stmt          ::= RestoreStmt
 Stmt          ::= DimStmt
 Stmt          ::= WhileStmt
 Stmt          ::= WEND @WEND
@@ -127,15 +128,23 @@ VarList       ::= VarRef VarListRest
 VarListRest   ::= COMA VarRef VarListRest
 VarListRest   ::= e
 
-; --- READ / DATA ---
-ReadStmt      ::= READ VarList @READ
-DataStmt      ::= DATA DataList @DATA
+; --- READ / DATA / RESTORE ---
+;   @READ_MARK and @DATA_MARK push stack sentinels so @READ and @DATA know
+;   where the var list / value list starts when popping the stack.
+;   DATA items themselves are collected at RUN time by a pre-scan of
+;   program.dat (see runProgram); the runtime @DATA action just drains
+;   the stack of the values that were pushed for parsing purposes.
+ReadStmt      ::= READ @READ_MARK VarList @READ
+DataStmt      ::= DATA @DATA_MARK DataList @DATA
 DataList      ::= DataItem DataListRest
 DataItem      ::= NUM
 DataItem      ::= STR
 DataItem      ::= MINUS NUM
 DataListRest  ::= COMA DataItem DataListRest
 DataListRest  ::= e
+RestoreStmt   ::= RESTORE RestoreArg
+RestoreArg    ::= NUM @RESTORE_LINE
+RestoreArg    ::= @RESTORE
 
 ; --- DIM ---
 DimStmt       ::= DIM DimVar DimVarRest

@@ -17,6 +17,7 @@ call :_run exec.test.bat
 call :_run errors.test.bat
 call :_run strings.test.bat
 call :_run input.test.bat
+call :_run readdata.test.bat
 
 echo [exec] Done.
 exit /B
