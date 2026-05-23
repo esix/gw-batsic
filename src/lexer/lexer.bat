@@ -132,8 +132,14 @@ goto :%_fn%
         set acc=
         goto :_Loop
       )
-      @REM ' (0x27) - comment shorthand
+      @REM ' (0x27) - comment shorthand.  GW-BASIC treats `'rest` as
+      @REM `:REM rest`, so we need an implicit COLON before the comment
+      @REM body unless the previous emitted token was already a separator
+      @REM (COLON itself, or the line-number marker).
       if !c!==27 (
+        set "_last="
+        for %%w in (!tokens!) do set "_last=%%w"
+        if not "!_last!"=="COLON" if not "!_last:~0,4!"=="LN__" if not "!_last!"=="" set "tokens=!tokens! COLON"
         set state=Rem
         set acc=
         goto :_Loop
