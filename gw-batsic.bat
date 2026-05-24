@@ -10,6 +10,10 @@ set "GWSRC=%~dp0src"
 set "GWTEMP=%~dp0temp"
 chcp 65001 >nul
 
+@REM Lexer needs the keyword table populated before LOAD runs, since LOAD
+@REM tokenizes each source line as it reads it.  (exec.bat re-inits the
+@REM table itself when it starts the REPL — harmless to do it twice.)
+call %GWSRC%\lexer\keyword init
 call %GWSRC%\exec\_program init
 
 @REM If a filename was given, load it before launching the REPL.
