@@ -182,40 +182,38 @@ goto :%_fn%
   @REM Build the READ/DATA queue: scan all program lines for DATA items.
   call :_buildDataQueue
   set "_data_ptr=0"
-  @REM Find the lowest line number from sorted program.dat
-  set "_first="
-  for /f "usebackq tokens=1 delims= " %%k in (`sort "%GWTEMP%\program.dat"`) do (
-    if not defined _first set "_first=%%k"
+  @REM Pre-parse every program line into postfix and build a natural-next
+  @REM map.  Eliminates re-parsing inside FOR/WHILE/GOTO loops — the
+  @REM dominant hot path.  Per-line state lives in env vars:
+  @REM   _ppfx_<KEY>   parsed postfix for that line (KEY is 5-digit padded)
+  @REM   _pnext_<KEY>  the natural next line number (empty for the last line)
+  @REM Also records the first line number in _runFirst, and the line that
+  @REM failed to parse (if any) in _runFatal.
+  call :_buildRunCache
+  if not defined _runFirst goto :_runProg_done
+  if defined _runFatal (
+    set "_err_code=2"
+    set "_err_line=!_runFatal!"
+    goto :_runProg_done
   )
-  if not defined _first goto :_runProg_done
-  call :_keyToLn !_first! _next_line
+  set "_next_line=!_runFirst!"
 
 :_runProg_loop
   if not defined _next_line goto :_runProg_done
   if "!_next_line!"=="" goto :_runProg_done
-  call %GWSRC%\exec\_program get !_next_line! _line_tokens
-  if not defined _line_tokens (
-    @REM "Undefined line number" — error code 8.  Reported against the line
-    @REM that issued the jump (still in _cur_line from the previous iteration);
-    @REM in direct mode it's 65535.
+  set "_pad=00000!_next_line!"
+  set "_pad=!_pad:~-5!"
+  set "_postfix="
+  for %%k in (!_pad!) do set "_postfix=!_ppfx_%%k!"
+  if not defined _postfix (
+    @REM "Undefined line number" — reported against the issuing line.
     set "_err_code=8"
     if not defined _cur_line set "_cur_line=65535"
     set "_err_line=!_cur_line!"
     goto :_runProg_done
   )
-  @REM Strip leading LN__nnn token
-  for /f "tokens=1*" %%a in ("!_line_tokens!") do set "_line_tokens=%%b"
-  @REM Set current line number (for ERL on error)
   set "_cur_line=!_next_line!"
-  @REM Compute the natural-next line (smallest key > current); RTLs may override
-  call :_naturalNext !_next_line! _next_line
-  call %GWSRC%\parser\parse parse "!_line_tokens!" _postfix
-  if errorlevel 1 (
-    @REM Parser failure → Syntax error (code 2) at this line
-    set "_err_code=2"
-    set "_err_line=!_cur_line!"
-    goto :_runProg_done
-  )
+  for %%k in (!_pad!) do set "_next_line=!_pnext_%%k!"
   call :run "!_postfix!"
   set "_e=!ERRORLEVEL!"
   if !_e! neq 0 (
@@ -227,6 +225,39 @@ goto :%_fn%
     goto :_runProg_done
   )
   goto :_runProg_loop
+
+
+@REM --- _buildRunCache: pre-parse all program lines into env-var cache ---
+@REM Writes directly into the caller's setlocal scope (no nested setlocal —
+@REM we'd otherwise have to roll up hundreds of _ppfx_* / _pnext_* vars
+@REM across endlocal, which is fragile).  Sets:
+@REM   _ppfx_<KEY>   per-line parsed postfix
+@REM   _pnext_<KEY>  natural-next line number (empty for the last line)
+@REM   _runFirst     line number of the first program line
+@REM   _runFatal     line that failed to parse (caller surfaces as err 2)
+:_buildRunCache
+  set "_runFirst="
+  set "_runFatal="
+  set "_prevK="
+  for /f "usebackq tokens=1,* delims= " %%k in (`sort "%GWTEMP%\program.dat"`) do (
+    set "_keyP=%%k"
+    set "_toksP=%%l"
+    @REM Strip the leading LN__nnn token before parsing.
+    for /f "tokens=1*" %%a in ("!_toksP!") do set "_toksP=%%b"
+    call %GWSRC%\parser\parse parse "!_toksP!" _pfP
+    if errorlevel 1 (
+      call :_keyToLn !_keyP! _badLn
+      set "_runFatal=!_badLn!"
+    ) else (
+      set "_ppfx_!_keyP!=!_pfP!"
+      call :_keyToLn !_keyP! _curLn
+      if not defined _runFirst set "_runFirst=!_curLn!"
+      if defined _prevK set "_pnext_!_prevK!=!_curLn!"
+      set "_prevK=!_keyP!"
+    )
+  )
+  @REM Last line's _pnext_ is intentionally unset → loop terminates after it.
+  exit /B 0
 
 :_runProg_done
   @REM Print canonical error message if a real error halted the run.
