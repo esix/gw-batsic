@@ -29,8 +29,10 @@ set "_c2h_<=3C"& set "_c2h_>=3E"& set "_c2h_==3D"& set "_c2h_#=23"& set "_c2h_@=
 set "_c2h_[=5B"& set "_c2h_]=5D"& set "_c2h___=5F"& set "_c2h_`=60"& set "_c2h_~=7E"
 set "_c2h_{=7B"& set "_c2h_}=7D"
 
-@REM Hex pair -> char lookup (works fine, hex keys are case-distinct)
-set "_h2c_20= "& set "_h2c_21=!"& set "_h2c_22="""& set "_h2c_23=#"& set "_h2c_24=$"
+@REM Hex pair -> char lookup (works fine, hex keys are case-distinct).
+@REM `!` value must be `^!` so the assignment survives when this file is
+@REM included from a caller with delayed expansion enabled (the common case).
+set "_h2c_20= "& set "_h2c_21=^!"& set "_h2c_22="""& set "_h2c_23=#"& set "_h2c_24=$"
 set "_h2c_27='"& set "_h2c_28=("& set "_h2c_29=)"& set "_h2c_2A=*"& set "_h2c_2B=+"
 set "_h2c_2C=,"& set "_h2c_2D=-"& set "_h2c_2E=."& set "_h2c_2F=/"
 set "_h2c_30=0"& set "_h2c_31=1"& set "_h2c_32=2"& set "_h2c_33=3"& set "_h2c_34=4"
@@ -114,6 +116,29 @@ goto :%_fn%
   @REM Drop the leading "2E" (the "." sentinel).
   set "_all=!_all:~2!"
   endlocal & set "%~2=%_all%" & exit /B 0
+
+
+@REM --- decodePrint hexstr [mode] ---
+@REM Decode hex bytes and write them to stdout via certutil + type, which
+@REM is the only mechanism that handles every printable byte without
+@REM trouble:
+@REM   - `echo`/`echo(` mangle `=`, `<`, `>`, `&`, `|`
+@REM   - `<nul set /p "_=text"` refuses prompts that start with `=`
+@REM   - delayed expansion eats `!` from any cross-scope `set`
+@REM Mode "NONL" suppresses the trailing newline; default appends one.
+:decodePrint
+  setlocal EnableDelayedExpansion
+  set "_s=%~1"
+  set "_mode=%~2"
+  set "_hf=%TEMP%\_strdp.hex"
+  set "_bf=%TEMP%\_strdp.bin"
+  >"!_hf!" echo !_s!
+  @REM certutil refuses to overwrite an existing output file; clear it first.
+  del "!_bf!" 2>nul
+  certutil -decodehex "!_hf!" "!_bf!" >nul
+  type "!_bf!"
+  if /I not "!_mode!"=="NONL" echo(
+  endlocal & exit /B 0
 
 
 @REM --- decode hexstr retVar ---

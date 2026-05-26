@@ -15,8 +15,9 @@ if "!_a:~0,4!"=="STR_" (
   if "!_a!"=="STR_" (
     echo(
   ) else (
-    call %GWSRC%\str\str decode !_a:~4! _txt
-    echo(!_txt!
+    @REM Decode + print in one shot — a cross-scope `set` would eat `!`
+    @REM and `echo(` would mangle `=`, `<`, `>`, `&`, `|`.
+    call %GWSRC%\str\str decodePrint !_a:~4!
   )
 ) else (
   set "_tp=!_a:~0,1!"

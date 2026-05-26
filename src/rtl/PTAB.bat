@@ -10,20 +10,37 @@ call %GWSRC%\stl\vec pop %_s% _a
 call %GWSRC%\exec\_resolve !_a! _a
 
 @REM Render the value to its printable form.
+@REM Force-clear `_hex` — caller scope may have it set (e.g. test harness).
+set "_hex="
 set "_txt="
+set "_isStr="
 if "!_a:~0,4!"=="STR_" (
-  if "!_a!"=="STR_" (set "_txt=") else (call %GWSRC%\str\str decode !_a:~4! _txt)
+  set "_isStr=1"
+  if not "!_a!"=="STR_" (
+    set "_hex=!_a:~4!"
+    call %GWSRC%\str\str decode !_hex! _txt
+  )
 ) else (
   set "_tp=!_a:~0,1!"
   if "!_tp!"=="i" (call %GWSRC%\num\int toDec !_a! & set "_txt= !__!")
   if "!_tp!"=="s" (call %GWSRC%\num\sng toDec !_a! & set "_txt= !__!")
   if "!_tp!"=="d" (call %GWSRC%\num\dbl toDec !_a! & set "_txt= !__!")
 )
-if defined _txt <nul set /p "=!_txt!"
+if defined _isStr (
+  if defined _hex call %GWSRC%\str\str decodePrint !_hex! NONL
+) else (
+  if defined _txt <nul set /p "_=!_txt!"
+)
 
-@REM Update column counter by the printed-text length.
+@REM Update column counter by the printed-text length.  For strings, use
+@REM the hex length / 2 — `_txt` may have lost `!`s to delayed expansion.
 if not defined _print_col set "_print_col=0"
-call :_len "!_txt!" _added
+if defined _isStr (
+  call :_len "!_hex!" _added
+  set /a "_added/=2"
+) else (
+  call :_len "!_txt!" _added
+)
 set /a "_print_col+=_added"
 
 @REM Pad to next multiple of 14.  Output spaces via certutil-decodehex →
@@ -33,6 +50,8 @@ if !_pad! GTR 0 if !_pad! LSS 14 (
   set "_hx="
   for /L %%i in (1,1,!_pad!) do set "_hx=!_hx!20"
   >"%TEMP%\_pad.hex" echo !_hx!
+  @REM certutil refuses to overwrite — clear .bin first.
+  del "%TEMP%\_pad.bin" 2>nul
   certutil -decodehex "%TEMP%\_pad.hex" "%TEMP%\_pad.bin" >nul
   type "%TEMP%\_pad.bin"
   set /a "_print_col+=_pad"

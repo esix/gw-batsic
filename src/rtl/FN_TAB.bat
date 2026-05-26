@@ -29,6 +29,8 @@ if !_pad! GTR 0 (
   set "_hx="
   for /L %%i in (1,1,!_pad!) do set "_hx=!_hx!20"
   >"%TEMP%\_tab.hex" echo !_hx!
+  @REM certutil refuses to overwrite — clear .bin first.
+  del "%TEMP%\_tab.bin" 2>nul
   certutil -decodehex "%TEMP%\_tab.hex" "%TEMP%\_tab.bin" >nul
   type "%TEMP%\_tab.bin"
   set /a "_print_col+=_pad"

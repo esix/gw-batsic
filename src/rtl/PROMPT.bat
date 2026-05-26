@@ -6,8 +6,8 @@ call %GWSRC%\stl\vec pop %_s% _a
 call %GWSRC%\exec\_resolve !_a! _a
 if "!_a:~0,4!"=="STR_" (
   if not "!_a!"=="STR_" (
-    call %GWSRC%\str\str decode !_a:~4! _txt
-    <nul set /p "=!_txt!"
+    @REM Decode + print in one go so `!`, `=`, etc. survive.
+    call %GWSRC%\str\str decodePrint !_a:~4! NONL
   )
 )
 set "_final=!%_s%!"
