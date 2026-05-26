@@ -96,7 +96,11 @@ AssignTail    ::= EQ Expr @ASSIGN
 AssignTail    ::= @ARR_START OPAR ExprList CPAR EQ Expr @ASSIGN_ARR
 
 ; --- IF / THEN ---
-IfStmt        ::= IF Expr @IF THEN ThenClause ElseClause @ENDIF
+; GW-BASIC accepts both `IF expr THEN ...` and `IF expr GOTO num` (a common
+; shorthand from the period — equivalent to `IF expr THEN GOTO num`).
+IfStmt        ::= IF Expr @IF IfBody @ENDIF
+IfBody        ::= THEN ThenClause ElseClause
+IfBody        ::= GOTO NUM @IF_GOTO ElseClause
 ThenClause    ::= NUM @IF_GOTO
 ThenClause    ::= StmtList
 ElseClause    ::= ELSE @ELSE ThenClause
