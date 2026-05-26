@@ -18,6 +18,7 @@ if "%module%" neq "" (
   call :runModule "%root%src\%module%"
 ) else (
   for /D %%d in ("%root%src\*") do call :runModule "%%d"
+  call :runTopTests
 )
 
 echo.
@@ -26,6 +27,14 @@ echo      FAILED: !failedTests!
 echo      PASSED: !passedTests!
 
 endlocal & exit /B %failedTests%
+
+
+@REM Top-level tests live under tests/ rather than a src/ module. They cover
+@REM cross-module concerns like the CLI entry point.
+:runTopTests
+  echo Testing %root%tests\cli.test.bat
+  call "%root%tests\cli.test.bat"
+  exit /B
 
 
 :runModule

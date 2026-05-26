@@ -403,6 +403,22 @@ goto :%_fn%
   endlocal & set "%~2=%_r%" & exit /B 0
 
 
+@REM --- runOnce: init engine, RUN the loaded program, exit (no REPL) ---
+@REM Driven by `gw-batsic.bat /R file.bas`.  Exit code is the GW-BASIC
+@REM error code (0 on clean END / STOP / fall-off).
+:runOnce
+  if not defined GWSRC set "GWSRC=%~dp0.."
+  if not defined GWTEMP set "GWTEMP=%~dp0..\..\temp"
+  set "PATH=%GWSRC%\parser;%PATH%"
+  call %GWSRC%\lexer\keyword init
+  call %GWSRC%\parser\_table loadCache "%GWSRC%\parser\_table.dat"
+  call %GWSRC%\exec\_vars init
+  set "_err_code=0"
+  set "_err_line=0"
+  call :runProgram
+  exit /B %_err_code%
+
+
 :_start
   if not defined GWSRC set "GWSRC=%~dp0.."
   if not defined GWTEMP set "GWTEMP=%~dp0..\..\temp"
