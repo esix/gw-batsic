@@ -185,13 +185,16 @@ goto :%_fn%
         set "acc=!acc!!_h_%c%!"
         goto :_Loop
       )
-      @REM $ (0x24) - string type suffix
+      @REM $ (0x24) - string type suffix.
+      @REM Keyword table is keyed WITH the $ (e.g. _ks_CHR$=1), and the
+      @REM parser grammar uses the literal CHR$/STR$/HEX$/... terminals,
+      @REM so include the $ in both the lookup and the emitted token.
       if !c!==24 (
-        call %GWSRC%\lexer\keyword isKeywordStr !acc!
+        call %GWSRC%\lexer\keyword isKeywordStr !acc!$
         if ERRORLEVEL 1 (
           set acc=VAR_STR_!acc!
         ) else (
-          set acc=!acc!_STR
+          set acc=!acc!$
         )
         set "tokens=!tokens! !acc!"
         set state=Normal
