@@ -440,7 +440,8 @@ VarPtrFn      ::= VARPTR OPAR VarRef CPAR @FN_VARPTR
 ; RND can be RND or RND(x)
 RndFn         ::= RND RndArgs @FN_RND
 RndArgs       ::= OPAR Expr CPAR
-RndArgs       ::= e
+; Bare `RND` (no parens) is equivalent to RND(1) — push a default arg.
+RndArgs       ::= @RND_NOARG
 
 ; 2-arg string functions
 LeftFn        ::= LEFT$ OPAR Expr COMA Expr CPAR @FN_LEFT
