@@ -407,6 +407,7 @@ BuiltinCall   ::= VarPtrFn
 BuiltinCall   ::= ERL @FN_ERL
 BuiltinCall   ::= ERR @FN_ERR
 BuiltinCall   ::= CSRLIN @FN_CSRLIN
+BuiltinCall   ::= TIMER @FN_TIMER
 
 ; 1-arg numeric functions
 AbsFn         ::= ABS OPAR Expr CPAR @FN_ABS
