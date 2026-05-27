@@ -413,6 +413,7 @@ goto :%_fn%
   call %GWSRC%\lexer\keyword init
   call %GWSRC%\parser\_table loadCache "%GWSRC%\parser\_table.dat"
   call %GWSRC%\exec\_vars init
+  call %GWSRC%\exec\_arrays init
   set "_err_code=0"
   set "_err_line=0"
   call :runProgram
@@ -427,6 +428,7 @@ goto :%_fn%
   call %GWSRC%\lexer\keyword init
   call %GWSRC%\parser\_table loadCache "%GWSRC%\parser\_table.dat"
   call %GWSRC%\exec\_vars init
+  call %GWSRC%\exec\_arrays init
   @REM Error state: ERR / ERL accessible via _resolve's pseudo-vars
   set "_err_code=0"
   set "_err_line=0"
