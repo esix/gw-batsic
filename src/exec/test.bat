@@ -7,7 +7,6 @@ set "PATH=%~dp0;%GWSRC%\parser;%GWSRC%\lexer;%PATH%"
 call %GWSRC%\lexer\keyword init
 call %GWSRC%\parser\_table loadCache "%GWSRC%\parser\_table.dat"
 call %GWSRC%\exec\_vars init
-call %GWSRC%\exec\_arrays init
 
 echo [exec] Running tests...
 
