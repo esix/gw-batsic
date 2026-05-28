@@ -31,11 +31,12 @@ if not defined _n (
   endlocal & set "%~1=%_final%" & exit /B 13
 )
 
-@REM Zero: SQR(0) = 0.  MBF zero has exponent byte 00.
+@REM Zero: SQR(0) = 0.  MBF zero has exponent byte 00.  (Emit outside the
+@REM if-block — an in-block `endlocal & set "%~1=%_final%"` would expand
+@REM %_final% at parse time, before assignment, giving an empty result.)
 if "!_n:~1,2!"=="00" (
-  call %GWSRC%\stl\vec push %_s% s00000000
-  set "_final=!%_s%!"
-  endlocal & set "%~1=%_final%" & exit /B 0
+  set "_x=s00000000"
+  goto :_sqr_emit
 )
 
 @REM Negative → "Illegal function call" (err 5).
@@ -57,6 +58,7 @@ for /L %%i in (1,1,10) do (
   call :_half !__! _x
 )
 
+:_sqr_emit
 call %GWSRC%\stl\vec push %_s% !_x!
 set "_final=!%_s%!"
 endlocal & set "%~1=%_final%" & exit /B 0
