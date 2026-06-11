@@ -29,13 +29,15 @@ set /a "_len=0"
   goto :_rl_loop
 :_rl_done
 if !_take! GEQ !_len! (
+  @REM Whole string.  Propagation happens after the block: %_final% inside
+  @REM parens would expand at parse time, before set "_final=..." runs.
   call %GWSRC%\stl\vec push %_s% STR_!_h!
-  set "_final=!%_s%!"
-  endlocal & set "%~1=%_final%" & exit /B 0
+  goto :_rl_ret
 )
 set /a "_skip=_len-_take"
 set "_out=!_h:~%_skip%!"
 call %GWSRC%\stl\vec push %_s% STR_!_out!
+:_rl_ret
 set "_final=!%_s%!"
 endlocal & set "%~1=%_final%" & exit /B 0
 

@@ -123,3 +123,22 @@ call %test% "str.cmp.ne"
 
 
 exit /B
+
+@REM Helper: execute postfix directly and check output (same as exec.test.bat;
+@REM `call :label` can't reach labels in another file, so each test file
+@REM needs its own copy).
+:_rexec
+  set /a numTests+=1
+  setlocal EnableDelayedExpansion
+  call %GWSRC%\exec\exec run "%~1" > "%GWTEMP%\_test.out" 2>&1
+  set /p "_got=" < "%GWTEMP%\_test.out"
+  if "!_got!"=="%~2" (
+    endlocal & set /a passedTests+=1
+  ) else (
+    echo FAILED: exec "%~1"
+    echo   Expected: %~2
+    echo        Got: !_got!
+    echo.
+    endlocal & set /a failedTests+=1
+  )
+  exit /B

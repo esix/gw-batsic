@@ -1,3 +1,8 @@
 *.bat   text eol=crlf
 *.cmd   text eol=crlf
 *.bas   text eol=crlf
+
+# Vintage example programs are kept byte-for-byte verbatim: some are
+# tokenized binary (HW.BAS), NUL/^Z-padded (CONTROL.BAS) or contain
+# 8-bit binary data (REMCACC.BAS) that CRLF normalization would corrupt.
+examples/** -text
