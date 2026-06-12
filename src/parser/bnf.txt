@@ -67,24 +67,45 @@ Stmt          ::= ResumeStmt
 Stmt          ::= CLS @CLS
 Stmt          ::= BEEP @BEEP
 Stmt          ::= RANDOMIZE Expr @RANDOMIZE
+Stmt          ::= RunStmt
+Stmt          ::= SaveStmt
+Stmt          ::= SYSTEM @SYSTEM
+Stmt          ::= NEW @NEW
 Stmt          ::= AssignStmt
 Stmt          ::= e
 
-; --- PRINT / ? ---
+; --- PRINT / LPRINT / ? ---
 ;   Trailing `;` or `,` suppresses the final newline.  @PSEMI_END /
 ;   @PTAB_END print the just-pushed item like @PSEMI / @PTAB but do not
 ;   add a newline; @PEND is only emitted when the print list ends without
 ;   a separator.
+;   Juxtaposed items (PRINT "X"N"Y") are legal GW-BASIC: adjacent items
+;   with no separator behave like `;`.  The PrintAfter @PSEMI production
+;   fires on any token that can START an item; tokens that can CONTINUE
+;   the current expression (e.g. MINUS) are consumed by the expression
+;   first, so `PRINT A -5` is still a subtraction.  This intentionally
+;   adds two FIRST-vs-FOLLOW conflicts resolved in GW-BASIC's favour:
+;   ArrayIndex.OPAR (`PRINT A(5)` = array access) and AddRest.MINUS.
+;   Empty print zones: a COMA with no pending item emits @PZONE, which
+;   advances to the next 14-column zone without popping the stack.
+;   LPRINT is accepted as a console-printing alias of PRINT.
 PrintStmt     ::= PRINT PrintBody
+PrintStmt     ::= LPRINT PrintBody
 PrintBody     ::= @PEND
 PrintBody     ::= PrintItem PrintAfter
+PrintBody     ::= COMA @PZONE PrintZone
 PrintAfter    ::= @PEND
 PrintAfter    ::= SEMICOLON PrintSemi
 PrintAfter    ::= COMA PrintComa
+PrintAfter    ::= @PSEMI PrintItem PrintAfter
 PrintSemi     ::= @PSEMI PrintItem PrintAfter
 PrintSemi     ::= @PSEMI_END
 PrintComa     ::= @PTAB PrintItem PrintAfter
+PrintComa     ::= @PTAB COMA @PZONE PrintZone
 PrintComa     ::= @PTAB_END
+PrintZone     ::= PrintItem PrintAfter
+PrintZone     ::= COMA @PZONE PrintZone
+PrintZone     ::= e
 PrintItem     ::= Expr
 PrintItem     ::= TAB( Expr CPAR @FN_TAB
 PrintItem     ::= SPC( Expr CPAR @FN_SPC
@@ -133,8 +154,12 @@ NumListRest   ::= e
 ; --- INPUT ---
 ;   @INPUT_MARK pushes a sentinel between the prompt and the var list so
 ;   @INPUT knows where the var list starts when popping the stack.
+;   `INPUT "p"; V` prints the prompt then "? "; `INPUT "p", V` prints the
+;   prompt with NO question mark (@PROMPT_NQ).  Bare INPUT prints "? ".
 InputStmt     ::= INPUT InputPrompt @INPUT_MARK VarList @INPUT
-InputPrompt   ::= STR SEMICOLON @PROMPT
+InputPrompt   ::= STR PromptSep
+PromptSep     ::= SEMICOLON @PROMPT
+PromptSep     ::= COMA @PROMPT_NQ
 InputPrompt   ::= e
 VarList       ::= VarRef VarListRest
 VarListRest   ::= COMA VarRef VarListRest
@@ -188,6 +213,23 @@ DefTypeStmt   ::= DEFSTR LetterRange @DEFSTR
 LetterRange   ::= VAR RangeRest
 RangeRest     ::= MINUS VAR
 RangeRest     ::= e
+
+; --- RUN / SAVE / SYSTEM / NEW ---
+;   RUN [num | "file"[,R]] restarts the current program (clearing
+;   variables), starts at a line, or loads+runs another file.  The RTLs
+;   signal the run loop with flow code 98 (see exec.bat).  SAVE
+;   "file"[,A|,P] writes the program (binary by default, ASCII with ,A).
+;   The ,R/,A/,P option letters arrive on the stack as VAR_ tokens; the
+;   RTLs discard them.
+RunStmt       ::= RUN RunArg
+RunArg        ::= NUM @RUN_LINE
+RunArg        ::= STR RunROpt @RUN_FILE
+RunArg        ::= @RUN
+RunROpt       ::= COMA VAR
+RunROpt       ::= e
+SaveStmt      ::= SAVE Expr SaveOpt @SAVE
+SaveOpt       ::= COMA VAR
+SaveOpt       ::= e
 
 ; --- POKE ---
 PokeStmt      ::= POKE Expr COMA Expr @POKE

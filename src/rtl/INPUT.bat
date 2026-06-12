@@ -3,9 +3,9 @@
 @REM input, split a single typed line on commas, and assign one value to
 @REM each var (in user-declaration order).
 @REM
-@REM Prompt: a leading "? " is appended only if the user did NOT supply a
-@REM "..."; prompt (PROMPT sets _input_prompted=1).  GW-BASIC's exact rule
-@REM (comma vs semicolon after prompt) isn't reproduced.
+@REM Prompt: "? " is appended after the user prompt (or alone for bare
+@REM INPUT).  Only the comma form INPUT "p", V suppresses it: PROMPT_NQ
+@REM sets _input_prompted=2, the semicolon form's PROMPT sets 1.
 @REM
 @REM Errors:
 @REM   13  Type mismatch — non-numeric input piece for a numeric var
@@ -29,8 +29,10 @@ for %%v in (!_rev!) do (
   if "!_vars!"=="" (set "_vars=%%v") else (set "_vars=%%v !_vars!")
 )
 
-@REM Print "? " unless the user's prompt already covered it.
-if not defined _input_prompted <nul set /p "=? "
+@REM Print "? " after the prompt (GW-BASIC appends it for the bare and
+@REM semicolon forms; only the comma form INPUT "p", V suppresses it -
+@REM PROMPT_NQ signals that with _input_prompted=2).
+if not "!_input_prompted!"=="2" <nul set /p "=? "
 set "_input_prompted="
 
 @REM Read one input line.

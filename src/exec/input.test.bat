@@ -12,10 +12,18 @@ call %test% "input.single.numeric"
   call :_inputRun "42" "?  84"
 
 call %test% "input.prompt.string"
+  @REM GW-BASIC appends "? " after a semicolon-form prompt.
   call :_clear
-  > "%GWTEMP%\_input.bas" echo 10 INPUT "Name? "; N$
+  > "%GWTEMP%\_input.bas" echo 10 INPUT "Name"; N$
   >>"%GWTEMP%\_input.bas" echo 20 PRINT N$
   call :_inputRun "Alice" "Name? Alice"
+
+call %test% "input.prompt.comma.noquestion"
+  @REM The comma form suppresses the "? " entirely.
+  call :_clear
+  > "%GWTEMP%\_input.bas" echo 10 INPUT "Name: ", N$
+  >>"%GWTEMP%\_input.bas" echo 20 PRINT N$
+  call :_inputRun "Alice" "Name: Alice"
 
 call %test% "input.multivar"
   call :_clear

@@ -122,6 +122,13 @@ call %test% "str.cmp.ne"
   call :_rexec "STR_4142 STR_4143 CMP_NE PEND" "-1"
 
 
+call %test% "print.pzone.empty.zone"
+  @REM PZONE advances to the next 14-column zone without popping a value.
+  @REM PRINT ,"B": the leading comma pads columns 0-13, B lands at 14.
+  call :_rexec "PZONE STR_42 PEND" "              B"
+  @REM PRINT "A",,"B": PTAB prints A and pads to 14, PZONE pads to 28.
+  call :_rexec "STR_41 PTAB PZONE STR_42 PEND" "A                           B"
+
 exit /B
 
 @REM Helper: execute postfix directly and check output (same as exec.test.bat;

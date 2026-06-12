@@ -115,6 +115,31 @@ call %test% "parse.while"
 call %test% "parse.error"
   call :_pe "PLUS EOL"
 
+call %test% "parse.print.juxtaposed"
+  call :_p "PRINT STR_58 NUM_i0001 EOL" "STR_58 PSEMI NUM_i0001 PEND"
+  call :_p "PRINT STR_58 VAR_UNK_A STR_59 EOL" "STR_58 PSEMI VAR_UNK_A PSEMI STR_59 PEND"
+  call :_p "PRINT TAB( NUM_i0005 CPAR STR_58 EOL" "NUM_i0005 FN_TAB PSEMI STR_58 PEND"
+
+call %test% "parse.print.zones"
+  call :_p "PRINT COMA NUM_i0005 EOL" "PZONE NUM_i0005 PEND"
+  call :_p "PRINT NUM_i0001 COMA COMA NUM_i0002 EOL" "NUM_i0001 PTAB PZONE NUM_i0002 PEND"
+  call :_p "PRINT COMA COMA EOL" "PZONE PZONE"
+
+call %test% "parse.run.statements"
+  call :_p "RUN EOL" "RUN"
+  call :_p "RUN NUM_i0064 EOL" "NUM_i0064 RUN_LINE"
+  call :_p "RUN STR_4142 EOL" "STR_4142 RUN_FILE"
+  call :_p "RUN STR_4142 COMA VAR_UNK_R EOL" "STR_4142 VAR_UNK_R RUN_FILE"
+  call :_p "SAVE STR_4142 EOL" "STR_4142 SAVE"
+  call :_p "SAVE STR_4142 COMA VAR_UNK_A EOL" "STR_4142 VAR_UNK_A SAVE"
+  call :_p "SYSTEM EOL" "SYSTEM"
+  call :_p "NEW EOL" "NEW"
+  call :_p "LPRINT NUM_i0001 EOL" "NUM_i0001 PEND"
+
+call %test% "parse.input.prompt.forms"
+  call :_p "INPUT STR_41 SEMICOLON VAR_STR_N EOL" "STR_41 PROMPT INPUT_MARK VAR_STR_N INPUT"
+  call :_p "INPUT STR_41 COMA VAR_STR_N EOL" "STR_41 PROMPT_NQ INPUT_MARK VAR_STR_N INPUT"
+
 exit /B
 
 :_p

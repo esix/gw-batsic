@@ -126,7 +126,7 @@ goto :%_fn%
 :_run_end
   @REM On real error, capture ERR / ERL.  Code 99 is the END/STOP flow-control
   @REM signal — not a user-visible error, so don't surface it via ERR.
-  if !_err! neq 0 if !_err! neq 99 (
+  if !_err! neq 0 if !_err! neq 99 if !_err! neq 98 if !_err! neq 97 (
     set "_err_code=!_err!"
     set "_err_line=!_cur_line!"
   )
@@ -143,6 +143,8 @@ goto :%_fn%
     & set "_print_col=%_print_col%" ^
     & set "_input_prompted=%_input_prompted%" ^
     & set "_data_ptr=%_data_ptr%" ^
+    & set "_run_file=%_run_file%" ^
+    & set "_run_line=%_run_line%" ^
     & set "_err_code=%_err_code%" ^
     & set "_err_line=%_err_line%" ^
     & exit /B %_err%
@@ -166,37 +168,14 @@ goto :%_fn%
 @REM Iterates lines via _next_line; RTLs (GOTO/GOSUB/RETURN) override it.
 :runProgram
   setlocal EnableDelayedExpansion
-  set "_gosub_stack="
-  @REM FOR loop stacks: parallel — same depth, popped together.
-  set "_for_vars="
-  set "_for_limits="
-  set "_for_steps="
-  set "_for_lines="
-  @REM WHILE loop stack: just line numbers (re-evaluate cond on each iteration).
-  set "_while_stack="
-  @REM PRINT cursor column (0-based; PEND resets to 0).
-  set "_print_col=0"
-  @REM RUN clears error state
-  set "_err_code=0"
-  set "_err_line=0"
-  @REM Build the READ/DATA queue: scan all program lines for DATA items.
-  call :_buildDataQueue
-  set "_data_ptr=0"
-  @REM Pre-parse every program line into postfix and build a natural-next
-  @REM map.  Eliminates re-parsing inside FOR/WHILE/GOTO loops — the
-  @REM dominant hot path.  Per-line state lives in env vars:
-  @REM   _ppfx_<KEY>   parsed postfix for that line (KEY is 5-digit padded)
-  @REM   _pnext_<KEY>  the natural next line number (empty for the last line)
-  @REM Also records the first line number in _runFirst, and the line that
-  @REM failed to parse (if any) in _runFatal.
-  call :_buildRunCache
+  set "_sys_exit="
+  call :_runInit
   if not defined _runFirst goto :_runProg_done
   if defined _runFatal (
     set "_err_code=2"
     set "_err_line=!_runFatal!"
     goto :_runProg_done
   )
-  set "_next_line=!_runFirst!"
 
 :_runProg_loop
   if not defined _next_line goto :_runProg_done
@@ -216,12 +195,74 @@ goto :%_fn%
   for %%k in (!_pad!) do set "_next_line=!_pnext_%%k!"
   call :run "!_postfix!"
   set "_e=!ERRORLEVEL!"
+  if !_e! equ 98 goto :_runProg_restart
+  if !_e! equ 97 (
+    @REM SYSTEM — exit the interpreter (runOnce / REPL check _sys_exit)
+    set "_sys_exit=1"
+    set "_err_code=0"
+    goto :_runProg_done
+  )
   if !_e! neq 0 (
     if !_e! equ 99 (
       @REM END / STOP — graceful halt, no error
       set "_err_code=0"
       goto :_runProg_done
     )
+    goto :_runProg_done
+  )
+  goto :_runProg_loop
+
+
+@REM --- _runInit: (re)initialize all per-RUN state ---
+@REM Called at runProgram start and again on every RUN statement restart.
+@REM RUN clears variables and arrays (GW-BASIC semantics), resets the
+@REM control-flow stacks and error state, rebuilds the READ/DATA queue
+@REM and the pre-parsed line cache (_ppfx_/_pnext_, _runFirst, _runFatal).
+@REM A pending _run_line (RUN <num>) overrides the start line.
+:_runInit
+  call %GWSRC%\exec\_vars init
+  call %GWSRC%\exec\_arrays init
+  set "_gosub_stack="
+  set "_for_vars="
+  set "_for_limits="
+  set "_for_steps="
+  set "_for_lines="
+  set "_while_stack="
+  set "_print_col=0"
+  set "_err_code=0"
+  set "_err_line=0"
+  call :_buildDataQueue
+  set "_data_ptr=0"
+  call :_buildRunCache
+  set "_next_line=!_runFirst!"
+  if defined _run_line set "_next_line=!_run_line!"
+  set "_run_line="
+  exit /B 0
+
+
+@REM --- _runProg_restart: a RUN statement executed inside the program ---
+@REM Flow code 98.  _run_file: load that file (replacing the program);
+@REM _run_line: start there.  Either way variables clear, caches rebuild.
+:_runProg_restart
+  if defined _run_file (
+    call %GWSRC%\file\file load "!_run_file!"
+    if errorlevel 1 (
+      set "_err_code=53"
+      set "_err_line=!_cur_line!"
+      set "_run_file="
+      set "_run_line="
+      goto :_runProg_done
+    )
+  )
+  set "_run_file="
+  @REM Drop the stale pre-parsed line cache before rebuilding.
+  for /f "delims==" %%v in ('set _ppfx_ 2^>nul') do set "%%v="
+  for /f "delims==" %%v in ('set _pnext_ 2^>nul') do set "%%v="
+  call :_runInit
+  if not defined _runFirst goto :_runProg_done
+  if defined _runFatal (
+    set "_err_code=2"
+    set "_err_line=!_runFatal!"
     goto :_runProg_done
   )
   goto :_runProg_loop
@@ -263,7 +304,7 @@ goto :%_fn%
   @REM Print canonical error message if a real error halted the run.
   if !_err_code! neq 0 call :_printErr !_err_code! !_err_line!
   @REM Propagate error state to caller (so ERR / ERL can be read in REPL after RUN)
-  endlocal & set "_err_code=%_err_code%" & set "_err_line=%_err_line%" & exit /B 0
+  endlocal & set "_err_code=%_err_code%" & set "_err_line=%_err_line%" & set "_sys_exit=%_sys_exit%" & exit /B 0
 
 
 @REM --- _printErr CODE LINE: print GW-BASIC-style error message ---
@@ -472,20 +513,8 @@ goto :%_fn%
     echo Ok
     goto :_repl
   )
-  if "!_first!"=="RUN" (
-    call :runProgram
-    endlocal
-    echo Ok
-    goto :_repl
-  )
   if "!_first!"=="LOAD" (
     call :_replFile load "!_tokens!"
-    endlocal
-    echo Ok
-    goto :_repl
-  )
-  if "!_first!"=="SAVE" (
-    call :_replFile save "!_tokens!"
     endlocal
     echo Ok
     goto :_repl
@@ -503,9 +532,33 @@ goto :%_fn%
     goto :_repl
   )
   call :run "!_postfix!"
+  set "_re=!ERRORLEVEL!"
+  if "!_re!"=="97" (endlocal & goto :_repl_end)
+  if "!_re!"=="98" goto :_repl_runflow
   @REM On error, print the canonical message before "Ok"
   if !_err_code! neq 0 call :_printErr !_err_code! !_err_line!
   @REM Propagate error state out of setlocal so next iteration can read ERR/ERL
+  endlocal & set "_err_code=%_err_code%" & set "_err_line=%_err_line%"
+  echo Ok
+  goto :_repl
+
+@REM --- Immediate-mode RUN (flow code 98 from the RUN RTLs) ---
+@REM Optionally load _run_file, then start the program.  _run_line is
+@REM still set in this scope and is honoured by :_runInit.
+:_repl_runflow
+  if defined _run_file (
+    call %GWSRC%\file\file load "!_run_file!"
+    if errorlevel 1 (
+      set "_run_file=" & set "_run_line="
+      call :_printErr 53 65535
+      endlocal & set "_err_code=53" & set "_err_line=65535"
+      echo Ok
+      goto :_repl
+    )
+  )
+  set "_run_file="
+  call :runProgram
+  if defined _sys_exit (endlocal & goto :_repl_end)
   endlocal & set "_err_code=%_err_code%" & set "_err_line=%_err_line%"
   echo Ok
   goto :_repl

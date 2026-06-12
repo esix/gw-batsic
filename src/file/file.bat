@@ -67,17 +67,24 @@ goto :%_fn%
   set "_b=!_rest:~0,2!"
   set "_rest=!_rest:~2!"
   if "!_b!"=="0A" goto :_load_doline
+  @REM Ctrl-Z (CP/M-style EOF marker): finish this line, then stop -
+  @REM vintage .bas files are often ^Z-terminated and NUL-padded.
+  if "!_b!"=="1A" (set "_ldEof=1" & goto :_load_doline)
   set "_lh=!_lh!!_b!"
   goto :_load_split
 :_load_doline
   set "_all=!_rest!"
-  if "!_lh!"=="" goto :_load_line
+  if "!_lh!"=="" (
+    if defined _ldEof goto :_load_done
+    goto :_load_line
+  )
   @REM Lex the line's hex; emits a token stream.  Only store if it starts
   @REM with a line-number token (LN__nnn).
   call %GWSRC%\lexer\lexer ParseTxt !_lh! _tokens
   set "_first="
   for /f "tokens=1*" %%a in ("!_tokens!") do set "_first=%%a"
   if "!_first:~0,4!"=="LN__" call %GWSRC%\exec\_program add !_first:~4! "!_tokens!"
+  if defined _ldEof goto :_load_done
   goto :_load_line
 :_load_done
   endlocal

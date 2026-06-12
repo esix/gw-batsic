@@ -159,7 +159,7 @@ goto :%_fn%
       if !c!==3B (set "tokens=!tokens! SEMICOLON" & goto :_Loop)
       @REM < = > (0x3C-0x3E)
       if !c!==3C (set "state=Less" & goto :_Loop)
-      if !c!==3D (set "tokens=!tokens! EQ" & goto :_Loop)
+      if !c!==3D (set "state=Equals" & goto :_Loop)
       if !c!==3E (set "state=More" & goto :_Loop)
       @REM ? (0x3F) - PRINT shorthand
       if !c!==3F (set "tokens=!tokens! PRINT" & goto :_Loop)
@@ -183,6 +183,11 @@ goto :%_fn%
       )
       if defined isNumber (
         set "acc=!acc!!_h_%c%!"
+        goto :_Loop
+      )
+      @REM . (0x2E) - legal in GW-BASIC identifiers (SM.FIELD$, THIS.PERS)
+      if !c!==2E (
+        set "acc=!acc!."
         goto :_Loop
       )
       @REM $ (0x24) - string type suffix.
@@ -240,10 +245,17 @@ goto :%_fn%
       set "tokens=!tokens! !acc!"
       set "_isRem="
       if "!acc!"=="REM" set "_isRem=1"
+      set "_isData="
+      if "!acc!"=="DATA" set "_isData=1"
       set acc=
       if "!_isRem!"=="1" (
         set state=Rem
         goto :_S_Rem
+      )
+      if "!_isData!"=="1" (
+        set "state=Data"
+        set "_dAcc=" & set "_dSp=" & set "_dEmpty="
+        goto :_S_Data
       )
       set state=Normal
       goto :_S_Normal
@@ -332,7 +344,17 @@ goto :%_fn%
 
 :_S_More
       if !c!==3D (set "tokens=!tokens! GE" & set "state=Normal" & goto :_Loop)
+      if !c!==3C (set "tokens=!tokens! NE" & set "state=Normal" & goto :_Loop)
       set "tokens=!tokens! GT"
+      set state=Normal
+      goto :_S_Normal
+
+:_S_Equals
+      @REM = followed by > or < : reversed comparison forms (=> for >=,
+      @REM =< for <=) accepted by GW-BASIC.  Anything else: plain EQ.
+      if !c!==3E (set "tokens=!tokens! GE" & set "state=Normal" & goto :_Loop)
+      if !c!==3C (set "tokens=!tokens! LE" & set "state=Normal" & goto :_Loop)
+      set "tokens=!tokens! EQ"
       set state=Normal
       goto :_S_Normal
 
@@ -362,6 +384,76 @@ goto :%_fn%
         goto :_Loop
       )
       set acc=!acc!!c!
+      goto :_Loop
+
+:_S_Data
+      @REM DATA item mode: GW-BASIC DATA items need no quotes.  Capture
+      @REM raw hex until , : or EOL — bytes are kept verbatim (case and
+      @REM symbols preserved); leading/trailing spaces are trimmed (_dSp
+      @REM buffers interior runs).  :_DataEmit classifies the item:
+      @REM numeric-looking -> NUM_ token, everything else -> STR_<hex>.
+      if defined isEol (
+        call :_DataEmit
+        set state=Normal
+        goto :_Loop
+      )
+      if !c!==2C (
+        call :_DataEmit
+        set "tokens=!tokens! COMA"
+        set "_dEmpty=1"
+        goto :_Loop
+      )
+      if !c!==3A (
+        call :_DataEmit
+        set "tokens=!tokens! COLON"
+        set state=Normal
+        goto :_Loop
+      )
+      if !c!==22 if not defined _dAcc (
+        set "state=DataQuote"
+        goto :_Loop
+      )
+      if defined isSpace (
+        if defined _dAcc set "_dSp=!_dSp!20"
+        goto :_Loop
+      )
+      set "_dAcc=!_dAcc!!_dSp!!c!"
+      set "_dSp="
+      set "_dEmpty="
+      goto :_Loop
+
+:_S_DataQuote
+      @REM Quoted DATA item: raw hex until the closing quote (or EOL).
+      if !c!==22 (
+        set "tokens=!tokens! STR_!_dAcc!"
+        set "_dAcc=" & set "_dSp=" & set "_dEmpty="
+        set "state=DataSep"
+        goto :_Loop
+      )
+      if defined isEol (
+        set "tokens=!tokens! STR_!_dAcc!"
+        set "_dAcc=" & set "_dSp=" & set "_dEmpty="
+        set state=Normal
+        goto :_Loop
+      )
+      set "_dAcc=!_dAcc!!c!"
+      goto :_Loop
+
+:_S_DataSep
+      @REM After a quoted DATA item: , continues the list, : ends the
+      @REM statement, EOL ends the line; stray bytes are ignored.
+      if defined isEol (set "state=Normal" & goto :_Loop)
+      if !c!==2C (
+        set "tokens=!tokens! COMA"
+        set "_dEmpty=1"
+        set "state=Data"
+        goto :_Loop
+      )
+      if !c!==3A (
+        set "tokens=!tokens! COLON"
+        set state=Normal
+        goto :_Loop
+      )
       goto :_Loop
 
 :_S_Ampersand
@@ -409,6 +501,120 @@ goto :%_fn%
       set state=Normal
       goto :_S_Normal
 
+@REM --- _DataEmit: flush the pending unquoted DATA item in _dAcc ---
+@REM Numeric-looking items (optional sign, digits, ., E/D exponent with
+@REM optional signed exponent) are converted via the num facades exactly
+@REM like :_S_EmitNum; anything else (or a failed conversion) is emitted
+@REM as STR_<raw hex>.  An empty accumulator emits an empty-string item
+@REM only when a separator made the emptiness meaningful (_dEmpty).
+:_DataEmit
+  if not defined _dAcc (
+    if defined _dEmpty set "tokens=!tokens! STR_"
+    set "_dSp=" & set "_dEmpty="
+    exit /B 0
+  )
+  set "_dTxt="
+  set "_dNum=1"
+  set "_dHasD="
+  set "_dHasE="
+  set "_dHasDot="
+  set "_dPos=0"
+  set "_dPrevED="
+  set "_dRest=!_dAcc!"
+:_de_loop
+  if not defined _dRest goto :_de_classified
+  set "_dc=!_dRest:~0,2!"
+  set "_dRest=!_dRest:~2!"
+  set "_dIsDig="
+  if !_dc! GEQ 30 if !_dc! LEQ 39 set "_dIsDig=1"
+  if defined _dIsDig (
+    set "_dTxt=!_dTxt!!_h_%_dc%!"
+    set "_dPrevED="
+    set /a "_dPos+=1"
+    goto :_de_loop
+  )
+  if "!_dc!"=="2E" goto :_de_dot
+  if "!_dc!"=="2D" goto :_de_sign
+  if "!_dc!"=="2B" goto :_de_sign
+  if "!_dc!"=="45" goto :_de_exp
+  if "!_dc!"=="65" goto :_de_exp
+  if "!_dc!"=="44" goto :_de_expd
+  if "!_dc!"=="64" goto :_de_expd
+  set "_dNum="
+  goto :_de_classified
+:_de_dot
+  if defined _dHasDot (set "_dNum=" & goto :_de_classified)
+  if defined _dHasE (set "_dNum=" & goto :_de_classified)
+  set "_dTxt=!_dTxt!."
+  set "_dHasDot=1"
+  set "_dPrevED="
+  set /a "_dPos+=1"
+  goto :_de_loop
+:_de_sign
+  set "_dSignOK="
+  if "!_dPos!"=="0" set "_dSignOK=1"
+  if defined _dPrevED set "_dSignOK=1"
+  if not defined _dSignOK (set "_dNum=" & goto :_de_classified)
+  if "!_dc!"=="2D" set "_dTxt=!_dTxt!-"
+  if "!_dc!"=="2B" if defined _dPrevED set "_dTxt=!_dTxt!+"
+  set "_dPrevED="
+  set /a "_dPos+=1"
+  goto :_de_loop
+:_de_exp
+  if defined _dHasE (set "_dNum=" & goto :_de_classified)
+  set "_dTxt=!_dTxt!E"
+  set "_dHasE=1"
+  set "_dPrevED=1"
+  set /a "_dPos+=1"
+  goto :_de_loop
+:_de_expd
+  if defined _dHasE (set "_dNum=" & goto :_de_classified)
+  set "_dTxt=!_dTxt!D"
+  set "_dHasE=1"
+  set "_dHasD=1"
+  set "_dPrevED=1"
+  set /a "_dPos+=1"
+  goto :_de_loop
+:_de_classified
+  if not defined _dNum goto :_de_str
+  if not defined _dTxt goto :_de_str
+  if "!_dTxt!"=="." goto :_de_str
+  if "!_dTxt!"=="-" goto :_de_str
+  if "!_dTxt!"=="-." goto :_de_str
+  if defined _dHasD (
+    call %GWSRC%\num\dbl fromDec !_dTxt!
+    if errorlevel 1 goto :_de_str
+    set "tokens=!tokens! NUM_!__!"
+    goto :_de_done
+  )
+  if defined _dHasE (
+    call %GWSRC%\num\sng fromDec !_dTxt!
+    if errorlevel 1 goto :_de_str
+    set "tokens=!tokens! NUM_!__!"
+    goto :_de_done
+  )
+  if defined _dHasDot (
+    call %GWSRC%\num\sng fromDec !_dTxt!
+    if errorlevel 1 goto :_de_str
+    set "tokens=!tokens! NUM_!__!"
+    goto :_de_done
+  )
+  call %GWSRC%\num\int fromDec !_dTxt!
+  if not errorlevel 1 (
+    set "tokens=!tokens! NUM_!__!"
+    goto :_de_done
+  )
+  call %GWSRC%\num\sng fromDec !_dTxt!
+  if errorlevel 1 goto :_de_str
+  set "tokens=!tokens! NUM_!__!"
+  goto :_de_done
+:_de_str
+  set "tokens=!tokens! STR_!_dAcc!"
+:_de_done
+  set "_dAcc=" & set "_dSp=" & set "_dEmpty="
+  exit /B 0
+
+
 :_LoopEnd
 
   @REM Flush any pending accumulator
@@ -444,6 +650,8 @@ goto :%_fn%
     set state=Normal
   )
   if "!state!"=="Rem" set "tokens=!tokens! REM_!acc!" & set "state=Normal"
+  if "!state!"=="Data" call :_DataEmit
+  if "!state!"=="DataQuote" set "tokens=!tokens! STR_!_dAcc!" & set "state=Normal"
   if "!state!"=="Quote" set "tokens=!tokens! STR_!acc!" & set "state=Normal"
   if "!state!"=="HexLit" set "tokens=!tokens! HEX_!acc!" & set "state=Normal"
   if "!state!"=="OctLit" set "tokens=!tokens! OCT_!acc!" & set "state=Normal"

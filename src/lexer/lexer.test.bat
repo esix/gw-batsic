@@ -50,6 +50,23 @@ call %test% "lexer.comment"
 call %test% "lexer.printShorthand"
   call :_t "10 ?"               "LN__10 PRINT EOL"
 
+call %test% "lexer.dotted.identifiers"
+  call :_t "10 A.B=1"           "LN__10 VAR_UNK_A.B EQ NUM_i0001 EOL"
+  call :_t "10 THIS.PERS"       "LN__10 VAR_UNK_THIS.PERS EOL"
+
+call %test% "lexer.reversed.relops"
+  call :_t "10 A=>1"            "LN__10 VAR_UNK_A GE NUM_i0001 EOL"
+  call :_t "10 A=<1"            "LN__10 VAR_UNK_A LE NUM_i0001 EOL"
+  call :_t "10 A><1"            "LN__10 VAR_UNK_A NE NUM_i0001 EOL"
+
+call %test% "lexer.data.unquoted"
+  call :_t "10 DATA AB, 12"     "LN__10 DATA STR_4142 COMA NUM_i000C EOL"
+  call :_t "10 DATA -5, +7"     "LN__10 DATA NUM_iFFFB COMA NUM_i0007 EOL"
+  call :_t "10 DATA A B"        "LN__10 DATA STR_412042 EOL"
+  call :_t "10 DATA 1.5, 2E3"   "LN__10 DATA NUM_s80400000 COMA NUM_s8A7A0000 EOL"
+  call :_t "10 DATA X: GOTO 10" "LN__10 DATA STR_58 COLON GOTO NUM_i000A EOL"
+  call :_t "10 DATA 212-44"     "LN__10 DATA STR_3231322D3434 EOL"
+
 exit /B
 
 
