@@ -129,6 +129,14 @@ call %test% "print.pzone.empty.zone"
   @REM PRINT "A",,"B": PTAB prints A and pads to 14, PZONE pads to 28.
   call :_rexec "STR_41 PTAB PZONE STR_42 PEND" "A                           B"
 
+call %test% "str.fn.string"
+  @REM STRING$(10,42) -> ten "*" (42 = ASCII "*")
+  call :_rexec "NUM_i000A NUM_i002A FN_STRING PEND" "**********"
+  @REM STRING$(3,"AB") -> first char repeated -> "AAA"
+  call :_rexec "NUM_i0003 STR_4142 FN_STRING PEND" "AAA"
+  @REM STRING$(0,"X") -> empty string
+  call :_rexec "NUM_i0000 STR_58 FN_STRING PEND" ""
+
 exit /B
 
 @REM Helper: execute postfix directly and check output (same as exec.test.bat;

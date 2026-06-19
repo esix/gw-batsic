@@ -268,9 +268,17 @@ LineBoxFill   ::= COMA VAR
 LineBoxFill   ::= e
 
 ; --- LOCATE ---
-LocateStmt    ::= LOCATE Expr LocateCol @LOCATE
-LocateCol     ::= COMA Expr
-LocateCol     ::= e
+;   LOCATE [row][,[col][,[cursor][,[start][,stop]]]] — every argument is
+;   optional and may be elided with a bare comma (LOCATE ,52 / LOCATE ,,0).
+;   @LOC_MARK pushes a sentinel; each slot pushes its value or a LOC_NIL
+;   sentinel (@LOC_NIL for an elided arg); @LOCATE reads them positionally
+;   (row, col, cursor, start, stop) and emits ANSI cursor control.
+LocateStmt    ::= LOCATE @LOC_MARK LocArgs @LOCATE
+LocArgs       ::= LocArg LocMore
+LocArg        ::= Expr
+LocArg        ::= @LOC_NIL
+LocMore       ::= COMA LocArg LocMore
+LocMore       ::= e
 
 ; --- COLOR ---
 ColorStmt     ::= COLOR Expr ColorRest @COLOR
