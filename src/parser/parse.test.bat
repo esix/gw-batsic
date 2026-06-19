@@ -157,6 +157,15 @@ call %test% "parse.color.forms"
   call :_p "COLOR NUM_i0007 COMA NUM_i0000 COMA NUM_i0000 EOL" "COL_MARK NUM_i0007 NUM_i0000 NUM_i0000 COLOR"
   call :_p "COLOR COMA NUM_i0007 EOL" "COL_MARK COL_NIL NUM_i0007 COLOR"
 
+call %test% "parse.on.goto.gosub"
+  call :_p "ON VAR_UNK_X GOTO NUM_i000A COMA NUM_i0014 EOL" "VAR_UNK_X ON_GOTO NUM_i000A NUM_i0014 ON_END"
+  call :_p "ON VAR_UNK_X GOSUB NUM_i0064 EOL" "VAR_UNK_X ON_GOSUB NUM_i0064 ON_END"
+  call :_p "ON VAR_UNK_A PLUS NUM_i0001 GOTO NUM_i000A EOL" "VAR_UNK_A NUM_i0001 ADD ON_GOTO NUM_i000A ON_END"
+
+call %test% "parse.inkey"
+  call :_p "PRINT INKEY$ EOL" "FN_INKEY PEND"
+  call :_p "VAR_STR_A EQ INKEY$ EOL" "VAR_STR_A FN_INKEY ASSIGN"
+
 exit /B
 
 :_p
