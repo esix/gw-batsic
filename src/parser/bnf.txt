@@ -89,8 +89,21 @@ Stmt          ::= e
 ;   Empty print zones: a COMA with no pending item emits @PZONE, which
 ;   advances to the next 14-column zone without popping the stack.
 ;   LPRINT is accepted as a console-printing alias of PRINT.
-PrintStmt     ::= PRINT PrintBody
-PrintStmt     ::= LPRINT PrintBody
+;   PRINT USING fmt$; v1; v2 ... formats values against a format string.
+;   Factor through PrintWhat so USING doesn't clash with the PrintBody
+;   FIRST set.  Postfix: <fmt> PU_MARK <v1> <v2> ... PRINT_USING [PU_NL].
+;   PRINT_USING renders (no newline); PU_NL adds the newline when the
+;   value list does not end in a trailing ; or , separator.
+PrintStmt     ::= PRINT PrintWhat
+PrintStmt     ::= LPRINT PrintWhat
+PrintWhat     ::= USING Expr SEMICOLON @PU_MARK PuList
+PrintWhat     ::= PrintBody
+PuList        ::= Expr PuMore
+PuMore        ::= SEMICOLON PuTail
+PuMore        ::= COMA PuTail
+PuMore        ::= @PRINT_USING @PU_NL
+PuTail        ::= Expr PuMore
+PuTail        ::= @PRINT_USING
 PrintBody     ::= @PEND
 PrintBody     ::= PrintItem PrintAfter
 PrintBody     ::= COMA @PZONE PrintZone

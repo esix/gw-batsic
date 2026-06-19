@@ -137,6 +137,18 @@ call %test% "str.fn.string"
   @REM STRING$(0,"X") -> empty string
   call :_rexec "NUM_i0000 STR_58 FN_STRING PEND" ""
 
+call %test% "print.using"
+  @REM "###";42 -> " 42"   (format hex 232323)
+  call :_rexec "STR_232323 PU_MARK NUM_i002A PRINT_USING" " 42"
+  @REM "#####";42 -> "   42"
+  call :_rexec "STR_2323232323 PU_MARK NUM_i002A PRINT_USING" "   42"
+  @REM "##";5;10 -> " 510"  (format reused for the second value)
+  call :_rexec "STR_2323 PU_MARK NUM_i0005 NUM_i000A PRINT_USING" " 510"
+  @REM "\  \";"HELLO" -> "HELL"  (string field width 4)
+  call :_rexec "STR_5C20205C PU_MARK STR_48454C4C4F PRINT_USING" "HELL"
+  @REM literal text around a field: "X#Y";7 -> "X7Y"
+  call :_rexec "STR_582359 PU_MARK NUM_i0007 PRINT_USING" "X7Y"
+
 exit /B
 
 @REM Helper: execute postfix directly and check output (same as exec.test.bat;
