@@ -281,11 +281,15 @@ LocMore       ::= COMA LocArg LocMore
 LocMore       ::= e
 
 ; --- COLOR ---
-ColorStmt     ::= COLOR Expr ColorRest @COLOR
-ColorRest     ::= COMA Expr ColorBorder
-ColorRest     ::= e
-ColorBorder   ::= COMA Expr
-ColorBorder   ::= e
+;   COLOR [fg][,bg][,border] in text mode.  Same elided-arg protocol as
+;   LOCATE: @COL_MARK sentinel, each slot pushes its value or COL_NIL.
+;   @COLOR maps CGA colour numbers to ANSI SGR (border is ignored).
+ColorStmt     ::= COLOR @COL_MARK ColArgs @COLOR
+ColArgs       ::= ColArg ColMore
+ColArg        ::= Expr
+ColArg        ::= @COL_NIL
+ColMore       ::= COMA ColArg ColMore
+ColMore       ::= e
 
 ; --- SCREEN ---
 ScreenStmt    ::= SCREEN Expr ScreenRest @SCREEN
