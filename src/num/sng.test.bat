@@ -61,6 +61,13 @@ call %test% "sng.fromDec"
   call expect "sng fromDec 100" "s86480000"
   call expect "sng fromDec 0.5" "s7F000000"
 
+call %test% "sng.fromDec.largeDecimal"
+  @REM Regression: digits past the 7th must shift the decimal exponent,
+  @REM not corrupt it.  1234567.891 must stay ~1.23e6 (was wrongly 1234.567).
+  call expect "sng fromDec 1234567.891" "s9416B438"
+  call expect "sng toDec s9416B438" "1234567"
+  call expect "sng fromDec 1234.5678" "s8A1A5223"
+
 call %test% "sng.toDec"
   call expect "sng toDec s00000000" "0"
   call expect "sng toDec s80000000" "1"

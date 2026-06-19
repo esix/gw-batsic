@@ -596,6 +596,7 @@ goto :%_fn%
   set /a "sig=0"
   set /a "flen=0"
   set /a "digs=0"
+  set /a "intskip=0"
   set "infr=0"
   set /a "pos=0"
   @REM Parse sign
@@ -608,12 +609,19 @@ goto :%_fn%
   if "!ch!"=="." (set "infr=1"& set /a "pos+=1"& goto :_fd_digits)
   if "!ch!"=="E" goto :_fd_parseexp
   if "!ch!"=="e" goto :_fd_parseexp
-  if !digs! LSS 7 (set /a "sig=sig*10+ch"& set /a "digs+=1")
-  if "!infr!"=="1" set /a "flen+=1"
+  @REM Accumulate up to 7 significant digits.  Digits past the 7th must
+  @REM still shift the decimal exponent: a dropped INTEGER digit means the
+  @REM significand is 10x too small (count in intskip), and a dropped
+  @REM FRACTIONAL digit must NOT add to flen.
+  set "_acc="
+  if !digs! LSS 7 set "_acc=1"
+  if defined _acc (set /a "sig=sig*10+ch" & set /a "digs+=1")
+  if defined _acc if "!infr!"=="1" set /a "flen+=1"
+  if not defined _acc if "!infr!"=="0" set /a "intskip+=1"
   set /a "pos+=1"
   goto :_fd_digits
 :_fd_expcheck
-  set /a "exp10=0-flen"
+  set /a "exp10=intskip-flen"
   goto :_fd_convert
 :_fd_parseexp
   set /a "pos+=1"
@@ -629,7 +637,7 @@ goto :%_fn%
   set /a "pos+=1"
   goto :_fd_expdigits
 :_fd_expdone
-  set /a "exp10=eexp*esign-flen"
+  set /a "exp10=eexp*esign+intskip-flen"
 :_fd_convert
   if !sig!==0 (endlocal & set "__=00000000" & exit /B 0)
   @REM Convert significand to dword hex string

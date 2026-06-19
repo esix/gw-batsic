@@ -391,6 +391,7 @@ goto :%_fn%
   set /a "sig=0"
   set /a "flen=0"
   set /a "digs=0"
+  set /a "intskip=0"
   set "infr=0"
   set /a "pos=0"
   for %%i in (!pos!) do set "ch=!str:~%%i,1!"
@@ -402,12 +403,18 @@ goto :%_fn%
   if "!ch!"=="." (set "infr=1"& set /a "pos+=1"& goto :_fd_dg)
   if "!ch!"=="E" goto :_fd_pe
   if "!ch!"=="e" goto :_fd_pe
-  if !digs! LSS 7 (set /a "sig=sig*10+ch"& set /a "digs+=1")
-  if "!infr!"=="1" set /a "flen+=1"
+  @REM Digits past the 7th still shift the decimal exponent: dropped integer
+  @REM digit -> significand 10x too small (intskip); dropped fractional
+  @REM digit must NOT add to flen.
+  set "_acc="
+  if !digs! LSS 7 set "_acc=1"
+  if defined _acc (set /a "sig=sig*10+ch" & set /a "digs+=1")
+  if defined _acc if "!infr!"=="1" set /a "flen+=1"
+  if not defined _acc if "!infr!"=="0" set /a "intskip+=1"
   set /a "pos+=1"
   goto :_fd_dg
 :_fd_ec
-  set /a "exp10=0-flen"
+  set /a "exp10=intskip-flen"
   goto :_fd_cv
 :_fd_pe
   set /a "pos+=1"
@@ -423,7 +430,7 @@ goto :%_fn%
   set /a "pos+=1"
   goto :_fd_ped
 :_fd_pedone
-  set /a "exp10=eexp*esign-flen"
+  set /a "exp10=eexp*esign+intskip-flen"
 :_fd_cv
   if !sig!==0 (endlocal & set "__=0000000000000000" & exit /B 0)
   @REM Convert sig to qword hex (inline, separate lines)

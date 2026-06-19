@@ -40,6 +40,12 @@ call %test% "dbl.fromDec"
   call expect "dbl fromDec 1" "d8000000000000000"
   call expect "dbl fromDec 10" "d8320000000000000"
 
+call %test% "dbl.fromDec.largeDecimal"
+  @REM Regression: digits past the accumulator limit must not corrupt the
+  @REM exponent (1234567.891 must stay ~1.23e6, not 1234.567).
+  call expect "dbl fromDec 1234567.891" "d9416B43800000000"
+  call expect "dbl toDec d9416B43800000000" "1234567"
+
 call %test% "dbl.toDec"
   call expect "dbl toDec d0000000000000000" "0"
   call expect "dbl toDec d8000000000000000" "1"
