@@ -529,6 +529,16 @@ goto :%_fn%
 :toDec
   setlocal EnableDelayedExpansion
   set "v=%~1"
+  @REM Optional %2 = significant digits (default 16), %3 = max integer
+  @REM digits before switching to E-notation (default 16).  sng toDec calls
+  @REM in with 7,7 to render single precision through the accurate double
+  @REM extraction.
+  set "_qdig=%~2"
+  if not defined _qdig set "_qdig=16"
+  set /a "_qext=_qdig+1"
+  set "_qfix=%~3"
+  if not defined _qfix set "_qfix=16"
+  set /a "_qlmax=_qdig-1"
   if "!v:~0,2!"=="00" (endlocal & set "__=0" & exit /B 0)
   set "neg="
   set "ch=!v:~2,1!"
@@ -571,7 +581,7 @@ goto :%_fn%
   set "dg="
   set /a "i=0"
 :_td_dg
-  if !i!==17 goto :_td_fmt
+  if !i!==!_qext! goto :_td_fmt
   set "_de=!v:~0,2!"
   call _xbyte sub !_de! 80
   if "!__c!"=="1" (
@@ -604,8 +614,8 @@ goto :%_fn%
 :_td_fmt
   @REM Keep 16 significant digits, round on the 17th.  set /a is 32-bit, so
   @REM the round-up is a digit-string increment with carry (:_td_round).
-  set "_dr=!dg:~16,1!"
-  set "dg=!dg:~0,16!"
+  for %%n in (!_qdig!) do set "_dr=!dg:~%%n,1!"
+  for %%n in (!_qdig!) do set "dg=!dg:~0,%%n!"
   if "!_dr!" geq "5" call :_td_round
 :_td_trim
   if "!dg:~1!"=="" goto :_td_bld
@@ -614,16 +624,16 @@ goto :%_fn%
   set "r="
   if "!neg!"=="1" set "r=-"
   set /a "_L=0"
-  for /L %%i in (0,1,15) do if "!dg:~%%i,1!" neq "" set /a "_L=%%i+1"
+  for /L %%i in (0,1,!_qlmax!) do if "!dg:~%%i,1!" neq "" set /a "_L=%%i+1"
   set /a "_id=exp10+1"
-  if !_id! GEQ 1 if !_id! LEQ 16 goto :_td_fix
+  if !_id! GEQ 1 if !_id! LEQ !_qfix! goto :_td_fix
   if !_id!==0 goto :_td_frac0
   if !_id!==-1 goto :_td_frac1
   goto :_td_sci
 :_td_fix
   set /a "_np=_id-_L"
   if !_np! GEQ 0 (
-    for /L %%i in (1,1,16) do if %%i LEQ !_np! set "dg=!dg!0"
+    for /L %%i in (1,1,!_qdig!) do if %%i LEQ !_np! set "dg=!dg!0"
     set "r=!r!!dg!"
   ) else (
     for %%x in (!_id!) do set "r=!r!!dg:~0,%%x!.!dg:~%%x!"
@@ -658,7 +668,7 @@ goto :%_fn%
   set "_res=!_sm!!_res!"
   goto :_tr_l
 :_tr_done
-  if "!_cy!"=="1" (set "dg=1!_res!" & set "dg=!dg:~0,16!" & set /a "exp10+=1") else (set "dg=!_res!")
+  if "!_cy!"=="1" (for %%n in (!_qdig!) do set "dg=1!_res!" & for %%n in (!_qdig!) do set "dg=!dg:~0,%%n!" & set /a "exp10+=1") else (set "dg=!_res!")
   exit /B 0
 
 

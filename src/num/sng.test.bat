@@ -73,6 +73,15 @@ call %test% "sng.toDec"
   call expect "sng toDec s80000000" "1"
   call expect "sng toDec s80800000" "-1"
 
+call %test% "sng.toDec.accuracy"
+  @REM Regression: exact values must display exactly.  Single toDec now
+  @REM extracts digits via the accurate double path (was 73 -> 72.99999,
+  @REM since single-precision mul/div-by-10 extraction undershot).
+  call expect "sng toDec s86120000" "73"
+  call expect "sng toDec s86460000" "99"
+  @REM Past 7 integer digits, single switches to E-notation (1E7 -> 1E+07).
+  call expect "sng toDec s97189680" "1E+07"
+
 call %test% "sng.toDec.typeCheck"
   call expecterr "sng toDec 80000000" 13
   call expecterr "sng toDec i0001" 13
