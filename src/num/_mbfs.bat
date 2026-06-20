@@ -591,119 +591,45 @@ goto :%_fn%
 
 :fromDec
   setlocal EnableDelayedExpansion
-  set "str=%~1"
-  set "sign=0"
-  set /a "sig=0"
-  set /a "flen=0"
-  set /a "digs=0"
-  set /a "intskip=0"
-  set "infr=0"
-  set /a "pos=0"
-  @REM Parse sign
-  for %%i in (!pos!) do set "ch=!str:~%%i,1!"
-  if "!ch!"=="-" (set "sign=1"& set /a "pos+=1")
-  if "!ch!"=="+" set /a "pos+=1"
-:_fd_digits
-  for %%i in (!pos!) do set "ch=!str:~%%i,1!"
-  if "!ch!"=="" goto :_fd_expcheck
-  if "!ch!"=="." (set "infr=1"& set /a "pos+=1"& goto :_fd_digits)
-  if "!ch!"=="E" goto :_fd_parseexp
-  if "!ch!"=="e" goto :_fd_parseexp
-  @REM Accumulate up to 7 significant digits.  Digits past the 7th must
-  @REM still shift the decimal exponent: a dropped INTEGER digit means the
-  @REM significand is 10x too small (count in intskip), and a dropped
-  @REM FRACTIONAL digit must NOT add to flen.
-  set "_acc="
-  if !digs! LSS 7 set "_acc=1"
-  if defined _acc (set /a "sig=sig*10+ch" & set /a "digs+=1")
-  if defined _acc if "!infr!"=="1" set /a "flen+=1"
-  if not defined _acc if "!infr!"=="0" set /a "intskip+=1"
-  set /a "pos+=1"
-  goto :_fd_digits
-:_fd_expcheck
-  set /a "exp10=intskip-flen"
-  goto :_fd_convert
-:_fd_parseexp
-  set /a "pos+=1"
-  set /a "esign=1"
-  for %%i in (!pos!) do set "ch=!str:~%%i,1!"
-  if "!ch!"=="-" (set /a "esign=-1"& set /a "pos+=1")
-  if "!ch!"=="+" set /a "pos+=1"
-  set /a "eexp=0"
-:_fd_expdigits
-  for %%i in (!pos!) do set "ch=!str:~%%i,1!"
-  if "!ch!"=="" goto :_fd_expdone
-  set /a "eexp=eexp*10+ch"
-  set /a "pos+=1"
-  goto :_fd_expdigits
-:_fd_expdone
-  set /a "exp10=eexp*esign+intskip-flen"
-:_fd_convert
-  if !sig!==0 (endlocal & set "__=00000000" & exit /B 0)
-  @REM Convert significand to dword hex string
-  @REM IMPORTANT: each set /a + lookup must be on SEPARATE lines
-  @REM because %var% expands at line parse time (before set /a runs)
-  set /a "b3=(sig>>24)&255"
-  set /a "b2=(sig>>16)&255"
-  set /a "b1=(sig>>8)&255"
-  set /a "b0=sig&255"
-  set /a "hn=b3/16"
-  set /a "ln=b3%%16"
-  for /F "tokens=1,2" %%a in ("!hn! !ln!") do set "d3=!_p_%%a!!_p_%%b!"
-  set /a "hn=b2/16"
-  set /a "ln=b2%%16"
-  for /F "tokens=1,2" %%a in ("!hn! !ln!") do set "d2=!_p_%%a!!_p_%%b!"
-  set /a "hn=b1/16"
-  set /a "ln=b1%%16"
-  for /F "tokens=1,2" %%a in ("!hn! !ln!") do set "d1=!_p_%%a!!_p_%%b!"
-  set /a "hn=b0/16"
-  set /a "ln=b0%%16"
-  for /F "tokens=1,2" %%a in ("!hn! !ln!") do set "d0=!_p_%%a!!_p_%%b!"
-  set "dw=!d3!!d2!!d1!!d0!"
-  @REM Normalize inline (avoid _mbfs calling itself)
-  set "ne=97"
-  if "!dw!"=="00000000" (endlocal & set "__=00000000" & exit /B 0)
-  set "_nc=0123456789ABCDEFGHIJKLMN"
-:_fd_norm
-  set "_nch=!dw:~2,1!"
-  for %%c in (8 9 A B C D E F) do if "!_nch!"=="%%c" goto :_fd_normdone
-  call _xdword shl !dw!
-  set "dw=!__!"
-  call _xbyte dec !ne!
-  set "ne=!__!"
-  if "!ne!"=="00" (endlocal & set "__=00000000" & exit /B 0)
-  set "_nc=!_nc:~1!"
-  if "!_nc!"=="" goto :_fd_normdone
-  goto :_fd_norm
-:_fd_normdone
-  @REM Pack inline (avoid _mbfs calling itself)
-  set "pb2=!dw:~2,2!"
-  call _xbyte and !pb2! 7F
-  set "pb2=!__!"
-  if "!sign!"=="1" (
-    call _xbyte or !pb2! 80
-    set "pb2=!__!"
-  )
-  set "result=!ne!!pb2!!dw:~4,4!"
-  @REM Apply decimal exponent by repeated mul/div by 10.0 (83200000)
-  if !exp10! GTR 0 goto :_fd_mul10
-  if !exp10! LSS 0 goto :_fd_div10
-  goto :_fd_done
-:_fd_mul10
-  if !exp10!==0 goto :_fd_done
-  call _mbfs mul !result! 83200000
-  if errorlevel 1 (endlocal & exit /B 6)
-  set "result=!__!"
-  set /a "exp10-=1"
-  goto :_fd_mul10
-:_fd_div10
-  if !exp10!==0 goto :_fd_done
-  call _mbfs div !result! 83200000
-  set "result=!__!"
-  set /a "exp10+=1"
-  goto :_fd_div10
-:_fd_done
-  endlocal & set "__=%result%" & exit /B 0
+  @REM Convert through the accurate DOUBLE fromDec, then round to single
+  @REM (round-to-nearest on the first dropped mantissa byte).  The single
+  @REM division-by-10 truncated, mis-rounding values such as 0.1, which
+  @REM stored 7C4CCCCC instead of 7C4CCCCD.  Double precision is far finer
+  @REM than the single rounding step, so the rounded result is correct.
+  call _mbfd fromDec %~1
+  if errorlevel 1 (endlocal & exit /B !ERRORLEVEL!)
+  set "_dd=!__!"
+  if "!_dd:~0,2!"=="00" (endlocal & set "__=00000000" & exit /B 0)
+  @REM Single = first 4 bytes of the double; the 5th byte is the guard.
+  set "_sx=!_dd:~0,8!"
+  set /a "_gv=0x!_dd:~8,2!"
+  if !_gv! LSS 128 (endlocal & set "__=%_sx%" & exit /B 0)
+  @REM Round up: increment the 23-bit fraction, carrying into the exponent
+  @REM on overflow.  The sign bit (top of byte 1) is preserved.
+  set /a "_ee=0x!_sx:~0,2!"
+  set /a "_b1=0x!_sx:~2,2!"
+  set /a "_b2=0x!_sx:~4,2!"
+  set /a "_b3=0x!_sx:~6,2!"
+  set /a "_sgn=_b1 & 128"
+  set /a "_frac=(_b1 & 127)*65536 + _b2*256 + _b3"
+  set /a "_frac+=1"
+  if !_frac! GEQ 8388608 (set /a "_frac=0" & set /a "_ee+=1")
+  if !_ee! GTR 255 (endlocal & exit /B 6)
+  set /a "_nb1=_sgn + ((_frac>>16) & 127)"
+  set /a "_nb2=(_frac>>8) & 255"
+  set /a "_nb3=_frac & 255"
+  call :_b2h !_ee! _he
+  call :_b2h !_nb1! _h1
+  call :_b2h !_nb2! _h2
+  call :_b2h !_nb3! _h3
+  endlocal & set "__=%_he%%_h1%%_h2%%_h3%" & exit /B 0
+
+@REM _b2h BYTE retVar : a 0..255 int to 2 hex chars (module _p_ table).
+:_b2h
+  set /a "_bh=%~1/16"
+  set /a "_bl=%~1%%16"
+  for /F "tokens=1,2" %%a in ("!_bh! !_bl!") do set "%~2=!_p_%%a!!_p_%%b!"
+  exit /B 0
 
 
 @REM === toDec: MBF single -> decimal string ===
