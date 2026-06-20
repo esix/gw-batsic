@@ -45,8 +45,8 @@ call %test% "dbl.fromDec.largeDecimal"
   @REM exponent (1234567.891 must stay ~1.23e6, not 1234.567).  Double now
   @REM keeps ~16 significant digits (64-bit significand), so 1234567.891 is
   @REM stored to full precision and round-trips exactly.
-  call expect "dbl fromDec 1234567.891" "d9416B43F20C49BA4"
-  call expect "dbl toDec d9416B43F20C49BA4" "1234567.891"
+  call expect "dbl fromDec 1234567.891" "d9416B43F20C49BA6"
+  call expect "dbl toDec d9416B43F20C49BA6" "1234567.891"
 
 call %test% "dbl.precision.roundtrip"
   @REM 15-16 significant digits round-trip (was capped at 7).

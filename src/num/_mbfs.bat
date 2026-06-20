@@ -575,10 +575,50 @@ goto :%_fn%
   )
   goto :_div_loop
 :_div_done
-  @REM Normalize quotient (at most 1 left-shift needed)
-  call _mbfs normalize !re! !q!
-  set "rm=!__!"& set "re=!__e!"
+  @REM Round-to-nearest.  The quotient loop above truncated the mantissa,
+  @REM biasing results ~1 ULP low (1.0/10.0 -> ...CCCC instead of ...CCCD).
+  @REM Compute two more quotient bits: g1 = the bit just below the kept
+  @REM mantissa, g2 = the next.  Align the mantissa (the integer bit says
+  @REM whether a normalize left-shift is needed), then round on the guard.
+  call _xdword shl !r!
+  set "r=!__!"
+  call _xdword sub !r! !dsor!
+  set "g1=0"
+  if not "!__c!"=="1" set "g1=1"
+  if "!g1!"=="1" set "r=!__!"
+  call _xdword shl !r!
+  set "r=!__!"
+  call _xdword sub !r! !dsor!
+  set "g2=0"
+  if not "!__c!"=="1" set "g2=1"
+  if "!g2!"=="1" set "r=!__!"
+  set "_intset="
+  for %%c in (8 9 A B C D E F) do if "!q:~2,1!"=="%%c" set "_intset=1"
+  if defined _intset goto :_div_iset
+  @REM quotient < 1: shift left (exp-1); mantissa LSB = g1, guard = g2.
+  call _xdword shl !q!
+  set "rm=!__!"
+  if "!g1!"=="1" call _xdword inc !rm!
+  if "!g1!"=="1" set "rm=!__!"
+  call _xbyte dec !re!
+  set "re=!__!"
+  set "guard=!g2!"
+  goto :_div_rnd
+:_div_iset
+  set "rm=!q!"
+  set "guard=!g1!"
+:_div_rnd
   if "!re!"=="00" (endlocal & set "__=00000000" & exit /B 0)
+  if not "!guard!"=="1" goto :_div_pk
+  call _xdword inc !rm!
+  set "rm=!__!"
+  set "_ovf="
+  if not "!rm:~0,2!"=="00" set "_ovf=1"
+  if defined _ovf call _xdword shr !rm!
+  if defined _ovf set "rm=!__!"
+  if defined _ovf call _xbyte inc !re!
+  if defined _ovf set "re=!__!"
+:_div_pk
   call _mbfs pack !re! !rs! !rm!
   endlocal & set "__=%__%" & exit /B 0
 
