@@ -491,24 +491,46 @@ goto :%_fn%
   set "r5=!__!"
   @REM Upper 24 bits as dword: 00:R5:R4:R3
   set "rm=00!r5!!r4!!r3!"
-  @REM Check bit 23 (= bit 47 of 48-bit product, means product >= 2.0)
+  @REM rm = "00" + the upper mantissa bits of the product.  Align it (the
+  @REM top bit says whether the product is >= 2.0) and ROUND on the guard
+  @REM bit instead of truncating (the old code dropped the low product
+  @REM bits, biasing results ~1 ULP low).  The guard is the bit just below
+  @REM the kept mantissa, which lives in the bring-in nibble !r2:~0,1!.
   set "_ch=!rm:~2,1!"
-  for %%c in (8 9 A B C D E F) do if "!_ch!"=="%%c" goto :_mul_shr
-  @REM Normal: shift left 1 to bring bit 46 to position 23, bring in MSB of R2
+  set "_hi="
+  for %%c in (8 9 A B C D E F) do if "!_ch!"=="%%c" set "_hi=1"
+  set "_bn=!r2:~0,1!"
+  if defined _hi goto :_mul_hi
+  @REM Normal: shift left 1, bring in the next product bit (high bit of
+  @REM the nibble); guard = that nibble bit 2.
   call _xdword shl !rm!
   set "rm=!__!"
-  set "_r2h=!r2:~0,1!"
-  for %%c in (8 9 A B C D E F) do if "!_r2h!"=="%%c" (
-    call _xdword inc !rm!
-    set "rm=!__!"
-  )
-  goto :_mul_pack
-:_mul_shr
-  @REM Overflow: product >= 2.0, increment exponent
+  set "_b="
+  for %%c in (8 9 A B C D E F) do if "!_bn!"=="%%c" set "_b=1"
+  if defined _b call _xdword inc !rm!
+  if defined _b set "rm=!__!"
+  set "_g="
+  for %%c in (4 5 6 7 C D E F) do if "!_bn!"=="%%c" set "_g=1"
+  goto :_mul_rnd
+:_mul_hi
+  @REM Product >= 2.0: mantissa already aligned, exp+1; guard = nibble high bit.
   call _xbyte inc !re!
   set "re=!__!"
   if "!re!"=="00" (endlocal & exit /B 6)
-:_mul_pack
+  set "_g="
+  for %%c in (8 9 A B C D E F) do if "!_bn!"=="%%c" set "_g=1"
+:_mul_rnd
+  if not defined _g goto :_mul_pk
+  call _xdword inc !rm!
+  set "rm=!__!"
+  set "_ovf="
+  if not "!rm:~0,2!"=="00" set "_ovf=1"
+  if defined _ovf call _xdword shr !rm!
+  if defined _ovf set "rm=!__!"
+  if defined _ovf call _xbyte inc !re!
+  if defined _ovf set "re=!__!"
+  if defined _ovf if "!re!"=="00" (endlocal & exit /B 6)
+:_mul_pk
   call _mbfs pack !re! !rs! !rm!
   endlocal & set "__=%__%" & exit /B 0
 
