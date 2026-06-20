@@ -95,11 +95,16 @@ goto :%_fn%
   set "rl=!r1:~1,1!"
   @REM result high = r1.hi + r2.lo + r3.lo
   set "rh=!r1:~0,1!"
+  @REM r1.hi + r2.lo + r3.lo is a sum of THREE nibbles, so it can carry up
+  @REM to 2.  Accumulate the carry (the old code stored a single bit and
+  @REM dropped the second carry -> wrong high byte for products like 5E*96).
+  set "ov=0"
   call _xhalf add !rh! !r2:~1,1!
-  set "rh=!__!"& set "ov=!__c!"
+  set "rh=!__!"
+  if "!__c!"=="1" set /a "ov+=1"
   call _xhalf add !rh! !r3:~1,1!
   set "rh=!__!"
-  if "!__c!"=="1" set "ov=1"
+  if "!__c!"=="1" set /a "ov+=1"
   @REM overflow nibble2 = r2.hi + r3.hi + r4.lo + carry_from_nibble1
   call _xhalf mul !ah! !bh!
   set "r4=!__!"
@@ -111,7 +116,7 @@ goto :%_fn%
   call _xhalf add !n2! !r4:~1,1!
   set "n2=!__!"
   if "!__c!"=="1" (call _xhalf inc !cy! & set "cy=!__!")
-  call _xhalf addc !n2! !ov!
+  call _xhalf add !n2! !ov!
   set "n2=!__!"
   if "!__c!"=="1" (call _xhalf inc !cy! & set "cy=!__!")
   @REM overflow nibble3 = r4.hi + carries

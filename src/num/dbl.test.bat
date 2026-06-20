@@ -42,9 +42,18 @@ call %test% "dbl.fromDec"
 
 call %test% "dbl.fromDec.largeDecimal"
   @REM Regression: digits past the accumulator limit must not corrupt the
-  @REM exponent (1234567.891 must stay ~1.23e6, not 1234.567).
-  call expect "dbl fromDec 1234567.891" "d9416B43800000000"
-  call expect "dbl toDec d9416B43800000000" "1234567"
+  @REM exponent (1234567.891 must stay ~1.23e6, not 1234.567).  Double now
+  @REM keeps ~16 significant digits (64-bit significand), so 1234567.891 is
+  @REM stored to full precision and round-trips exactly.
+  call expect "dbl fromDec 1234567.891" "d9416B43F20C49BA4"
+  call expect "dbl toDec d9416B43F20C49BA4" "1234567.891"
+
+call %test% "dbl.precision.roundtrip"
+  @REM 15-16 significant digits round-trip (was capped at 7).
+  call expect "dbl toDec d8A1A522B6AE7D566" "1234.5678"
+  call expect "dbl fromDec 1234.5678" "d8A1A522B6AE7D566"
+  call expect "dbl fromDec 314159265358979" "dB00EDCF3B5124180"
+  call expect "dbl toDec dB00EDCF3B5124180" "314159265358979"
 
 call %test% "dbl.toDec"
   call expect "dbl toDec d0000000000000000" "0"

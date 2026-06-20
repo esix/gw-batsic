@@ -388,12 +388,18 @@ goto :%_fn%
   setlocal EnableDelayedExpansion
   set "str=%~1"
   set "sign=0"
-  set /a "sig=0"
+  set /a "hi=0"
+  set /a "lo=0"
+  set /a "locount=0"
   set /a "flen=0"
   set /a "digs=0"
   set /a "intskip=0"
   set "infr=0"
   set /a "pos=0"
+  @REM 10^0..10^8 as dword hex, for combining the two 8-digit chunks.
+  set "_pw_0=00000001"& set "_pw_1=0000000A"& set "_pw_2=00000064"
+  set "_pw_3=000003E8"& set "_pw_4=00002710"& set "_pw_5=000186A0"
+  set "_pw_6=000F4240"& set "_pw_7=00989680"& set "_pw_8=05F5E100"
   for %%i in (!pos!) do set "ch=!str:~%%i,1!"
   if "!ch!"=="-" (set "sign=1"& set /a "pos+=1")
   if "!ch!"=="+" set /a "pos+=1"
@@ -403,12 +409,18 @@ goto :%_fn%
   if "!ch!"=="." (set "infr=1"& set /a "pos+=1"& goto :_fd_dg)
   if "!ch!"=="E" goto :_fd_pe
   if "!ch!"=="e" goto :_fd_pe
-  @REM Digits past the 7th still shift the decimal exponent: dropped integer
-  @REM digit -> significand 10x too small (intskip); dropped fractional
-  @REM digit must NOT add to flen.
-  set "_acc="
-  if !digs! LSS 7 set "_acc=1"
-  if defined _acc (set /a "sig=sig*10+ch" & set /a "digs+=1")
+  @REM Accumulate up to 16 significant digits across two 8-digit 32-bit
+  @REM chunks (hi = digits 1-8, lo = digits 9-16); combined into a 64-bit
+  @REM significand below.  Digits past the 16th still shift the decimal
+  @REM exponent: a dropped integer digit means the significand is 10x too
+  @REM small (intskip); a dropped fractional digit must NOT add to flen.
+  set "_acc=" & set "_tohi="
+  if !digs! LSS 16 set "_acc=1"
+  if !digs! LSS 8 set "_tohi=1"
+  if defined _acc if defined _tohi set /a "hi=hi*10+ch"
+  if defined _acc if not defined _tohi set /a "lo=lo*10+ch"
+  if defined _acc if not defined _tohi set /a "locount+=1"
+  if defined _acc set /a "digs+=1"
   if defined _acc if "!infr!"=="1" set /a "flen+=1"
   if not defined _acc if "!infr!"=="0" set /a "intskip+=1"
   set /a "pos+=1"
@@ -432,25 +444,21 @@ goto :%_fn%
 :_fd_pedone
   set /a "exp10=eexp*esign+intskip-flen"
 :_fd_cv
-  if !sig!==0 (endlocal & set "__=0000000000000000" & exit /B 0)
-  @REM Convert sig to qword hex (inline, separate lines)
-  set /a "b3=(sig>>24)&255"
-  set /a "b2=(sig>>16)&255"
-  set /a "b1=(sig>>8)&255"
-  set /a "b0=sig&255"
-  set /a "hn=b3/16"
-  set /a "ln=b3%%16"
-  for /F "tokens=1,2" %%a in ("!hn! !ln!") do set "d3=!_p_%%a!!_p_%%b!"
-  set /a "hn=b2/16"
-  set /a "ln=b2%%16"
-  for /F "tokens=1,2" %%a in ("!hn! !ln!") do set "d2=!_p_%%a!!_p_%%b!"
-  set /a "hn=b1/16"
-  set /a "ln=b1%%16"
-  for /F "tokens=1,2" %%a in ("!hn! !ln!") do set "d1=!_p_%%a!!_p_%%b!"
-  set /a "hn=b0/16"
-  set /a "ln=b0%%16"
-  for /F "tokens=1,2" %%a in ("!hn! !ln!") do set "d0=!_p_%%a!!_p_%%b!"
-  set "dw=00000000!d3!!d2!!d1!!d0!"
+  set "_zero="
+  if !hi!==0 if !lo!==0 set "_zero=1"
+  if defined _zero (endlocal & set "__=0000000000000000" & exit /B 0)
+  @REM Combine the two chunks into a 64-bit significand:
+  @REM   sigq = hi * 10^locount + lo   (< 2^54 for <=16 digits, so the
+  @REM   left-shift normalize below never loses high bits).
+  call :_i2h !hi!
+  set "hihex=!__!"
+  call :_i2h !lo!
+  set "lohex=!__!"
+  for %%w in (!locount!) do set "_pw=!_pw_%%w!"
+  call _xdword mul !hihex! !_pw!
+  set "_prodq=!__h!!__!"
+  call _xqword add !_prodq! 00000000!lohex!
+  set "dw=!__!"
   @REM Normalize inline (avoid self-call)
   set "ne=B7"
   if "!dw!"=="0000000000000000" (endlocal & set "__=0000000000000000" & exit /B 0)
@@ -492,6 +500,30 @@ goto :%_fn%
   goto :_fd_d10
 :_fd_done
   endlocal & set "__=%result%" & exit /B 0
+
+
+@REM _i2h N -> __ : a 32-bit non-negative int N as 8 hex chars (uses the
+@REM module-global _p_ nibble table).
+:_i2h
+  setlocal EnableDelayedExpansion
+  set /a "n=%~1"
+  set /a "b3=(n>>24)&255"
+  set /a "b2=(n>>16)&255"
+  set /a "b1=(n>>8)&255"
+  set /a "b0=n&255"
+  set /a "hn=b3/16"
+  set /a "ln=b3%%16"
+  for /F "tokens=1,2" %%a in ("!hn! !ln!") do set "r3=!_p_%%a!!_p_%%b!"
+  set /a "hn=b2/16"
+  set /a "ln=b2%%16"
+  for /F "tokens=1,2" %%a in ("!hn! !ln!") do set "r2=!_p_%%a!!_p_%%b!"
+  set /a "hn=b1/16"
+  set /a "ln=b1%%16"
+  for /F "tokens=1,2" %%a in ("!hn! !ln!") do set "r1=!_p_%%a!!_p_%%b!"
+  set /a "hn=b0/16"
+  set /a "ln=b0%%16"
+  for /F "tokens=1,2" %%a in ("!hn! !ln!") do set "r0=!_p_%%a!!_p_%%b!"
+  endlocal & set "__=%r3%%r2%%r1%%r0%" & exit /B 0
 
 
 :toDec
@@ -539,7 +571,7 @@ goto :%_fn%
   set "dg="
   set /a "i=0"
 :_td_dg
-  if !i!==8 goto :_td_fmt
+  if !i!==17 goto :_td_fmt
   set "_de=!v:~0,2!"
   call _xbyte sub !_de! 80
   if "!__c!"=="1" (
@@ -570,17 +602,11 @@ goto :%_fn%
   set /a "i+=1"
   goto :_td_dg
 :_td_fmt
-  set "_d8=!dg:~7,1!"
-  set "dg=!dg:~0,7!"
-  if "!_d8!" geq "5" (
-    set /a "_rn=1!dg!+1"
-    set "_rs=!_rn!"
-    set "dg=!_rs:~-7!"
-    if "!_rs:~0,1!"=="2" (
-      set "dg=1000000"
-      set /a "exp10+=1"
-    )
-  )
+  @REM Keep 16 significant digits, round on the 17th.  set /a is 32-bit, so
+  @REM the round-up is a digit-string increment with carry (:_td_round).
+  set "_dr=!dg:~16,1!"
+  set "dg=!dg:~0,16!"
+  if "!_dr!" geq "5" call :_td_round
 :_td_trim
   if "!dg:~1!"=="" goto :_td_bld
   if "!dg:~-1!"=="0" (set "dg=!dg:~0,-1!"& goto :_td_trim)
@@ -588,16 +614,16 @@ goto :%_fn%
   set "r="
   if "!neg!"=="1" set "r=-"
   set /a "_L=0"
-  for /L %%i in (0,1,6) do if "!dg:~%%i,1!" neq "" set /a "_L=%%i+1"
+  for /L %%i in (0,1,15) do if "!dg:~%%i,1!" neq "" set /a "_L=%%i+1"
   set /a "_id=exp10+1"
-  if !_id! GEQ 1 if !_id! LEQ 7 goto :_td_fix
+  if !_id! GEQ 1 if !_id! LEQ 16 goto :_td_fix
   if !_id!==0 goto :_td_frac0
   if !_id!==-1 goto :_td_frac1
   goto :_td_sci
 :_td_fix
   set /a "_np=_id-_L"
   if !_np! GEQ 0 (
-    for /L %%i in (1,1,6) do if %%i LEQ !_np! set "dg=!dg!0"
+    for /L %%i in (1,1,16) do if %%i LEQ !_np! set "dg=!dg!0"
     set "r=!r!!dg!"
   ) else (
     for %%x in (!_id!) do set "r=!r!!dg:~0,%%x!.!dg:~%%x!"
@@ -618,6 +644,22 @@ goto :%_fn%
   set "r=!r!E!_es!!_ev!"
 :_td_done
   endlocal & set "__=%r%" & exit /B 0
+
+@REM _td_round: increment the 16-digit string dg by 1 with carry.  On carry
+@REM out of the front (99..9 -> 1.0e16) keep 16 digits and bump exp10.
+@REM Runs in toDec's scope (no setlocal) so it mutates dg / exp10 directly.
+:_td_round
+  set "_res=" & set "_cy=1" & set "_t=!dg!"
+:_tr_l
+  if "!_t!"=="" goto :_tr_done
+  set "_d=!_t:~-1!" & set "_t=!_t:~0,-1!"
+  set /a "_sm=_d+_cy"
+  if !_sm! GEQ 10 (set /a "_sm-=10" & set "_cy=1") else (set "_cy=0")
+  set "_res=!_sm!!_res!"
+  goto :_tr_l
+:_tr_done
+  if "!_cy!"=="1" (set "dg=1!_res!" & set "dg=!dg:~0,16!" & set /a "exp10+=1") else (set "dg=!_res!")
+  exit /B 0
 
 
 :_start
