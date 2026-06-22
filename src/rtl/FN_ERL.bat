@@ -1,11 +1,10 @@
 @echo off
-@REM FN_ERL: push current error line (ERL) onto the stack as a number.
-@REM Uses double precision (dbl) so line numbers up to 65535 round-trip cleanly.
+@REM ERL : the line number where the most recent error was trapped.
 setlocal EnableDelayedExpansion
 set "_s=%~1"
-set /a "_n=_err_line"
-if "!_n!"=="" set "_n=0"
-call %GWSRC%\num\dbl fromDec !_n!
+set "_e=!_gw_erl!"
+if not defined _e set "_e=0"
+call %GWSRC%\num\int fromDec !_e!
 call %GWSRC%\stl\vec push %_s% !__!
 set "_final=!%_s%!"
 endlocal & set "%~1=%_final%" & exit /B 0

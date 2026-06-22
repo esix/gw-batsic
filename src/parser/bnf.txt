@@ -174,7 +174,11 @@ GotoStmt      ::= GOTO NUM @GOTO
 GosubStmt     ::= GOSUB NUM @GOSUB
 
 ; --- ON ---
-OnStmt        ::= ON Expr OnAction NumList @ON_END
+;   ON ERROR GOTO line arms a runtime-error handler (GOTO 0 disarms); the
+;   error then jumps to `line` with ERR/ERL set, and RESUME returns control.
+OnStmt        ::= ON OnTail
+OnTail        ::= ERROR GOTO NUM @ON_ERROR
+OnTail        ::= Expr OnAction NumList @ON_END
 OnAction      ::= GOTO @ON_GOTO
 OnAction      ::= GOSUB @ON_GOSUB
 NumList       ::= NUM NumListRest

@@ -245,6 +245,20 @@ call %test% "fileops.record.detach"
   call :_foRunOK
   call :_foLine1 "%GWTEMP%\fo_o.txt" "ZZ"
 
+@REM --- ON ERROR GOTO / RESUME / ERR (error trapping) ---
+call %test% "stmt.onerror.traps.and.resumes"
+  @REM OPEN of a missing file (err 53) traps to the handler; RESUME NEXT
+  @REM continues; ERR holds 53.
+  del /Q "%GWTEMP%\fo_none.dat" "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 ON ERROR GOTO 100
+  >>"%GWTEMP%\fo.bas" echo 20 OPEN "I",#1,"%GWTEMP%\fo_none.dat"
+  >>"%GWTEMP%\fo.bas" echo 30 OPEN "O",#2,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 40 PRINT #2,"trapped";ERR;"at";ERL
+  >>"%GWTEMP%\fo.bas" echo 50 CLOSE #2:END
+  >>"%GWTEMP%\fo.bas" echo 100 RESUME NEXT
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "trapped 53at 20"
+
 @REM --- MID$ statement (left-side substring assignment) ---
 call %test% "stmt.mid.assign"
   > "%GWTEMP%\fo.bas" echo 10 A$="HELLO"

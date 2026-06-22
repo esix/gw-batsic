@@ -175,6 +175,10 @@ goto :%_fn%
     & set "_input_prompted=%_input_prompted%" ^
     & set "_data_ptr=%_data_ptr%" ^
     & set "_deftypes=%_deftypes%" ^
+    & set "_on_error_line=%_on_error_line%" ^
+    & set "_gw_err=%_gw_err%" ^
+    & set "_gw_erl=%_gw_erl%" ^
+    & set "_resume_advance=%_resume_advance%" ^
     & set "_run_file=%_run_file%" ^
     & set "_run_line=%_run_line%" ^
     & set "_err_code=%_err_code%" ^
@@ -212,6 +216,15 @@ goto :%_fn%
 :_runProg_loop
   if not defined _next_line goto :_runProg_done
   if "!_next_line!"=="" goto :_runProg_done
+  @REM RESUME NEXT: _next_line points at the line that errored — advance to its
+  @REM successor before running (resolved here where the _pnext_ cache lives).
+  if defined _resume_advance (
+    set "_resume_advance="
+    set "_rpad=00000!_next_line!"
+    set "_rpad=!_rpad:~-5!"
+    for %%k in (!_rpad!) do set "_next_line=!_pnext_%%k!"
+    if not defined _next_line goto :_runProg_done
+  )
   set "_pad=00000!_next_line!"
   set "_pad=!_pad:~-5!"
   set "_postfix="
@@ -234,14 +247,20 @@ goto :%_fn%
     set "_err_code=0"
     goto :_runProg_done
   )
-  if !_e! neq 0 (
-    if !_e! equ 99 (
-      @REM END / STOP — graceful halt, no error
-      set "_err_code=0"
-      goto :_runProg_done
-    )
-    goto :_runProg_done
-  )
+  if !_e! neq 0 goto :_runProg_err
+  goto :_runProg_loop
+
+:_runProg_err
+  @REM END / STOP — graceful halt, no error.
+  if !_e! equ 99 (set "_err_code=0" & goto :_runProg_done)
+  @REM Runtime error: if ON ERROR GOTO armed a handler, trap it — record
+  @REM ERR/ERL and jump to the handler instead of halting.
+  if not defined _on_error_line goto :_runProg_done
+  if "!_on_error_line!"=="0" goto :_runProg_done
+  set "_gw_err=!_e!"
+  set "_gw_erl=!_cur_line!"
+  set "_next_line=!_on_error_line!"
+  set "_err_code=0"
   goto :_runProg_loop
 
 
@@ -257,6 +276,10 @@ goto :%_fn%
   call %GWSRC%\exec\_files init
   set "_print_path="
   set "_input_fh="
+  set "_on_error_line="
+  set "_gw_err=0"
+  set "_gw_erl=0"
+  set "_resume_advance="
   set "_gosub_stack="
   set "_for_vars="
   set "_for_limits="
@@ -493,6 +516,10 @@ goto :%_fn%
   call %GWSRC%\exec\_files init
   set "_print_path="
   set "_input_fh="
+  set "_on_error_line="
+  set "_gw_err=0"
+  set "_gw_erl=0"
+  set "_resume_advance="
   set "_err_code=0"
   set "_err_line=0"
   call :runProgram
@@ -511,6 +538,10 @@ goto :%_fn%
   call %GWSRC%\exec\_files init
   set "_print_path="
   set "_input_fh="
+  set "_on_error_line="
+  set "_gw_err=0"
+  set "_gw_erl=0"
+  set "_resume_advance="
   @REM Error state: ERR / ERL accessible via _resolve's pseudo-vars
   set "_err_code=0"
   set "_err_line=0"
