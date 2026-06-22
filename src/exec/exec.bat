@@ -174,6 +174,7 @@ goto :%_fn%
     & set "_print_col=%_print_col%" ^
     & set "_input_prompted=%_input_prompted%" ^
     & set "_data_ptr=%_data_ptr%" ^
+    & set "_deftypes=%_deftypes%" ^
     & set "_run_file=%_run_file%" ^
     & set "_run_line=%_run_line%" ^
     & set "_err_code=%_err_code%" ^

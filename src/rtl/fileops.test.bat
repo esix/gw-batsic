@@ -245,6 +245,25 @@ call %test% "fileops.record.detach"
   call :_foRunOK
   call :_foLine1 "%GWTEMP%\fo_o.txt" "ZZ"
 
+@REM --- MID$ statement (left-side substring assignment) ---
+call %test% "stmt.mid.assign"
+  > "%GWTEMP%\fo.bas" echo 10 A$="HELLO"
+  >>"%GWTEMP%\fo.bas" echo 20 MID$(A$,2,3)="xyz"
+  >>"%GWTEMP%\fo.bas" echo 30 OPEN "O",#1,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 40 PRINT #1,A$
+  >>"%GWTEMP%\fo.bas" echo 50 CLOSE #1
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "HxyzO"
+
+call %test% "stmt.mid.assign.shortvalue"
+  > "%GWTEMP%\fo.bas" echo 10 B$="ABCDEF"
+  >>"%GWTEMP%\fo.bas" echo 20 MID$(B$,3,4)="Xy"
+  >>"%GWTEMP%\fo.bas" echo 30 OPEN "O",#1,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 40 PRINT #1,B$
+  >>"%GWTEMP%\fo.bas" echo 50 CLOSE #1
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "ABXyEF"
+
 del /Q "%GWTEMP%\fo_r.dat" >nul 2>nul
 del "%GWTEMP%\fields.dat" "%GWTEMP%\recbuf_*.hex" >nul 2>nul
 del /Q "%GWTEMP%\fo_oo.txt" "%GWTEMP%\fo_fa.txt" "%GWTEMP%\fo_rec.dat" "%GWTEMP%\fo_dup.txt" >nul 2>nul

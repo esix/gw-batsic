@@ -99,6 +99,22 @@ call %test% "fn.mkd.len"
 
 
 @REM ============================================================
+@REM  WIDTH (no-op) / DEFINT type-range  (MID$ statement: fileops.test.bat)
+@REM ============================================================
+
+call %test% "stmt.width.noop"
+  call :_run "WIDTH 80:PRINT 7" " 7"
+
+call %test% "stmt.width.device"
+  call :_run "WIDTH 80,25:PRINT 9" " 9"
+
+call %test% "stmt.defint.truncates"
+  @REM DEFINT X makes X integer; 3.7 -> 3.  Reset with DEFSNG so the shared
+  @REM _deftypes table does not leak into later :_run tests.
+  call :_run "DEFINT X:X=3.7:PRINT X:DEFSNG X" " 3"
+
+
+@REM ============================================================
 @REM  Math built-ins
 @REM ============================================================
 

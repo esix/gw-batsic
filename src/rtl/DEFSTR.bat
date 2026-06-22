@@ -9,4 +9,4 @@ set "_tl=!_end:~8,1!"
 if not defined _tl set "_tl=!_fl!"
 call %GWSRC%\exec\_vars defrange !_fl! !_tl! t
 set "_final=!%_s%!"
-endlocal & set "%~1=%_final%" & exit /B 0
+endlocal & set "%~1=%_final%" & set "_deftypes=%_deftypes%" & exit /B 0

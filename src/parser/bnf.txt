@@ -50,6 +50,7 @@ Stmt          ::= EndStmt
 Stmt          ::= STOP @STOP
 Stmt          ::= OnStmt
 Stmt          ::= DefStmt
+Stmt          ::= DefTypeStmt
 Stmt          ::= PokeStmt
 Stmt          ::= OpenStmt
 Stmt          ::= CloseStmt
@@ -75,6 +76,8 @@ Stmt          ::= FilesStmt
 Stmt          ::= KILL Expr @KILL
 Stmt          ::= NameStmt
 Stmt          ::= RESET @RESET
+Stmt          ::= WidthStmt
+Stmt          ::= MidStmt
 Stmt          ::= FieldStmt
 Stmt          ::= GetStmt
 Stmt          ::= PutStmt
@@ -245,7 +248,6 @@ EndStmt       ::= END @END
 ; --- DEF FN ---
 DefStmt       ::= DEF DefWhat
 DefWhat       ::= FN VAR OPAR VarList CPAR EQ Expr @DEF_FN
-DefWhat       ::= DefTypeStmt
 DefTypeStmt   ::= DEFINT LetterRange @DEFINT
 DefTypeStmt   ::= DEFSNG LetterRange @DEFSNG
 DefTypeStmt   ::= DEFDBL LetterRange @DEFDBL
@@ -319,6 +321,19 @@ FilesStmt     ::= FILES FilesArg
 FilesArg      ::= Expr @FILES
 FilesArg      ::= @FILES_ALL
 NameStmt      ::= NAME Expr AS Expr @NAME
+
+; --- WIDTH (screen/device column width) — accepted, no-op (we don't model a
+;   fixed terminal width).  Forms: WIDTH n / WIDTH n,m / WIDTH "dev",n .
+WidthStmt     ::= WIDTH @WIDTH_MARK Expr WidthRest @WIDTH
+WidthRest     ::= COMA Expr WidthRest
+WidthRest     ::= e
+
+; --- MID$ statement (left-side substring assignment) ---
+;   MID$(target$, start [, len]) = value  overwrites up to `len` chars of
+;   target$ starting at `start` (1-based) with `value`.
+MidStmt       ::= MID$ OPAR LValue COMA Expr MidSetLen CPAR EQ Expr @MID_SET
+MidSetLen     ::= COMA Expr
+MidSetLen     ::= @MID_DEFAULT_LEN
 
 ; --- Random-access records: FIELD / GET / PUT / LSET / RSET ---
 ;   FIELD [#]n, w1 AS v1$, w2 AS v2$, ... declares field vars as live windows
