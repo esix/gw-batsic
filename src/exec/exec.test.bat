@@ -67,6 +67,38 @@ call %test% "exec.for.singleline.tail"
 
 
 @REM ============================================================
+@REM  MKI$/MKS$/MKD$ <-> CVI/CVS/CVD (MBF disk byte codecs)
+@REM ============================================================
+
+call %test% "fn.mki.cvi.roundtrip"
+  call :_run "PRINT CVI(MKI$(258))" " 258"
+
+call %test% "fn.mki.cvi.negative"
+  call :_run "PRINT CVI(MKI$(-1))" "-1"
+
+call %test% "fn.mki.len"
+  call :_run "PRINT LEN(MKI$(5))" " 2"
+
+call %test% "fn.mks.cvs.roundtrip"
+  call :_run "PRINT CVS(MKS$(3.14))" " 3.14"
+
+call %test% "fn.mks.cvs.negative"
+  call :_run "PRINT CVS(MKS$(-2.5))" "-2.5"
+
+call %test% "fn.mks.zero"
+  call :_run "PRINT CVS(MKS$(0))" " 0"
+
+call %test% "fn.mks.len"
+  call :_run "PRINT LEN(MKS$(0))" " 4"
+
+call %test% "fn.mkd.cvd.roundtrip"
+  call :_run "PRINT CVD(MKD$(2.5))" " 2.5"
+
+call %test% "fn.mkd.len"
+  call :_run "PRINT LEN(MKD$(1))" " 8"
+
+
+@REM ============================================================
 @REM  Math built-ins
 @REM ============================================================
 
