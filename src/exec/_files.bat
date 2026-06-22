@@ -173,3 +173,105 @@ goto :%_ffn%
   set "_sz=0"
   for %%S in ("!_hpath!") do set "_sz=%%~zS"
   endlocal & set "%~2=%_sz%" & exit /B 0
+@REM ============================================================
+@REM  Random-access record buffer + FIELD registry (Architecture A)
+@REM  Buffer: temp/recbuf_<N>.hex = RECLEN bytes as uppercase hex (one line).
+@REM  Registry: temp/fields.dat rows "KEY N OFF WIDTH" (KEY = VAR_STR_<base>).
+@REM ============================================================
+
+@REM bufinit N — create handle N's record buffer, space-filled (byte 20).
+:bufinit
+  setlocal EnableDelayedExpansion
+  set "_n=%~1"
+  call %GWSRC%\exec\_files get !_n! _h
+  if errorlevel 1 (endlocal & exit /B 52)
+  set "_rl=!_hreclen!"
+  if "!_rl!"=="" set "_rl=128"
+  if "!_rl!"=="0" set "_rl=128"
+  set "_hx="
+  for /L %%i in (1,1,!_rl!) do set "_hx=!_hx!20"
+  > "%GWTEMP%\recbuf_!_n!.hex" echo !_hx!
+  endlocal & exit /B 0
+
+@REM bufget N RETVAR — read handle N's buffer hex.
+:bufget
+  setlocal EnableDelayedExpansion
+  set "_n=%~1"
+  set "_bf=%GWTEMP%\recbuf_!_n!.hex"
+  set "_bx="
+  if exist "!_bf!" set /p "_bx=" < "!_bf!"
+  endlocal & set "%~2=%_bx%" & exit /B 0
+
+@REM bufput N HEX — overwrite handle N's buffer hex.
+:bufput
+  setlocal EnableDelayedExpansion
+  set "_n=%~1" & set "_hx=%~2"
+  > "%GWTEMP%\recbuf_!_n!.hex" echo !_hx!
+  endlocal & exit /B 0
+
+@REM freg KEY N OFF WIDTH — register a field window (replace any existing KEY).
+:freg
+  setlocal EnableDelayedExpansion
+  set "_k=%~1" & set "_n=%~2" & set "_o=%~3" & set "_w=%~4"
+  set "_ff=%GWTEMP%\fields.dat"
+  set "_tmp=%GWTEMP%\_fields.tmp"
+  type nul > "!_tmp!"
+  if exist "!_ff!" for /f "usebackq tokens=1*" %%a in ("!_ff!") do if /I not "%%a"=="!_k!" echo %%a %%b>> "!_tmp!"
+  echo !_k! !_n! !_o! !_w!>> "!_tmp!"
+  move /Y "!_tmp!" "!_ff!" >nul
+  endlocal & exit /B 0
+
+@REM fget KEY PREFIX — set <PREFIX>n/off/width from the registry; errorlevel 1 if absent.
+:fget
+  setlocal EnableDelayedExpansion
+  set "_k=%~1"
+  set "_ff=%GWTEMP%\fields.dat"
+  set "_rec="
+  if exist "!_ff!" for /f "usebackq tokens=1,2,3,4" %%a in ("!_ff!") do if /I "%%a"=="!_k!" set "_rec=%%b %%c %%d"
+  if not defined _rec (endlocal & set "%~2n=" & exit /B 1)
+  for /f "tokens=1,2,3" %%a in ("!_rec!") do (set "_rn=%%a" & set "_ro=%%b" & set "_rw=%%c")
+  endlocal & set "%~2n=%_rn%" & set "%~2off=%_ro%" & set "%~2width=%_rw%" & exit /B 0
+
+@REM fdel KEY — remove a field row (detach).  Deletes fields.dat if it empties.
+:fdel
+  setlocal EnableDelayedExpansion
+  set "_k=%~1"
+  set "_ff=%GWTEMP%\fields.dat"
+  if not exist "!_ff!" (endlocal & exit /B 0)
+  set "_tmp=%GWTEMP%\_fields.tmp"
+  type nul > "!_tmp!"
+  set "_any="
+  for /f "usebackq tokens=1*" %%a in ("!_ff!") do if /I not "%%a"=="!_k!" (echo %%a %%b>> "!_tmp!" & set "_any=1")
+  if defined _any (move /Y "!_tmp!" "!_ff!" >nul) else (del "!_tmp!" "!_ff!" >nul 2>nul)
+  endlocal & exit /B 0
+@REM filehex N RETHEX — whole file of handle N as one uppercase hex string.
+:filehex
+  setlocal EnableDelayedExpansion
+  set "_n=%~1"
+  call %GWSRC%\exec\_files get !_n! _h
+  if errorlevel 1 (endlocal & set "%~2=" & exit /B 52)
+  set "_hf=%TEMP%\_gwfh.hex"
+  del "!_hf!" 2>nul
+  certutil -encodehex "!_hpath!" "!_hf!" 12 >nul 2>nul
+  set "_all="
+  for /f "usebackq delims=" %%h in ("!_hf!") do set "_all=!_all!%%h"
+  set "_all=!_all:a=A!"
+  set "_all=!_all:b=B!"
+  set "_all=!_all:c=C!"
+  set "_all=!_all:d=D!"
+  set "_all=!_all:e=E!"
+  set "_all=!_all:f=F!"
+  endlocal & set "%~2=%_all%" & exit /B 0
+
+@REM writehex N HEX — write HEX (bytes) to handle N's file.
+:writehex
+  setlocal EnableDelayedExpansion
+  set "_n=%~1" & set "_hx=%~2"
+  call %GWSRC%\exec\_files get !_n! _h
+  if errorlevel 1 (endlocal & exit /B 52)
+  set "_hf=%TEMP%\_gwwh.hex"
+  > "!_hf!" echo !_hx!
+  del "!_hpath!" 2>nul
+  certutil -decodehex "!_hf!" "!_hpath!" >nul 2>nul
+  del "!_hf!" 2>nul
+  endlocal & exit /B 0

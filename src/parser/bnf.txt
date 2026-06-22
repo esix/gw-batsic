@@ -75,6 +75,11 @@ Stmt          ::= FilesStmt
 Stmt          ::= KILL Expr @KILL
 Stmt          ::= NameStmt
 Stmt          ::= RESET @RESET
+Stmt          ::= FieldStmt
+Stmt          ::= GetStmt
+Stmt          ::= PutStmt
+Stmt          ::= LsetStmt
+Stmt          ::= RsetStmt
 Stmt          ::= AssignStmt
 Stmt          ::= e
 
@@ -314,6 +319,24 @@ FilesStmt     ::= FILES FilesArg
 FilesArg      ::= Expr @FILES
 FilesArg      ::= @FILES_ALL
 NameStmt      ::= NAME Expr AS Expr @NAME
+
+; --- Random-access records: FIELD / GET / PUT / LSET / RSET ---
+;   FIELD [#]n, w1 AS v1$, w2 AS v2$, ... declares field vars as live windows
+;   over handle n's record buffer (Architecture A — see io-gap-analysis).
+;   Targets are L-values (subscripted field vars FILL$(I) use @AREF).  GET/PUT
+;   move the buffer to/from record (rec-1)*reclen; LSET/RSET pack into it.
+FieldStmt     ::= FIELD FileChan COMA @FIELD_MARK FieldList @FIELD
+FileChan      ::= HASH Expr
+FileChan      ::= Expr
+FieldList     ::= Expr AS LValue FieldRest
+FieldRest     ::= COMA Expr AS LValue FieldRest
+FieldRest     ::= e
+GetStmt       ::= GET FileChan RecOpt @GET
+PutStmt       ::= PUT FileChan RecOpt @PUT
+RecOpt        ::= COMA Expr
+RecOpt        ::= @ONIL
+LsetStmt      ::= LSET LValue EQ Expr @LSET
+RsetStmt      ::= RSET LValue EQ Expr @RSET
 
 ; --- LINE ---
 LineStmt      ::= LINE LineWhat

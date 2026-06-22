@@ -179,6 +179,74 @@ call %test% "fileops.lineinput.file"
   call :_foRunOK
   call :_foLine1 "%GWTEMP%\fo_o.txt" "a,b,c"
 
+@REM --- Random-access records: FIELD / LSET / RSET / GET / PUT (M5/M6) ---
+del /Q "%GWTEMP%\fo_r.dat" >nul 2>nul
+del "%GWTEMP%\fields.dat" "%GWTEMP%\recbuf_*.hex" >nul 2>nul
+
+call %test% "fileops.record.numeric.roundtrip"
+  @REM LSET MKS$ -> PUT -> GET -> CVS must round-trip a single through disk.
+  del /Q "%GWTEMP%\fo_r.dat" "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "R",#1,"%GWTEMP%\fo_r.dat",24
+  >>"%GWTEMP%\fo.bas" echo 20 FIELD #1,20 AS N$,4 AS S$
+  >>"%GWTEMP%\fo.bas" echo 30 LSET N$="Alice":LSET S$=MKS$(95.5):PUT #1,1
+  >>"%GWTEMP%\fo.bas" echo 40 CLOSE #1
+  >>"%GWTEMP%\fo.bas" echo 50 OPEN "R",#1,"%GWTEMP%\fo_r.dat",24
+  >>"%GWTEMP%\fo.bas" echo 60 FIELD #1,20 AS N$,4 AS S$
+  >>"%GWTEMP%\fo.bas" echo 70 GET #1,1
+  >>"%GWTEMP%\fo.bas" echo 80 CLOSE #1
+  >>"%GWTEMP%\fo.bas" echo 90 OPEN "O",#2,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 100 PRINT #2,CVS(S$)
+  >>"%GWTEMP%\fo.bas" echo 110 CLOSE #2
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" " 95.5"
+
+call %test% "fileops.record.getmodifyput"
+  @REM GET, change ONLY field 2, PUT; re-GET must keep fields 1 and 3 intact.
+  del /Q "%GWTEMP%\fo_r.dat" "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "R",#1,"%GWTEMP%\fo_r.dat",12
+  >>"%GWTEMP%\fo.bas" echo 20 FIELD #1,4 AS A$,4 AS B$,4 AS C$
+  >>"%GWTEMP%\fo.bas" echo 30 LSET A$="aaa":LSET B$="bbb":LSET C$="ccc":PUT #1,1
+  >>"%GWTEMP%\fo.bas" echo 40 GET #1,1:LSET B$="XYZ":PUT #1,1
+  >>"%GWTEMP%\fo.bas" echo 50 GET #1,1
+  >>"%GWTEMP%\fo.bas" echo 60 CLOSE #1
+  >>"%GWTEMP%\fo.bas" echo 70 OPEN "O",#2,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 80 PRINT #2,A$;B$;C$
+  >>"%GWTEMP%\fo.bas" echo 90 CLOSE #2
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "aaa XYZ ccc "
+
+call %test% "fileops.record.norecord.advance"
+  @REM Bare PUT / GET advance the current-record pointer.
+  del /Q "%GWTEMP%\fo_r.dat" "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "R",#1,"%GWTEMP%\fo_r.dat",2
+  >>"%GWTEMP%\fo.bas" echo 20 FIELD #1,2 AS R$
+  >>"%GWTEMP%\fo.bas" echo 30 FOR I=1 TO 3:LSET R$=MKI$(I*10):PUT #1:NEXT I
+  >>"%GWTEMP%\fo.bas" echo 40 CLOSE #1:OPEN "R",#1,"%GWTEMP%\fo_r.dat",2
+  >>"%GWTEMP%\fo.bas" echo 50 FIELD #1,2 AS R$:T=0
+  >>"%GWTEMP%\fo.bas" echo 60 FOR I=1 TO 3:GET #1:T=T+CVI(R$):NEXT I
+  >>"%GWTEMP%\fo.bas" echo 70 CLOSE #1
+  >>"%GWTEMP%\fo.bas" echo 80 OPEN "O",#2,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 90 PRINT #2,T
+  >>"%GWTEMP%\fo.bas" echo 100 CLOSE #2
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" " 60"
+
+call %test% "fileops.record.detach"
+  @REM Plain assignment to a FIELDed var unbinds it from the buffer.
+  del /Q "%GWTEMP%\fo_r.dat" "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "R",#1,"%GWTEMP%\fo_r.dat",4
+  >>"%GWTEMP%\fo.bas" echo 20 FIELD #1,4 AS X$
+  >>"%GWTEMP%\fo.bas" echo 30 LSET X$="AB":PUT #1,1
+  >>"%GWTEMP%\fo.bas" echo 40 GET #1,1:X$="ZZ":GET #1,1
+  >>"%GWTEMP%\fo.bas" echo 50 CLOSE #1
+  >>"%GWTEMP%\fo.bas" echo 60 OPEN "O",#2,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 70 PRINT #2,X$
+  >>"%GWTEMP%\fo.bas" echo 80 CLOSE #2
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "ZZ"
+
+del /Q "%GWTEMP%\fo_r.dat" >nul 2>nul
+del "%GWTEMP%\fields.dat" "%GWTEMP%\recbuf_*.hex" >nul 2>nul
 del /Q "%GWTEMP%\fo_oo.txt" "%GWTEMP%\fo_fa.txt" "%GWTEMP%\fo_rec.dat" "%GWTEMP%\fo_dup.txt" >nul 2>nul
 del /Q "%GWTEMP%\fo_*.txt" >nul 2>nul
 del /Q "%GWTEMP%\fo.bas" >nul 2>nul

@@ -35,6 +35,10 @@ if "!_tp!"=="d" if "!_vtp!" neq "d" (
     set "_val=!__!"
   )
 )
+@REM FIELD detach: a plain assignment to a FIELDed variable unbinds it from
+@REM the record buffer (GW semantics) — drop its registry row, then store the
+@REM ordinary value.
+if exist "%GWTEMP%\fields.dat" call %GWSRC%\exec\_files fdel !_var!
 call %GWSRC%\exec\_vars set !_var! !_val!
 set "_final=!%_s%!"
 endlocal & set "%~1=%_final%" & exit /B 0
