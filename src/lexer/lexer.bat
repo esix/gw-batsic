@@ -246,8 +246,11 @@ goto :%_fn%
       )
       call %GWSRC%\lexer\keyword isKeyword !acc!
       if ERRORLEVEL 1 set acc=VAR_UNK_!acc!
-      @REM AS counts as a keyword only inside NAME/OPEN/FIELD (see _asCtx).
+      @REM AS / OUTPUT / APPEND count as keywords only inside NAME/OPEN/FIELD
+      @REM (see _asCtx); elsewhere they are ordinary variables.
       if "!acc!"=="AS" if not defined _asCtx set "acc=VAR_UNK_AS"
+      if "!acc!"=="OUTPUT" if not defined _asCtx set "acc=VAR_UNK_OUTPUT"
+      if "!acc!"=="APPEND" if not defined _asCtx set "acc=VAR_UNK_APPEND"
       set "tokens=!tokens! !acc!"
       if "!acc!"=="NAME" set "_asCtx=1"
       if "!acc!"=="OPEN" set "_asCtx=1"
@@ -656,6 +659,8 @@ goto :%_fn%
     call %GWSRC%\lexer\keyword isKeyword !acc!
     if ERRORLEVEL 1 set acc=VAR_UNK_!acc!
     if "!acc!"=="AS" if not defined _asCtx set "acc=VAR_UNK_AS"
+    if "!acc!"=="OUTPUT" if not defined _asCtx set "acc=VAR_UNK_OUTPUT"
+    if "!acc!"=="APPEND" if not defined _asCtx set "acc=VAR_UNK_APPEND"
     set "tokens=!tokens! !acc!"
     set state=Normal
   )

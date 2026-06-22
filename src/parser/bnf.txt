@@ -259,23 +259,35 @@ SaveOpt       ::= e
 ; --- POKE ---
 PokeStmt      ::= POKE Expr COMA Expr @POKE
 
-; --- OPEN ---
-OpenStmt      ::= OPEN Expr OpenMode HASH NUM OpenRecLen @OPEN
-OpenMode      ::= FOR OpenAccess
-OpenMode      ::= COMA Expr COMA Expr
-OpenMode      ::= e
-OpenAccess    ::= INPUT
-OpenAccess    ::= OUTPUT
-OpenAccess    ::= APPEND
+;   OPEN has three real-world shapes (see io-gap-analysis):
+;     A)  OPEN modeExpr , [#]chan , fileExpr [, reclen]   mode = "O"/"I"/"A"/"R"
+;     B)  OPEN fileExpr FOR access AS [#]chan             sequential
+;     C)  OPEN fileExpr AS [#]chan [LEN= reclen]          random
+;   The first Expr is the mode (A) or the filename (B/C); the next token
+;   (COMA / FOR / AS) selects the form.  @ONIL marks an omitted reclen/LEN.
+OpenStmt      ::= OPEN Expr OpenTail
+OpenTail      ::= COMA OpenChan COMA Expr OpenRecLen @OPEN_M
+OpenTail      ::= FOR OpenFor
+OpenTail      ::= AS OpenChan OpenLen @OPEN_R
+OpenFor       ::= INPUT AS OpenChan @OPEN_FI
+OpenFor       ::= OUTPUT AS OpenChan @OPEN_FO
+OpenFor       ::= APPEND AS OpenChan @OPEN_FA
+OpenChan      ::= HASH Expr
+OpenChan      ::= Expr
 OpenRecLen    ::= COMA Expr
-OpenRecLen    ::= e
+OpenRecLen    ::= @ONIL
+OpenLen       ::= LEN EQ Expr
+OpenLen       ::= @ONIL
 
 ; --- CLOSE ---
-CloseStmt     ::= CLOSE CloseList @CLOSE
-CloseList     ::= HASH NUM CloseListRest
+;   CLOSE (bare = all), CLOSE #n, CLOSE n, CLOSE #1,#2 ...
+CloseStmt     ::= CLOSE @CLOSE_MARK CloseList @CLOSE
+CloseList     ::= CloseItem CloseRest
 CloseList     ::= e
-CloseListRest ::= COMA HASH NUM CloseListRest
-CloseListRest ::= e
+CloseItem     ::= HASH Expr
+CloseItem     ::= Expr
+CloseRest     ::= COMA CloseItem CloseRest
+CloseRest     ::= e
 
 ; --- WRITE ---
 WriteStmt     ::= WRITE WriteTarget ExprList @WRITE

@@ -58,6 +58,40 @@ call %test% "fileops.reset.ok"
   > "%GWTEMP%\fo.bas" echo 10 RESET
   call :_foRunOK
 
+@REM --- OPEN / CLOSE (M1) ---
+call %test% "fileops.open.output.creates"
+  del /Q "%GWTEMP%\fo_oo.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_oo.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 CLOSE #1
+  call :_foRunOK
+  call :_foExist "%GWTEMP%\fo_oo.txt" "OPEN O created file"
+
+call %test% "fileops.open.input.missing.err53"
+  del /Q "%GWTEMP%\fo_none.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "I",#1,"%GWTEMP%\fo_none.txt"
+  call :_foRunErr 53
+
+call %test% "fileops.open.foras.creates"
+  del /Q "%GWTEMP%\fo_fa.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "%GWTEMP%\fo_fa.txt" FOR OUTPUT AS #2
+  >>"%GWTEMP%\fo.bas" echo 20 CLOSE
+  call :_foRunOK
+  call :_foExist "%GWTEMP%\fo_fa.txt" "OPEN FOR OUTPUT AS created file"
+
+call %test% "fileops.open.aslen.random"
+  del /Q "%GWTEMP%\fo_rec.dat" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "%GWTEMP%\fo_rec.dat" AS #3 LEN=80
+  >>"%GWTEMP%\fo.bas" echo 20 CLOSE #3
+  call :_foRunOK
+  call :_foExist "%GWTEMP%\fo_rec.dat" "OPEN AS LEN created random file"
+
+call %test% "fileops.open.already.err55"
+  del /Q "%GWTEMP%\fo_dup.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_dup.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 OPEN "O",#1,"%GWTEMP%\fo_dup.txt"
+  call :_foRunErr 55
+
+del /Q "%GWTEMP%\fo_oo.txt" "%GWTEMP%\fo_fa.txt" "%GWTEMP%\fo_rec.dat" "%GWTEMP%\fo_dup.txt" >nul 2>nul
 del /Q "%GWTEMP%\fo_*.txt" >nul 2>nul
 del /Q "%GWTEMP%\fo.bas" >nul 2>nul
 

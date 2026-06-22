@@ -140,6 +140,8 @@ goto :%_fn%
   set "_k_DD=OFF"    & set "_c_OFF=DD"
   set "_k_DE=INKEY$" & set "_c_INKEY$=DE"
   set "_k_DF=AS"     & set "_c_AS=DF"
+  set "_k_E0=OUTPUT" & set "_c_OUTPUT=E0"
+  set "_k_E1=APPEND" & set "_c_APPEND=E1"
 
   @REM --- Operator tokens 0xE6-0xED, 0xF4 ---
   @REM These are 1-byte operators in the binary format. Internally they have
