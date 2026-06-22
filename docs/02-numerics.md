@@ -175,5 +175,6 @@ This is the one batch idiom you have to understand to read any file in
   promotion helper at `src/exec/_promote.bat` lifts a mixed pair of
   operands to the highest type before the arithmetic RTL dispatches.
 - The MBF storage format is bit-compatible with original GW-BASIC, so
-  when we get to loading and saving `.BAS` binary files (planned), the
-  numeric tokens already match.
+  loading and saving tokenized `.BAS` binary files (implemented at the
+  lexer/file boundary) needs no numeric conversion — the tokens already
+  match.

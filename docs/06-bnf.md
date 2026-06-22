@@ -212,23 +212,32 @@ InkeyFn       ::= INKEY$ @FN_INKEY
 
 ## Known LL(1) conflicts
 
-`_rebuild.bat` reports two warnings every time it runs. Both are
+`_rebuild.bat` reports five warnings every time it runs. All are
 intentional:
 
 ```
-CONFLICT: table.StmtRest.COLON   = 1 vs 2 [FOLLOW]
-CONFLICT: table.ElseClause.ELSE  = 57 vs 58 [FOLLOW]
+CONFLICT: table.StmtRest.COLON   = ... [FOLLOW]
+CONFLICT: table.ElseClause.ELSE  = ... [FOLLOW]
+CONFLICT: table.AddRest.MINUS    = ... [FOLLOW]
+CONFLICT: table.ArrayIndex.OPAR  = ... [FOLLOW]
+CONFLICT: table.RndArgs.OPAR     = ... [FOLLOW]
 ```
 
 - **`StmtRest` on `COLON`** — both "consume the colon and parse
-  another `Stmt`" and "epsilon" match. The table keeps rule 1 (parse
-  another `Stmt`), which is correct for `A = 1 : B = 2`.
+  another `Stmt`" and "epsilon" match. The table keeps the parse-another
+  rule, which is correct for `A = 1 : B = 2`.
 - **`ElseClause` on `ELSE`** — inside a nested `IF`, the parser has
   to decide whether the `ELSE` belongs to the inner or outer `IF`.
-  The table keeps the inner-IF rule, which matches the classic
-  "dangling else" rule and GW-BASIC's behaviour.
+  The table keeps the inner-IF rule (the classic "dangling else").
+- **`AddRest` on `MINUS`** — in `PRINT A -5`, GW-BASIC continues the
+  expression (`A - 5`) rather than starting a juxtaposed print item.
+- **`ArrayIndex` on `OPAR`** — `A(5)` is an array access, not `A`
+  juxtaposed with `(5)`.
+- **`RndArgs` on `OPAR`** — `RND(x)` binds the argument to `RND`.
 
-These are documented in [05 — Parser § Known conflicts](05-parser.md#known-conflicts).
+In every case the table keeps whichever rule `bnf.txt` lists first, which
+is the intended branch. These are documented in
+[05 — Parser § Conflicts](05-parser.md#conflicts).
 
 ## Extending the grammar
 

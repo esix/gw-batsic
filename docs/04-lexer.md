@@ -297,9 +297,10 @@ hex pairs the same way the lexer's main loop walks an input line.
 
 - **Error recovery.** The lexer currently fails fast (`:_Error` echoes
   some debug and returns errorlevel 2). A real GW-BASIC would surface a
-  "Syntax error" with `ERL` set. Now that the error mechanism is in
-  place ([article 08, planned](README.md)), the lexer should plug into it
-  and return a proper error code that propagates through the run loop.
+  "Syntax error" with `ERL` set. The error mechanism the rest of the
+  interpreter uses (codes, `ERR`/`ERL`, `ON ERROR` trapping) is in place,
+  so the lexer should plug into it and return a proper error code that
+  propagates through the run loop.
 - **Protected / encrypted programs.** GW-BASIC also supports `SAVE
   "name",P` (protected, header byte `FE`) which XOR-encrypts the
   tokenised body. We detect the binary format by the `FF` header byte

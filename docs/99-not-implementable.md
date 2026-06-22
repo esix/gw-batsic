@@ -110,7 +110,7 @@ you'd be giving up.
 | `SCREEN(row, col [, colorflag])` | Read character at screen position | Requires keeping our own shadow screen buffer — possible but invasive, and any external program writing to the console invalidates it. |
 | `KEY n, str$` + the function-key label line | Soft-label tracking | We can store the labels but there's no 25th-row of the screen we can paint them on. |
 | `KEY ON/OFF/LIST` | Same | Same — the "label row" concept doesn't exist. |
-| `WIDTH n` | Adjust our own `_print_col` wrap math | The actual terminal is whatever size the user resized their window to.  We can wrap our own output, but anything the OS writes (errors, command echoes) won't respect our setting. |
+| `WIDTH n` | Accepted as a no-op | The actual terminal is whatever size the user resized their window to, so the statement is parsed and ignored rather than enforcing a column wrap that the OS (errors, command echoes) wouldn't respect anyway. |
 | `WIDTH "LPT1:", n` | — | LPT printing isn't realistic. |
 | `LLIST`, `LPRINT` | Pipe to `print` or write to file | Printer is no longer a "device file" in any useful sense on modern Windows. |
 

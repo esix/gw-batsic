@@ -207,27 +207,41 @@ queries against the in-memory snapshot.
 ## Conflicts
 
 `_rebuild.bat` warns when the table tries to set two different rules for
-the same `(nonterminal, terminal)` cell. There are currently two such
-warnings:
+the same `(nonterminal, terminal)` cell. There are currently **five** such
+warnings (rule numbers shift as the grammar grows; the cells are what
+matter):
 
 ```
-CONFLICT: table.StmtRest.COLON = 1 vs 2 [FOLLOW]
-CONFLICT: table.ElseClause.ELSE = 57 vs 58 [FOLLOW]
+CONFLICT: table.StmtRest.COLON   = ... [FOLLOW]
+CONFLICT: table.ElseClause.ELSE  = ... [FOLLOW]
+CONFLICT: table.AddRest.MINUS    = ... [FOLLOW]
+CONFLICT: table.ArrayIndex.OPAR  = ... [FOLLOW]
+CONFLICT: table.RndArgs.OPAR     = ... [FOLLOW]
 ```
 
-Both are classic LL(1) limitations:
+All five are classic LL(1) limitations, each resolved in GW-BASIC's
+favour by keeping whichever rule `bnf.txt` lists **first** (the
+non-epsilon / continue-the-construct branch):
 
-- **`StmtRest.COLON`**: after parsing a `Stmt`, seeing `COLON` could
-  mean either "continue the StmtList with another statement" (rule 1,
-  `COLON Stmt StmtRest`) or "the empty production" (rule 2). The first
-  is the right choice — we always want to extend.
-- **`ElseClause.ELSE`**: the dangling-else problem. After parsing the
-  THEN branch of an inner IF, an upcoming `ELSE` could belong to that
-  inner IF or to an outer IF. GW-BASIC binds it to the innermost, so
-  we prefer rule 57 (`ELSE @ELSE ThenClause`) over rule 58 (epsilon).
+- **`StmtRest.COLON`**: after a `Stmt`, a `COLON` could continue the
+  `StmtList` with another statement or be the empty production. We always
+  want to extend, so the continue rule wins.
+- **`ElseClause.ELSE`**: the dangling-else problem. After the THEN branch
+  of an inner `IF`, an `ELSE` could bind to that inner IF or an outer one.
+  GW-BASIC binds to the innermost, so the `ELSE @ELSE ThenClause` rule
+  wins over epsilon.
+- **`AddRest.MINUS`**: PRINT-item juxtaposition vs subtraction. In
+  `PRINT A -5`, the `-5` could start a new juxtaposed print item or
+  continue the expression as `A - 5`. GW-BASIC continues the expression,
+  so the additive rule wins.
+- **`ArrayIndex.OPAR`**: `PRINT A(5)` is an array access, not the value
+  `A` juxtaposed with a parenthesised `(5)`. The array-index rule wins.
+- **`RndArgs.OPAR`**: `RND(x)` binds the parenthesised argument to `RND`
+  rather than treating `RND` as a bare function followed by `(x)`. The
+  with-argument rule wins.
 
 The build keeps whichever rule was inserted **first**, which (by
-production order in `bnf.txt`) is the non-epsilon one in both cases.
+production order in `bnf.txt`) is the intended branch in every case.
 This matches GW-BASIC's behaviour, so we accept the warnings rather
 than rewrite the grammar.
 
@@ -264,8 +278,9 @@ Syntax error: No rule for Stmt with token MINUS (MINUS)
 ```
 
 The REPL drops back to the prompt; the RUN loop terminates the program
-and sets `ERR` / `ERL` (well, will — that wiring isn't fully in place
-on the lexer/parser side yet; see the [Errors planned article](README.md)).
+and sets `ERR` / `ERL`. Runtime error trapping (`ON ERROR GOTO` /
+`RESUME`) is wired through the run loop — see the
+[errors overview](README.md) (article 16).
 
 ## Where this connects
 
