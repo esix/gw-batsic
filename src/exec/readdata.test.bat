@@ -25,6 +25,31 @@ call %test% "read.string"
   >>"%GWTEMP%\_rd.bas" echo 30 PRINT A$
   call :_rdRun "hello"
 
+call %test% "read.into.string.array"
+  @REM Regression: READ into a string-array element (was Type mismatch).
+  call :_clear
+  > "%GWTEMP%\_rd.bas" echo 10 DIM K$(3)
+  >>"%GWTEMP%\_rd.bas" echo 20 READ K$(1), K$(2), K$(3)
+  >>"%GWTEMP%\_rd.bas" echo 30 PRINT K$(1);K$(2);K$(3)
+  >>"%GWTEMP%\_rd.bas" echo 40 DATA AAA, BBB, CCC
+  call :_rdRun "AAABBBCCC"
+
+call %test% "read.into.numeric.array"
+  call :_clear
+  > "%GWTEMP%\_rd.bas" echo 10 DIM N(3)
+  >>"%GWTEMP%\_rd.bas" echo 20 READ N(1), N(2), N(3)
+  >>"%GWTEMP%\_rd.bas" echo 30 PRINT N(1) + N(2) + N(3)
+  >>"%GWTEMP%\_rd.bas" echo 40 DATA 11, 22, 33
+  call :_rdRun " 66"
+
+call %test% "read.into.2d.array"
+  call :_clear
+  > "%GWTEMP%\_rd.bas" echo 10 DIM B(2,2)
+  >>"%GWTEMP%\_rd.bas" echo 20 READ B(1,1), B(2,2)
+  >>"%GWTEMP%\_rd.bas" echo 30 PRINT B(1,1) + B(2,2)
+  >>"%GWTEMP%\_rd.bas" echo 40 DATA 5, 9
+  call :_rdRun " 14"
+
 call %test% "read.across.lines"
   @REM DATA items across multiple lines should form one queue in line order.
   call :_clear

@@ -49,13 +49,18 @@ set "_pending=!_vars!"
   for /f "tokens=1*" %%a in ("!_pending!") do (set "_var=%%a" & set "_pending=%%b")
   call :_takeField "!_rest!" _piece _rest
   if not defined _piece (set "_e=13" & goto :_inp_done)
-  call %GWSRC%\exec\_vars typeof !_var! _tp
+  @REM An array-element target arrives as AREF:NAME:i1[:i2] (see AREF.bat).
+  set "_arr="
+  if "!_var:~0,5!"=="AREF:" set "_arr=1"
+  set "_arrname=" & set "_aidx="
+  if defined _arr call :_parseAref "!_var!"
+  if defined _arr (call %GWSRC%\exec\_arrays typeof !_arrname! _tp) else (call %GWSRC%\exec\_vars typeof !_var! _tp)
   if "!_tp!"=="t" goto :_inp_setStr
   goto :_inp_setNum
 
 :_inp_setStr
   call %GWSRC%\str\str encodeRaw "!_piece!" _ph
-  call %GWSRC%\exec\_vars set !_var! STR_!_ph!
+  if defined _arr (call %GWSRC%\exec\_arrays set !_arrname! !_aidx! STR_!_ph!) else (call %GWSRC%\exec\_vars set !_var! STR_!_ph!)
   goto :_inp_vloop
 
 :_inp_setNum
@@ -63,7 +68,7 @@ set "_pending=!_vars!"
   if "!_tp!"=="s" call %GWSRC%\num\sng fromDec !_piece!
   if "!_tp!"=="d" call %GWSRC%\num\dbl fromDec !_piece!
   if errorlevel 1 (set "_e=13" & goto :_inp_done)
-  call %GWSRC%\exec\_vars set !_var! !__!
+  if defined _arr (call %GWSRC%\exec\_arrays set !_arrname! !_aidx! !__!) else (call %GWSRC%\exec\_vars set !_var! !__!)
   goto :_inp_vloop
 
 :_inp_done
@@ -74,6 +79,16 @@ endlocal ^
   & set "_input_prompted=" ^
   & exit /B %_e%
 
+
+@REM _parseAref "AREF:NAME:i1[:i2]" -> sets _arrname (ARR_...) and _aidx (space-sep).
+:_parseAref
+  set "_pa=%~1"
+  set "_rest2=!_pa:~5!"
+  for /f "tokens=1* delims=:" %%a in ("!_rest2!") do (set "_an=%%a" & set "_aidx=%%b")
+  set "_aidx=!_aidx::= !"
+  set "_arrname=!_an!"
+  if "!_an:~0,4!"=="VAR_" set "_arrname=ARR_!_an:~4!"
+  exit /B 0
 
 @REM _takeField "STR" pieceVar restVar
 @REM Split STR at the first comma; trim surrounding spaces from the field.

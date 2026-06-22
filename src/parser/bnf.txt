@@ -174,9 +174,17 @@ InputPrompt   ::= STR PromptSep
 PromptSep     ::= SEMICOLON @PROMPT
 PromptSep     ::= COMA @PROMPT_NQ
 InputPrompt   ::= e
-VarList       ::= VarRef VarListRest
-VarListRest   ::= COMA VarRef VarListRest
+;   VarList targets are L-values (READ/INPUT assign INTO them; DEF FN
+;   params are bare names).  Array elements use @AREF, which packs the
+;   array name + computed indices into a single stack token (AREF:NAME:i1:..)
+;   that @READ / @INPUT store into — unlike @AIDX, which reads the element's
+;   value (right for expressions, wrong for an assignment target).
+VarList       ::= LValue VarListRest
+VarListRest   ::= COMA LValue VarListRest
 VarListRest   ::= e
+LValue        ::= VAR LVIndex
+LVIndex       ::= @ARR_START OPAR ExprList CPAR @AREF
+LVIndex       ::= e
 
 ; --- READ / DATA / RESTORE ---
 ;   @READ_MARK and @DATA_MARK push stack sentinels so @READ and @DATA know
