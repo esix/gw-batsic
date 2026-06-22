@@ -67,25 +67,30 @@ if "!_sign!"=="-" if "!_c!"=="2" set "_done=1"
 @REM Step == 0 would loop forever; treat as "done" to be safe.
 if "!_sign!"=="0" set "_done=1"
 
-if "!_done!"=="1" (
-  @REM Pop all four for-stacks
-  call %GWSRC%\stl\vec pop _for_vars   _tmp
-  call %GWSRC%\stl\vec pop _for_limits _tmp
-  call %GWSRC%\stl\vec pop _for_steps  _tmp
-  call %GWSRC%\stl\vec pop _for_lines  _tmp
-  set "_final=!%_s%!"
-  endlocal & set "%~1=%_final%" ^
-    & set "_for_vars=%_for_vars%" ^
-    & set "_for_limits=%_for_limits%" ^
-    & set "_for_steps=%_for_steps%" ^
-    & set "_for_lines=%_for_lines%" ^
-    & exit /B 0
-)
+if "!_done!"=="1" goto :_next_done
 
-@REM Loop back to the line right after the FOR statement.
+@REM Continue: loop back to the line right after the FOR statement.  The
+@REM for-stacks are unchanged here, so the %var% propagation is correct.
 set "_final=!%_s%!"
 endlocal & set "%~1=%_final%" ^
   & set "_next_line=%_line%" ^
+  & set "_for_vars=%_for_vars%" ^
+  & set "_for_limits=%_for_limits%" ^
+  & set "_for_steps=%_for_steps%" ^
+  & set "_for_lines=%_for_lines%" ^
+  & exit /B 0
+
+:_next_done
+@REM Loop ended: pop the four for-stacks, THEN propagate the post-pop values.
+@REM Popping inside an if-(...) block and propagating %_for_vars% in the same
+@REM block expands it at PARSE time -> the pops get silently undone, leaking
+@REM the for-stack frame (breaks NEXT-without-FOR and single-line FOR..NEXT).
+call %GWSRC%\stl\vec pop _for_vars   _tmp
+call %GWSRC%\stl\vec pop _for_limits _tmp
+call %GWSRC%\stl\vec pop _for_steps  _tmp
+call %GWSRC%\stl\vec pop _for_lines  _tmp
+set "_final=!%_s%!"
+endlocal & set "%~1=%_final%" ^
   & set "_for_vars=%_for_vars%" ^
   & set "_for_limits=%_for_limits%" ^
   & set "_for_steps=%_for_steps%" ^

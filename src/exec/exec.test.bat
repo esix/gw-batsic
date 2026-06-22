@@ -46,6 +46,27 @@ call %test% "exec.calc.parens"
 
 
 @REM ============================================================
+@REM  Single-line FOR..NEXT (loop body and NEXT on the FOR's line).
+@REM  The body lives in the postfix after FOR and is re-run in place;
+@REM  see exec.bat :_run_for / :_run_next.
+@REM ============================================================
+
+@REM (:_run shares one variable store across cases, so reset S each time.)
+call %test% "exec.for.singleline"
+  call :_run "S=0:FOR I=1 TO 5:S=S+I:NEXT I:PRINT S" " 15"
+
+call %test% "exec.for.singleline.step"
+  call :_run "S=0:FOR I=10 TO 1 STEP -3:S=S+I:NEXT I:PRINT S" " 22"
+
+call %test% "exec.for.singleline.nested"
+  call :_run "S=0:FOR I=1 TO 3:FOR J=1 TO 2:S=S+1:NEXT J:NEXT I:PRINT S" " 6"
+
+call %test% "exec.for.singleline.tail"
+  @REM Statements after NEXT on the same line run once, after the loop.
+  call :_run "S=0:FOR I=1 TO 3:S=S+I:NEXT I:S=S+100:PRINT S" " 106"
+
+
+@REM ============================================================
 @REM  Math built-ins
 @REM ============================================================
 

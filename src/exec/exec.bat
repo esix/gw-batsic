@@ -112,6 +112,14 @@ goto :%_fn%
     goto :_run_loop
   )
 
+  @REM FOR / NEXT need mid-line loop-back, which the line-based RUN loop
+  @REM cannot express.  A single-line FOR..NEXT keeps its body in the postfix
+  @REM AFTER the FOR; we capture it and re-run it on each NEXT that continues.
+  @REM Multi-line loops leave an empty in-line body and fall through to the
+  @REM body-line jump NEXT.bat sets.  Keyed by for-stack depth so loops nest.
+  if "!_tok!"=="FOR" goto :_run_for
+  if "!_tok!"=="NEXT" goto :_run_next
+
   @REM Action: call RTL handler
   if exist "%GWSRC%\rtl\!_tok!.bat" (
     call %GWSRC%\rtl\!_tok!.bat _stk
@@ -121,6 +129,29 @@ goto :%_fn%
   @REM Unimplemented in this build → "Advanced Feature" (code 73).
   echo RTL: unknown action !_tok! 1>&2
   set "_err=73"
+  goto :_run_loop
+
+:_run_for
+  call %GWSRC%\rtl\FOR.bat _stk
+  set "_err=!ERRORLEVEL!"
+  call %GWSRC%\stl\vec size _for_vars _fdep
+  for /f "delims=" %%d in ("!_fdep!") do set "_inlinePost_%%d=!_postfix!"
+  goto :_run_loop
+
+:_run_next
+  call %GWSRC%\stl\vec size _for_vars _fdep
+  call %GWSRC%\rtl\NEXT.bat _stk
+  set "_err=!ERRORLEVEL!"
+  call %GWSRC%\stl\vec size _for_vars _fdep2
+  if not "!_fdep2!"=="!_fdep!" goto :_run_next_end
+  @REM Loop continued: re-run the in-line body (single-line loop).  For a
+  @REM multi-line loop the body is empty, so this is a no-op and the
+  @REM body-line jump NEXT.bat set takes effect when the line ends.
+  for /f "delims=" %%d in ("!_fdep!") do if defined _inlinePost_%%d set "_postfix=!_inlinePost_%%d!"
+  goto :_run_loop
+:_run_next_end
+  @REM Loop ended: drop the saved in-line body for this depth.
+  for /f "delims=" %%d in ("!_fdep!") do set "_inlinePost_%%d="
   goto :_run_loop
 
 :_run_end
