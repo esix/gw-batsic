@@ -255,6 +255,7 @@ goto :%_fn%
   call %GWSRC%\exec\_arrays init
   call %GWSRC%\exec\_files init
   set "_print_path="
+  set "_input_fh="
   set "_gosub_stack="
   set "_for_vars="
   set "_for_limits="
@@ -490,6 +491,7 @@ goto :%_fn%
   call %GWSRC%\exec\_arrays init
   call %GWSRC%\exec\_files init
   set "_print_path="
+  set "_input_fh="
   set "_err_code=0"
   set "_err_line=0"
   call :runProgram
@@ -507,6 +509,7 @@ goto :%_fn%
   call %GWSRC%\exec\_arrays init
   call %GWSRC%\exec\_files init
   set "_print_path="
+  set "_input_fh="
   @REM Error state: ERR / ERL accessible via _resolve's pseudo-vars
   set "_err_code=0"
   set "_err_line=0"

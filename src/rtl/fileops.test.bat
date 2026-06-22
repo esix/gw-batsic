@@ -132,6 +132,53 @@ call %test% "fileops.print.input.mode.err54"
   >>"%GWTEMP%\fo.bas" echo 20 PRINT #1,"nope"
   call :_foRunErr 54
 
+@REM --- INPUT# / LINE INPUT# / EOF / LOF (M3) ---
+@REM Read values back and re-emit to a 2nd file so the harness can verify.
+call %test% "fileops.input.file.roundtrip"
+  del /Q "%GWTEMP%\fo_d.txt" "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_d.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 WRITE #1,"Alice",42
+  >>"%GWTEMP%\fo.bas" echo 30 CLOSE #1
+  >>"%GWTEMP%\fo.bas" echo 40 OPEN "I",#1,"%GWTEMP%\fo_d.txt"
+  >>"%GWTEMP%\fo.bas" echo 50 INPUT #1,N$,A
+  >>"%GWTEMP%\fo.bas" echo 60 CLOSE #1
+  >>"%GWTEMP%\fo.bas" echo 70 OPEN "O",#2,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 80 PRINT #2,N$;A
+  >>"%GWTEMP%\fo.bas" echo 90 CLOSE #2
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "Alice 42"
+
+call %test% "fileops.input.file.eofloop"
+  del /Q "%GWTEMP%\fo_d.txt" "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_d.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 FOR I=1 TO 3:WRITE #1,I:NEXT I
+  >>"%GWTEMP%\fo.bas" echo 30 CLOSE #1
+  >>"%GWTEMP%\fo.bas" echo 40 OPEN "I",#1,"%GWTEMP%\fo_d.txt"
+  >>"%GWTEMP%\fo.bas" echo 50 C=0
+  >>"%GWTEMP%\fo.bas" echo 60 IF EOF(1) THEN 90
+  >>"%GWTEMP%\fo.bas" echo 70 INPUT #1,X
+  >>"%GWTEMP%\fo.bas" echo 80 C=C+1:GOTO 60
+  >>"%GWTEMP%\fo.bas" echo 90 CLOSE #1
+  >>"%GWTEMP%\fo.bas" echo 100 OPEN "O",#2,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 110 PRINT #2,C
+  >>"%GWTEMP%\fo.bas" echo 120 CLOSE #2
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" " 3"
+
+call %test% "fileops.lineinput.file"
+  del /Q "%GWTEMP%\fo_d.txt" "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_d.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 PRINT #1,"a,b,c"
+  >>"%GWTEMP%\fo.bas" echo 30 CLOSE #1
+  >>"%GWTEMP%\fo.bas" echo 40 OPEN "I",#1,"%GWTEMP%\fo_d.txt"
+  >>"%GWTEMP%\fo.bas" echo 50 LINE INPUT #1,L$
+  >>"%GWTEMP%\fo.bas" echo 60 CLOSE #1
+  >>"%GWTEMP%\fo.bas" echo 70 OPEN "O",#2,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 80 PRINT #2,L$
+  >>"%GWTEMP%\fo.bas" echo 90 CLOSE #2
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "a,b,c"
+
 del /Q "%GWTEMP%\fo_oo.txt" "%GWTEMP%\fo_fa.txt" "%GWTEMP%\fo_rec.dat" "%GWTEMP%\fo_dup.txt" >nul 2>nul
 del /Q "%GWTEMP%\fo_*.txt" >nul 2>nul
 del /Q "%GWTEMP%\fo.bas" >nul 2>nul

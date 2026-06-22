@@ -178,7 +178,12 @@ NumListRest   ::= e
 ;   @INPUT knows where the var list starts when popping the stack.
 ;   `INPUT "p"; V` prints the prompt then "? "; `INPUT "p", V` prints the
 ;   prompt with NO question mark (@PROMPT_NQ).  Bare INPUT prints "? ".
-InputStmt     ::= INPUT InputPrompt @INPUT_MARK VarList @INPUT
+;   INPUT #n, var,... reads from file channel n (@IFILE_SET sets _input_fh,
+;   which INPUT.bat reads from instead of the console); the var-list parsing
+;   and assignment are shared with console INPUT.
+InputStmt     ::= INPUT InputSource
+InputSource   ::= HASH Expr COMA @IFILE_SET @INPUT_MARK VarList @INPUT
+InputSource   ::= InputPrompt @INPUT_MARK VarList @INPUT
 InputPrompt   ::= STR PromptSep
 PromptSep     ::= SEMICOLON @PROMPT
 PromptSep     ::= COMA @PROMPT_NQ
@@ -312,7 +317,9 @@ NameStmt      ::= NAME Expr AS Expr @NAME
 
 ; --- LINE ---
 LineStmt      ::= LINE LineWhat
-LineWhat      ::= INPUT LineInput @LINE_INPUT
+LineWhat      ::= INPUT LineSource
+LineSource    ::= HASH Expr COMA @IFILE_SET VarRef @LINE_INPUT
+LineSource    ::= LineInput @LINE_INPUT
 LineWhat      ::= OPAR Expr COMA Expr CPAR MINUS OPAR Expr COMA Expr CPAR LineBox @LINE_DRAW
 LineInput     ::= InputPrompt VarRef
 LineBox       ::= COMA Expr LineBoxFill
@@ -477,6 +484,8 @@ ArrayIndex    ::= e
 FnCall        ::= FN VAR OPAR ExprList CPAR @CALL_FN
 
 ; --- Built-in function calls ---
+BuiltinCall   ::= EofFn
+BuiltinCall   ::= LofFn
 BuiltinCall   ::= AbsFn
 BuiltinCall   ::= IntFn
 BuiltinCall   ::= SgnFn
@@ -517,6 +526,8 @@ BuiltinCall   ::= CSRLIN @FN_CSRLIN
 BuiltinCall   ::= TIMER @FN_TIMER
 
 ; 1-arg numeric functions
+EofFn         ::= EOF OPAR Expr CPAR @FN_EOF
+LofFn         ::= LOF OPAR Expr CPAR @FN_LOF
 AbsFn         ::= ABS OPAR Expr CPAR @FN_ABS
 IntFn         ::= INT OPAR Expr CPAR @FN_INT
 SgnFn         ::= SGN OPAR Expr CPAR @FN_SGN

@@ -104,3 +104,72 @@ goto :%_ffn%
   )
   move /Y "!_tmp!" "!_ff!" >nul
   endlocal & exit /B 0
+@REM readseq N RETHEX RETEOF — read the next sequential line of handle N
+@REM (POS is the 0-based line index for INPUT-mode files), advancing POS.
+@REM RETHEX = hex of the line (CR/LF stripped); RETEOF=1 if already at end.
+:readseq
+  setlocal EnableDelayedExpansion
+  set "_n=%~1"
+  call %GWSRC%\exec\_files get !_n! _h
+  if errorlevel 1 (endlocal & set "%~2=" & set "%~3=1" & exit /B 52)
+  set "_hf=%TEMP%\_gwseq.hex"
+  del "!_hf!" 2>nul
+  certutil -encodehex "!_hpath!" "!_hf!" 12 >nul 2>nul
+  set "_all="
+  for /f "usebackq delims=" %%h in ("!_hf!") do set "_all=!_all!%%h"
+  set "_all=!_all:a=A!"
+  set "_all=!_all:b=B!"
+  set "_all=!_all:c=C!"
+  set "_all=!_all:d=D!"
+  set "_all=!_all:e=E!"
+  set "_all=!_all:f=F!"
+  set "_all=!_all:0D0A=0A!"
+  set "_all=!_all:0D=!"
+  @REM Walk to line index _hpos.
+  set "_idx=0"
+  set "_lh="
+  set "_got="
+:_rs_walk
+  if "!_all!"=="" goto :_rs_eol
+  set "_b=!_all:~0,2!"
+  set "_all=!_all:~2!"
+  if "!_b!"=="0A" (
+    if "!_idx!"=="!_hpos!" (set "_got=1" & goto :_rs_done)
+    set /a "_idx+=1"
+    set "_lh="
+    goto :_rs_walk
+  )
+  set "_lh=!_lh!!_b!"
+  goto :_rs_walk
+:_rs_eol
+  @REM end of data without a trailing newline: the buffer is the last line.
+  if "!_idx!"=="!_hpos!" if defined _lh set "_got=1"
+:_rs_done
+  if not defined _got (endlocal & set "%~2=" & set "%~3=1" & exit /B 0)
+  set /a "_np=_hpos+1"
+  call %GWSRC%\exec\_files setpos !_n! !_np!
+  endlocal & set "%~2=%_lh%" & set "%~3=0" & exit /B 0
+
+
+@REM atEof N RETBOOL — RETBOOL=-1 if no more lines to read, else 0.
+:atEof
+  setlocal EnableDelayedExpansion
+  set "_n=%~1"
+  call %GWSRC%\exec\_files readseq !_n! _peek _eof
+  if "!_eof!"=="1" (endlocal & set "%~2=-1" & exit /B 0)
+  @REM readseq advanced POS; undo it (peek only).
+  call %GWSRC%\exec\_files get !_n! _h2
+  set /a "_back=_h2pos-1"
+  call %GWSRC%\exec\_files setpos !_n! !_back!
+  endlocal & set "%~2=0" & exit /B 0
+
+
+@REM lof N RETBYTES — file size of handle N in bytes.
+:lof
+  setlocal EnableDelayedExpansion
+  set "_n=%~1"
+  call %GWSRC%\exec\_files get !_n! _h
+  if errorlevel 1 (endlocal & set "%~2=0" & exit /B 52)
+  set "_sz=0"
+  for %%S in ("!_hpath!") do set "_sz=%%~zS"
+  endlocal & set "%~2=%_sz%" & exit /B 0
