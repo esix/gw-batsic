@@ -54,6 +54,10 @@ goto :%_fn%
   set i=0
   set state=Start
   set acc=
+  @REM AS is a keyword only inside a NAME / OPEN / FIELD statement; this flag
+  @REM tracks that context within the current statement (cleared at each COLON)
+  @REM so `FOR AS=0` etc. keep AS as an ordinary variable.
+  set "_asCtx="
 
   goto :_Loop
 
@@ -155,7 +159,7 @@ goto :%_fn%
       if !c!==2E (set "acc=." & set "state=Number2" & goto :_Loop)
       if !c!==2F (set "tokens=!tokens! DIV" & goto :_Loop)
       @REM : ; (0x3A, 0x3B)
-      if !c!==3A (set "tokens=!tokens! COLON" & goto :_Loop)
+      if !c!==3A (set "tokens=!tokens! COLON" & set "_asCtx=" & goto :_Loop)
       if !c!==3B (set "tokens=!tokens! SEMICOLON" & goto :_Loop)
       @REM < = > (0x3C-0x3E)
       if !c!==3C (set "state=Less" & goto :_Loop)
@@ -242,7 +246,12 @@ goto :%_fn%
       )
       call %GWSRC%\lexer\keyword isKeyword !acc!
       if ERRORLEVEL 1 set acc=VAR_UNK_!acc!
+      @REM AS counts as a keyword only inside NAME/OPEN/FIELD (see _asCtx).
+      if "!acc!"=="AS" if not defined _asCtx set "acc=VAR_UNK_AS"
       set "tokens=!tokens! !acc!"
+      if "!acc!"=="NAME" set "_asCtx=1"
+      if "!acc!"=="OPEN" set "_asCtx=1"
+      if "!acc!"=="FIELD" set "_asCtx=1"
       set "_isRem="
       if "!acc!"=="REM" set "_isRem=1"
       set "_isData="
@@ -646,6 +655,7 @@ goto :%_fn%
   if "!state!"=="Id" (
     call %GWSRC%\lexer\keyword isKeyword !acc!
     if ERRORLEVEL 1 set acc=VAR_UNK_!acc!
+    if "!acc!"=="AS" if not defined _asCtx set "acc=VAR_UNK_AS"
     set "tokens=!tokens! !acc!"
     set state=Normal
   )

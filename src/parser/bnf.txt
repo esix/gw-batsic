@@ -71,6 +71,10 @@ Stmt          ::= RunStmt
 Stmt          ::= SaveStmt
 Stmt          ::= SYSTEM @SYSTEM
 Stmt          ::= NEW @NEW
+Stmt          ::= FilesStmt
+Stmt          ::= KILL Expr @KILL
+Stmt          ::= NameStmt
+Stmt          ::= RESET @RESET
 Stmt          ::= AssignStmt
 Stmt          ::= e
 
@@ -277,6 +281,15 @@ CloseListRest ::= e
 WriteStmt     ::= WRITE WriteTarget ExprList @WRITE
 WriteTarget   ::= HASH NUM COMA
 WriteTarget   ::= e
+
+; --- Directory / file management (FILES / KILL / NAME / RESET) ---
+;   FILES has an optional filespec; the two FilesArg productions dispatch
+;   to @FILES (a spec is on the stack) or @FILES_ALL (list the cwd).  KILL
+;   and RESET are inline in Stmt.  NAME old AS new renames.
+FilesStmt     ::= FILES FilesArg
+FilesArg      ::= Expr @FILES
+FilesArg      ::= @FILES_ALL
+NameStmt      ::= NAME Expr AS Expr @NAME
 
 ; --- LINE ---
 LineStmt      ::= LINE LineWhat
