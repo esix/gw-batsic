@@ -22,11 +22,7 @@ if not defined _print_col set "_print_col=0"
 if !_n! GTR 0 (
   set "_hx="
   for /L %%i in (1,1,!_n!) do set "_hx=!_hx!20"
-  >"%TEMP%\_spc.hex" echo !_hx!
-  @REM certutil refuses to overwrite — clear .bin first.
-  del "%TEMP%\_spc.bin" 2>nul
-  certutil -decodehex "%TEMP%\_spc.hex" "%TEMP%\_spc.bin" >nul
-  type "%TEMP%\_spc.bin"
+  call %GWSRC%\str\str decodePrint !_hx! NONL
   set /a "_print_col+=_n"
 )
 call %GWSRC%\stl\vec push %_s% STR_

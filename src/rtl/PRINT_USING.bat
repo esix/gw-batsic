@@ -296,11 +296,6 @@ set "_out="
   goto :_t2h_l
 
 :_emit
-  if defined _out (
-    >"%TEMP%\_pu.hex" echo !_out!
-    del "%TEMP%\_pu.bin" 2>nul
-    certutil -decodehex "%TEMP%\_pu.hex" "%TEMP%\_pu.bin" >nul
-    type "%TEMP%\_pu.bin"
-  )
+  if defined _out call %GWSRC%\str\str decodePrint !_out! NONL
   set "_final=!%_s%!"
   endlocal & set "%~1=%_final%" & exit /B 0

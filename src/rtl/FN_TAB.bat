@@ -21,18 +21,14 @@ if not defined _print_col set "_print_col=0"
 set /a "_target=_n - 1"
 @REM If already past target, GW-BASIC moves to the next line then to the target.
 if !_print_col! GTR !_target! (
-  echo(
+  if defined _print_path (call %GWSRC%\exec\_pemit "") else (echo()
   set "_print_col=0"
 )
 set /a "_pad=_target - _print_col"
 if !_pad! GTR 0 (
   set "_hx="
   for /L %%i in (1,1,!_pad!) do set "_hx=!_hx!20"
-  >"%TEMP%\_tab.hex" echo !_hx!
-  @REM certutil refuses to overwrite — clear .bin first.
-  del "%TEMP%\_tab.bin" 2>nul
-  certutil -decodehex "%TEMP%\_tab.hex" "%TEMP%\_tab.bin" >nul
-  type "%TEMP%\_tab.bin"
+  call %GWSRC%\str\str decodePrint !_hx! NONL
   set /a "_print_col+=_pad"
 )
 @REM Push empty STR_ sentinel so following PSEMI / PTAB has a value to pop.

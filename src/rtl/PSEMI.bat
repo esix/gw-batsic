@@ -30,7 +30,7 @@ if defined _isStr (
   @REM Numeric: `_txt` is safe (digits/space/sign).  Sacrificial var name `_`
   @REM so a leading `=` would not break `set /p` (defensive — numbers won't
   @REM produce one in practice).
-  if defined _txt <nul set /p "_=!_txt!"
+  if defined _txt if defined _print_path (call %GWSRC%\exec\_pemit "!_txt!" NONL) else (<nul set /p "_=!_txt!")
 )
 if not defined _print_col set "_print_col=0"
 if defined _isStr (

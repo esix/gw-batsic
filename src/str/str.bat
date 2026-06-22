@@ -132,12 +132,21 @@ goto :%_fn%
   set "_mode=%~2"
   set "_hf=%TEMP%\_strdp.hex"
   set "_bf=%TEMP%\_strdp.bin"
+  @REM Print sink active (PRINT# / WRITE#): bake the CRLF into the bytes and
+  @REM append to the file.  `type ... >> file` redirects cleanly on the port,
+  @REM but a newline-only `echo. >> file` emits NOTHING there, so the 0D0A
+  @REM must ride along inside the hex.
+  if defined _print_path if /I not "!_mode!"=="NONL" set "_s=!_s!0D0A"
   >"!_hf!" echo !_s!
   @REM certutil refuses to overwrite an existing output file; clear it first.
   del "!_bf!" 2>nul
   certutil -decodehex "!_hf!" "!_bf!" >nul
-  type "!_bf!"
-  if /I not "!_mode!"=="NONL" echo(
+  if defined _print_path (
+    type "!_bf!" >> "!_print_path!"
+  ) else (
+    type "!_bf!"
+    if /I not "!_mode!"=="NONL" echo(
+  )
   endlocal & exit /B 0
 
 

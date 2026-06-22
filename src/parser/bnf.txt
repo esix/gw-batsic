@@ -98,8 +98,13 @@ Stmt          ::= e
 ;   FIRST set.  Postfix: <fmt> PU_MARK <v1> <v2> ... PRINT_USING [PU_NL].
 ;   PRINT_USING renders (no newline); PU_NL adds the newline when the
 ;   value list does not end in a trailing ; or , separator.
-PrintStmt     ::= PRINT PrintWhat
+;   PRINT #n, ... directs output to file channel n (@PFILE_SET sets the
+;   sink, @PFILE_CLR restores the console).  The reused PrintWhat machinery
+;   (PEND/PSEMI/PTAB/USING) appends to the file when the sink is active.
+PrintStmt     ::= PRINT PrintTarget
 PrintStmt     ::= LPRINT PrintWhat
+PrintTarget   ::= HASH Expr COMA @PFILE_SET PrintWhat @PFILE_CLR
+PrintTarget   ::= PrintWhat
 PrintWhat     ::= USING Expr SEMICOLON @PU_MARK PuList
 PrintWhat     ::= PrintBody
 PuList        ::= Expr PuMore
@@ -290,9 +295,11 @@ CloseRest     ::= COMA CloseItem CloseRest
 CloseRest     ::= e
 
 ; --- WRITE ---
-WriteStmt     ::= WRITE WriteTarget ExprList @WRITE
-WriteTarget   ::= HASH NUM COMA
-WriteTarget   ::= e
+;   WRITE #n, v1, v2 ...  writes comma-separated values (strings quoted)
+;   plus CRLF to channel n; bare WRITE does the same to the console.
+WriteStmt     ::= WRITE WriteHead @WRITE_MARK ExprList @WRITE
+WriteHead     ::= HASH Expr COMA @PFILE_SET
+WriteHead     ::= e
 
 ; --- Directory / file management (FILES / KILL / NAME / RESET) ---
 ;   FILES has an optional filespec; the two FilesArg productions dispatch

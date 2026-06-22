@@ -14,13 +14,15 @@ if !_chan! LSS 1 (endlocal & exit /B 52)
 if !_chan! GTR 255 (endlocal & exit /B 52)
 call %GWSRC%\exec\_resolve !_ft! _ft
 if not "!_ft:~0,4!"=="STR_" (endlocal & exit /B 64)
-set "_path="
-if not "!_ft!"=="STR_" call %GWSRC%\str\str decode !_ft:~4! _path
-if not defined _path (endlocal & exit /B 64)
+if "!_ft!"=="STR_" (endlocal & exit /B 64)
+@REM Pass the lexer's case-correct hex straight through; re-encoding the path
+@REM via `str encode` would uppercase it (lossy) and break case-sensitive
+@REM filesystems and ..\.. resolution.
+set "_fthex=!_ft:~4!"
 set "_rl=0"
 if /I not "!_rt!"=="ONIL" call :_toInt !_rt! _rl
 if /I "!_mode!"=="R" if "!_rl!"=="0" set "_rl=128"
-call %GWSRC%\exec\_files open !_chan! !_mode! !_rl! "!_path!"
+call %GWSRC%\exec\_files open !_chan! !_mode! !_rl! !_fthex!
 set "_e=!ERRORLEVEL!"
 endlocal & exit /B %_e%
 

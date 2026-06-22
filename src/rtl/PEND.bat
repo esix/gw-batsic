@@ -26,14 +26,18 @@ if "!_a:~0,4!"=="STR_" (
   if "!_tp!"=="s" (call %GWSRC%\num\sng toDec !_a! & set "_d=!__!")
   if "!_tp!"=="d" (call %GWSRC%\num\dbl toDec !_a! & set "_d=!__!")
   if defined _d (
-    if "!_d:~0,1!"=="-" (echo(!_d!) else (echo  !_d!)
+    if defined _print_path (
+      if "!_d:~0,1!"=="-" (call %GWSRC%\exec\_pemit "!_d!") else (call %GWSRC%\exec\_pemit " !_d!")
+    ) else (
+      if "!_d:~0,1!"=="-" (echo(!_d!) else (echo  !_d!)
+    )
   ) else (
-    echo(!_a!
+    if defined _print_path (call %GWSRC%\exec\_pemit "!_a!") else (echo(!_a!)
   )
 )
 goto :_pend_after
 :_pend_blank
-echo(
+if defined _print_path (call %GWSRC%\exec\_pemit "") else (echo()
 :_pend_after
 set "_final=!%_s%!"
 endlocal & set "%~1=%_final%" & set "_print_col=0" & exit /B 0

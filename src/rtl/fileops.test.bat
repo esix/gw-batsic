@@ -91,12 +91,81 @@ call %test% "fileops.open.already.err55"
   >>"%GWTEMP%\fo.bas" echo 20 OPEN "O",#1,"%GWTEMP%\fo_dup.txt"
   call :_foRunErr 55
 
+@REM --- PRINT# / WRITE# (M2) ---
+call %test% "fileops.print.file.semicolon"
+  del /Q "%GWTEMP%\fo_p.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_p.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 PRINT #1,"HELLO";"WORLD"
+  >>"%GWTEMP%\fo.bas" echo 30 CLOSE #1
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_p.txt" "HELLOWORLD"
+
+call %test% "fileops.print.file.number"
+  del /Q "%GWTEMP%\fo_pn.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_pn.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 PRINT #1,"X=";42
+  >>"%GWTEMP%\fo.bas" echo 30 CLOSE #1
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_pn.txt" "X= 42"
+
+call %test% "fileops.print.file.append.continues"
+  del /Q "%GWTEMP%\fo_pc.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_pc.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 PRINT #1,"AB";
+  >>"%GWTEMP%\fo.bas" echo 30 PRINT #1,"CD"
+  >>"%GWTEMP%\fo.bas" echo 40 CLOSE #1
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_pc.txt" "ABCD"
+
+call %test% "fileops.write.file.csv"
+  del /Q "%GWTEMP%\fo_wr.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_wr.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 WRITE #1,"AB",5,"CD"
+  >>"%GWTEMP%\fo.bas" echo 30 CLOSE #1
+  call :_foRunOK
+  call :_foHas "%GWTEMP%\fo_wr.txt" "AB"
+  call :_foHas "%GWTEMP%\fo_wr.txt" ",5,"
+
+call %test% "fileops.print.input.mode.err54"
+  > "%GWTEMP%\fo_im.txt" echo seed
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "I",#1,"%GWTEMP%\fo_im.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 PRINT #1,"nope"
+  call :_foRunErr 54
+
 del /Q "%GWTEMP%\fo_oo.txt" "%GWTEMP%\fo_fa.txt" "%GWTEMP%\fo_rec.dat" "%GWTEMP%\fo_dup.txt" >nul 2>nul
 del /Q "%GWTEMP%\fo_*.txt" >nul 2>nul
 del /Q "%GWTEMP%\fo.bas" >nul 2>nul
 
 exit /B
 
+
+@REM Assert the first line of file %1 equals %2.
+:_foLine1
+  set /a numTests+=1
+  setlocal EnableDelayedExpansion
+  set "_got="
+  set /p "_got=" < "%~1"
+  if "!_got!"=="%~2" (
+    endlocal & set /a passedTests+=1
+  ) else (
+    echo FAILED fileops: %~1 line1 [!_got!] != [%~2]
+    echo.
+    endlocal & set /a failedTests+=1
+  )
+  exit /B 0
+
+@REM Assert file %1 contains literal substring %2.
+:_foHas
+  set /a numTests+=1
+  findstr /C:"%~2" "%~1" >nul 2>nul
+  if not errorlevel 1 (
+    set /a passedTests+=1
+  ) else (
+    echo FAILED fileops: %~1 missing [%~2]
+    echo.
+    set /a failedTests+=1
+  )
+  exit /B 0
 
 @REM Load+run %GWTEMP%\fo.bas; assert it ends with no error.
 :_foRunOK

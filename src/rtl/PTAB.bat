@@ -29,7 +29,7 @@ if "!_a:~0,4!"=="STR_" (
 if defined _isStr (
   if defined _hex call %GWSRC%\str\str decodePrint !_hex! NONL
 ) else (
-  if defined _txt <nul set /p "_=!_txt!"
+  if defined _txt if defined _print_path (call %GWSRC%\exec\_pemit "!_txt!" NONL) else (<nul set /p "_=!_txt!")
 )
 
 @REM Update column counter by the printed-text length.  For strings, use
@@ -49,11 +49,7 @@ set /a "_pad=14 - (_print_col %% 14)"
 if !_pad! GTR 0 if !_pad! LSS 14 (
   set "_hx="
   for /L %%i in (1,1,!_pad!) do set "_hx=!_hx!20"
-  >"%TEMP%\_pad.hex" echo !_hx!
-  @REM certutil refuses to overwrite — clear .bin first.
-  del "%TEMP%\_pad.bin" 2>nul
-  certutil -decodehex "%TEMP%\_pad.hex" "%TEMP%\_pad.bin" >nul
-  type "%TEMP%\_pad.bin"
+  call %GWSRC%\str\str decodePrint !_hx! NONL
   set /a "_print_col+=_pad"
 )
 

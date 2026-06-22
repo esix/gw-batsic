@@ -26,10 +26,13 @@ goto :%_ffn%
   exit /B 0
 
 
-@REM open N MODE RECLEN "REALPATH"  -> 0 ok / 53 not found / 55 already open
+@REM open N MODE RECLEN HEXPATH  -> 0 ok / 53 not found / 55 already open
+@REM HEXPATH is the lexer's case-correct hex of the OS path; stored verbatim
+@REM and decoded (lossless) for the filesystem operations.
 :open
   setlocal EnableDelayedExpansion
-  set "_n=%~1" & set "_mode=%~2" & set "_rl=%~3" & set "_path=%~4"
+  set "_n=%~1" & set "_mode=%~2" & set "_rl=%~3" & set "_hp=%~4"
+  call %GWSRC%\str\str decode !_hp! _path
   set "_ff=%GWTEMP%\files.dat"
   if not exist "!_ff!" type nul > "!_ff!"
   set "_dup="
@@ -39,7 +42,6 @@ goto :%_ffn%
   if /I "!_mode!"=="O" type nul > "!_path!"
   if /I "!_mode!"=="A" if not exist "!_path!" type nul > "!_path!"
   if /I "!_mode!"=="R" if not exist "!_path!" type nul > "!_path!"
-  call %GWSRC%\str\str encode "!_path!" _hp
   echo !_n!=!_mode! 0 !_rl! !_hp!>> "!_ff!"
   endlocal & exit /B 0
 
