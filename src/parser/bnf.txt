@@ -435,7 +435,7 @@ KeyTrap       ::= OFF @KEY_TRAP
 KeyTrap       ::= STOP @KEY_TRAP
 
 ; --- SWAP ---
-SwapStmt      ::= SWAP VarRef COMA VarRef @SWAP
+SwapStmt      ::= SWAP LValue COMA LValue @SWAP
 
 ; --- ERASE ---
 EraseStmt     ::= ERASE VAR @ERASE EraseRest
@@ -653,7 +653,7 @@ MidLen        ::= @MID_DEFAULT_LEN
 ; 2-3 arg
 InstrFn       ::= INSTR OPAR Expr COMA Expr InstrLen CPAR @FN_INSTR
 InstrLen      ::= COMA Expr
-InstrLen      ::= e
+InstrLen      ::= @INSTR_NIL
 
 ; No-arg
 InkeyFn       ::= INKEY$ @FN_INKEY

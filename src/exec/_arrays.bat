@@ -80,6 +80,19 @@ goto :%_fn%
   endlocal & set "%~2=%_r%" & exit /B 0
 
 
+@REM --- erase NAME: remove an array (so it can be re-DIMmed) ---
+:erase
+  setlocal EnableDelayedExpansion
+  call :_canon %~1 _n
+  if not exist "%GWTEMP%\arrays.dat" (endlocal & exit /B 0)
+  type nul > "%GWTEMP%\arrays.dat.tmp"
+  for /f "usebackq tokens=1* delims= " %%a in ("%GWTEMP%\arrays.dat") do (
+    if /I not "%%a"=="!_n!" >> "%GWTEMP%\arrays.dat.tmp" echo %%a %%b
+  )
+  move /Y "%GWTEMP%\arrays.dat.tmp" "%GWTEMP%\arrays.dat" >nul
+  endlocal & exit /B 0
+
+
 @REM --- dim NAME BOUND1 [B2 [B3]]: declare array ---
 @REM Returns errorlevel 10 if already exists.
 :dim

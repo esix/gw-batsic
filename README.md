@@ -113,9 +113,9 @@ full sequential **and** random-access file I/O surface is complete.
 | **Numbers** | Integer `%`, single `!`, double `#` — genuine **Microsoft Binary Format** floats (not IEEE 754), built from 4-bit→64-bit hex arithmetic. `+ - * / \ MOD ^`, unary `-`, round-to-nearest. |
 | **Comparisons / logic** | `= < > <= >= <>`, `AND OR NOT XOR EQV IMP`, full precedence ladder. |
 | **Math functions** | `ABS INT FIX SGN SQR SIN COS TAN ATN LOG EXP` (pure-batch Taylor series + range reduction), `RND`, `RANDOMIZE`, `CINT CSNG CDBL`, `TIMER`. |
-| **Strings** | `LEN VAL STR$ ASC CHR$ LEFT$ RIGHT$ MID$ SPACE$ STRING$`, `MID$(a$,n)=...` statement form, `TAB( SPC(`, `+` concatenation. |
+| **Strings** | `LEN VAL STR$ ASC CHR$ LEFT$ RIGHT$ MID$ SPACE$ STRING$ INSTR HEX$ OCT$`, `MID$(a$,n)=...` statement form, `TAB( SPC(`, `+` concatenation. |
 | **Control flow** | `IF…THEN…ELSE`, `IF…GOTO`, `FOR/TO/STEP/NEXT` (incl. single-line & `NEXT i,j`), `WHILE/WEND`, `GOTO`, `GOSUB/RETURN`, `ON…GOTO`, `ON…GOSUB`, `END`, `STOP`, `:` separators. |
-| **Arrays** | `DIM` (multi-dimensional, multiple per statement), element read/write, `READ`/`INPUT` into elements. |
+| **Arrays** | `DIM` (multi-dimensional, multiple per statement), element read/write, `READ`/`INPUT` into elements, `ERASE`, `SWAP` (scalars & array elements). |
 | **Console** | `PRINT` (zones, `;`/`,`, juxtaposition), `PRINT USING`, `LPRINT`, `?`, `INPUT` (all prompt forms), `LINE INPUT`, `READ/DATA/RESTORE`, `CLS`, `BEEP`, `LOCATE`, `COLOR` (CGA→ANSI), `KEY` on/off/list/set, `INKEY$`, `WIDTH`. |
 | **Files — sequential** | `OPEN` (all three syntaxes), `CLOSE`/`RESET`, `PRINT #`, `WRITE #`, `INPUT #`, `LINE INPUT #`, `EOF`, `LOF`. |
 | **Files — random** | `FIELD … AS` (live-window record buffers), `LSET`/`RSET`, `GET`/`PUT` with byte-seek, `MKI$/MKS$/MKD$` ↔ `CVI/CVS/CVD`. |
@@ -135,9 +135,8 @@ full sequential **and** random-access file I/O surface is complete.
 - **`CHAIN` / `CHAIN MERGE`** — program-to-program chaining (vintage menu
   systems).
 - **`DEF FN`** user-defined functions — parses but the handler is missing.
-- **Cheap missing handlers** — `INSTR`, `HEX$`, `OCT$`, `SWAP`, `ERASE`,
-  `POS`, `FRE`, `CSRLIN`: the grammar accepts them, they just need a small
-  RTL each (currently raise *"Advanced Feature"*).
+- **Cheap missing handlers** — `POS`, `FRE`, `CSRLIN`: the grammar accepts
+  them, they just need a small RTL each (currently raise *"Advanced Feature"*).
 
 **Not implementable in batch** (by nature — see
 [`docs/99-not-implementable.md`](docs/99-not-implementable.md)):
@@ -241,9 +240,8 @@ The engine is solid: full expression evaluation, control flow, arrays,
 complete file I/O (sequential + random-access records), and runtime
 error trapping all work and are regression-tested at ~1,000 assertions green.
 The frontier is **grammar coverage** of the long tail of vintage statements
-(`CHAIN`, `DEF FN`) and the handful of cheap missing function handlers
-(`INSTR`, `HEX$`, `SWAP`, …) — plus `DATE$`/`TIME$` once the cmd port grows
-`%DATE%`/`%TIME%`.
+(`CHAIN`, `DEF FN`) and a few remaining function handlers (`POS`, `FRE`,
+`CSRLIN`) — plus `DATE$`/`TIME$` once the cmd port grows `%DATE%`/`%TIME%`.
 
 Built and tested on macOS via the [Go cmd port](https://github.com/esix/cmd);
 the same `.bat` files run on Windows and Linux.

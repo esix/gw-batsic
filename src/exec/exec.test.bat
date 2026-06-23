@@ -98,6 +98,42 @@ call %test% "fn.mkd.len"
   call :_run "PRINT LEN(MKD$(1))" " 8"
 
 
+@REM --- INSTR / HEX$ / OCT$  (CHR$ builds strings to avoid quotes in :_run) ---
+
+call %test% "fn.instr.found"
+  @REM INSTR("HI","I") = 2
+  call :_run "PRINT INSTR(CHR$(72)+CHR$(73),CHR$(73))" " 2"
+
+call %test% "fn.instr.notfound"
+  call :_run "PRINT INSTR(CHR$(65),CHR$(66))" " 0"
+
+call %test% "fn.instr.start"
+  @REM INSTR(3,"ABAB","AB") = 3 (search from position 3)
+  call :_run "PRINT INSTR(3,CHR$(65)+CHR$(66)+CHR$(65)+CHR$(66),CHR$(65)+CHR$(66))" " 3"
+
+call %test% "fn.hex.pos"
+  call :_run "PRINT HEX$(255)" "FF"
+
+call %test% "fn.hex.neg"
+  call :_run "PRINT HEX$(-1)" "FFFF"
+
+call %test% "fn.oct.pos"
+  call :_run "PRINT OCT$(8)" "10"
+
+call %test% "fn.oct.zero"
+  call :_run "PRINT OCT$(0)" "0"
+
+call %test% "stmt.swap.scalar"
+  call :_run "A=1:B=2:SWAP A,B:PRINT A" " 2"
+
+call %test% "stmt.swap.array.element"
+  call :_run "DIM Q(2):Q(0)=5:Q(1)=9:SWAP Q(0),Q(1):PRINT Q(0)" " 9"
+
+call %test% "stmt.erase.then.redim"
+  @REM ERASE removes the array so it can be re-DIMmed (fresh, zeroed).
+  call :_run "DIM E(2):E(1)=5:ERASE E:DIM E(3):PRINT E(1)" " 0"
+
+
 @REM ============================================================
 @REM  WIDTH (no-op) / DEFINT type-range  (MID$ statement: fileops.test.bat)
 @REM ============================================================
