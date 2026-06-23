@@ -207,21 +207,23 @@ queries against the in-memory snapshot.
 ## Conflicts
 
 `_rebuild.bat` warns when the table tries to set two different rules for
-the same `(nonterminal, terminal)` cell. There are currently **five** such
+the same `(nonterminal, terminal)` cell. There are currently **six** such
 warnings (rule numbers shift as the grammar grows; the cells are what
 matter):
 
 ```
 CONFLICT: table.StmtRest.COLON   = ... [FOLLOW]
 CONFLICT: table.ElseClause.ELSE  = ... [FOLLOW]
+CONFLICT: table.KeyWhat.OPAR     = ...
 CONFLICT: table.AddRest.MINUS    = ... [FOLLOW]
 CONFLICT: table.ArrayIndex.OPAR  = ... [FOLLOW]
 CONFLICT: table.RndArgs.OPAR     = ... [FOLLOW]
 ```
 
-All five are classic LL(1) limitations, each resolved in GW-BASIC's
-favour by keeping whichever rule `bnf.txt` lists **first** (the
-non-epsilon / continue-the-construct branch):
+The five `[FOLLOW]` cases are classic LL(1) limitations, each resolved in
+GW-BASIC's favour by keeping whichever rule `bnf.txt` lists **first** (the
+non-epsilon / continue-the-construct branch — note FOLLOW entries never
+overwrite a FIRST entry, so the FIRST rule wins):
 
 - **`StmtRest.COLON`**: after a `Stmt`, a `COLON` could continue the
   `StmtList` with another statement or be the empty production. We always
@@ -240,10 +242,18 @@ non-epsilon / continue-the-construct branch):
   rather than treating `RND` as a bare function followed by `(x)`. The
   with-argument rule wins.
 
-The build keeps whichever rule was inserted **first**, which (by
-production order in `bnf.txt`) is the intended branch in every case.
-This matches GW-BASIC's behaviour, so we accept the warnings rather
-than rewrite the grammar.
+The sixth, **`KeyWhat.OPAR`**, is a FIRST/FIRST conflict (no `[FOLLOW]`
+tag): after `KEY`, an open paren could begin `KEY(n) ON/OFF/STOP` (event
+trapping) or a parenthesised first argument of `KEY n, str$` (soft-key
+definition). GW programs only ever parenthesise the trap form, so the trap
+rule must win. Unlike the FOLLOW cases, two FIRST entries *do* overwrite —
+the builder keeps whichever is processed **last** — so here the grammar
+lists the trap production *after* `KEY n, str$` on purpose.
+
+For the five FOLLOW cases the build keeps whichever rule was inserted
+**first**; for `KeyWhat.OPAR` the **last**-listed (trap) rule wins. Either
+way the result is the branch GW-BASIC intends, so we accept the warnings
+rather than rewrite the grammar.
 
 ## The parse loop
 

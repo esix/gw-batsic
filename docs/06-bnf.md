@@ -76,7 +76,7 @@ The full `Stmt → …` block covers about 35 alternatives. Grouped:
 | Files | `OPEN`, `CLOSE`, `WRITE #` |
 | Screen | `CLS`, `LOCATE`, `COLOR`, `SCREEN`, `LINE` (both `LINE INPUT` and graphics `LINE (x,y)-(x,y)`) |
 | Sound | `SOUND`, `BEEP` |
-| Keyboard | `KEY ON/OFF/LIST`, `KEY n, STR$` |
+| Keyboard | `KEY ON/OFF/LIST`, `KEY n, STR$`, `KEY(n) ON/OFF/STOP`, `ON KEY(n) GOSUB` |
 | Errors | `ERROR`, `RESUME`, `RESUME NEXT`, `RESUME line` |
 
 Two notes:
@@ -212,12 +212,13 @@ InkeyFn       ::= INKEY$ @FN_INKEY
 
 ## Known LL(1) conflicts
 
-`_rebuild.bat` reports five warnings every time it runs. All are
+`_rebuild.bat` reports six warnings every time it runs. All are
 intentional:
 
 ```
 CONFLICT: table.StmtRest.COLON   = ... [FOLLOW]
 CONFLICT: table.ElseClause.ELSE  = ... [FOLLOW]
+CONFLICT: table.KeyWhat.OPAR     = ...
 CONFLICT: table.AddRest.MINUS    = ... [FOLLOW]
 CONFLICT: table.ArrayIndex.OPAR  = ... [FOLLOW]
 CONFLICT: table.RndArgs.OPAR     = ... [FOLLOW]
@@ -229,15 +230,20 @@ CONFLICT: table.RndArgs.OPAR     = ... [FOLLOW]
 - **`ElseClause` on `ELSE`** — inside a nested `IF`, the parser has
   to decide whether the `ELSE` belongs to the inner or outer `IF`.
   The table keeps the inner-IF rule (the classic "dangling else").
+- **`KeyWhat` on `OPAR`** — after `KEY`, an open paren begins either
+  `KEY(n) ON/OFF/STOP` (event trapping) or a parenthesised first arg of
+  `KEY n, str$`. The trap form must win; since two FIRST entries overwrite
+  (last wins), the grammar lists the trap rule *after* `KEY n, str$`.
 - **`AddRest` on `MINUS`** — in `PRINT A -5`, GW-BASIC continues the
   expression (`A - 5`) rather than starting a juxtaposed print item.
 - **`ArrayIndex` on `OPAR`** — `A(5)` is an array access, not `A`
   juxtaposed with `(5)`.
 - **`RndArgs` on `OPAR`** — `RND(x)` binds the argument to `RND`.
 
-In every case the table keeps whichever rule `bnf.txt` lists first, which
-is the intended branch. These are documented in
-[05 — Parser § Conflicts](05-parser.md#conflicts).
+For the five `[FOLLOW]` cases the table keeps the rule `bnf.txt` lists
+**first**; for the `KeyWhat` FIRST/FIRST case it keeps the one listed
+**last**. Either way the result is the branch GW-BASIC intends. These are
+documented in [05 — Parser § Conflicts](05-parser.md#conflicts).
 
 ## Extending the grammar
 

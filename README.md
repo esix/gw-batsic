@@ -121,7 +121,7 @@ full sequential **and** random-access file I/O surface is complete.
 | **Files — random** | `FIELD … AS` (live-window record buffers), `LSET`/`RSET`, `GET`/`PUT` with byte-seek, `MKI$/MKS$/MKD$` ↔ `CVI/CVS/CVD`. |
 | **Files — disk** | `FILES`, `KILL`, `NAME … AS`. |
 | **Error handling** | `ON ERROR GOTO` / `GOTO 0`, `RESUME` / `RESUME NEXT` / `RESUME` *line*, `ERROR n`, `ERR`, `ERL`, the standard GW error-code table. |
-| **Types & program** | `DEFINT/DEFSNG/DEFDBL/DEFSTR`, `LET`, `REM`/`'`, `RUN [line|"file"]`, `LOAD`, `SAVE [,A]`, `LIST`, `NEW`, `SYSTEM`. |
+| **Types & program** | `DEFINT/DEFSNG/DEFDBL/DEFSTR`, `LET`, `REM`/`'`, `CLEAR`, `RUN [line|"file"]`, `LOAD`, `SAVE [,A]`, `LIST`, `NEW`, `SYSTEM`. |
 
 ---
 
@@ -129,15 +129,12 @@ full sequential **and** random-access file I/O surface is complete.
 
 **Not implemented (planned):**
 
-- **`CLEAR`** — not yet in the grammar (the single biggest remaining blocker
-  across the example corpus).
 - **`DATE$` / `TIME$`** — ⛔ *blocked on the cmd port*: the Go port returns
   empty `%DATE%`/`%TIME%` (real `cmd.exe` populates them). Tracked in
   `~/pro/cmd/issues/006`; once the port exposes them, these are a quick add.
 - **`CHAIN` / `CHAIN MERGE`** — program-to-program chaining (vintage menu
   systems).
 - **`DEF FN`** user-defined functions — parses but the handler is missing.
-- **`ON KEY(n) GOSUB`** soft-key event trapping (basic `KEY` works).
 - **Cheap missing handlers** — `INSTR`, `HEX$`, `OCT$`, `SWAP`, `ERASE`,
   `POS`, `FRE`, `CSRLIN`: the grammar accepts them, they just need a small
   RTL each (currently raise *"Advanced Feature"*).
@@ -149,6 +146,10 @@ full sequential **and** random-access file I/O surface is complete.
   `DRAW`, `PALETTE`) — a terminal has no framebuffer.
 - **Direct hardware** — `PEEK`/`POKE`, `INP`/`OUT`, `USR`, `WAIT`, `DEF SEG`,
   `VARPTR`, COM/LPT ports, the PC speaker (`SOUND`/`PLAY` as real tones).
+- **Function-key event trapping** (`KEY(n) ON/OFF/STOP`, `ON KEY(n) GOSUB`) —
+  *parsed and accepted* so programs run, but the handler can never fire:
+  trapping needs a non-blocking keyboard read between statements, which batch
+  lacks (same limit as the blocking `INKEY$`).
 
 **Known quirks:** a mid-line `GOTO`/`GOSUB` followed by more statements on the
 *same* line currently runs the trailing statements too (control-flow only
@@ -161,7 +162,7 @@ behaves correctly as the last statement on a line); `PRINT USING` omits the
 Against a **207-program** vintage example corpus, the latest headless sweep:
 ~**92 programs (44%) now reach their real interactive/compute logic** — up
 from **4** at the start of the project. The remaining wall is grammar gaps
-(`CLEAR`, `CHAIN`, `SCREEN`, soft-key `KEY`), not the engine.
+(`CHAIN`, the `SCREEN` function, `DEF FN`), not the engine.
 
 ---
 
@@ -240,9 +241,9 @@ The engine is solid: full expression evaluation, control flow, arrays,
 complete file I/O (sequential + random-access records), and runtime
 error trapping all work and are regression-tested at ~1,000 assertions green.
 The frontier is **grammar coverage** of the long tail of vintage statements
-(`CLEAR`, `CHAIN`, soft-key `KEY`, `DEF FN`) and the handful of cheap missing
-function handlers — plus `DATE$`/`TIME$` once the cmd port grows `%DATE%`/
-`%TIME%`.
+(`CHAIN`, `DEF FN`) and the handful of cheap missing function handlers
+(`INSTR`, `HEX$`, `SWAP`, …) — plus `DATE$`/`TIME$` once the cmd port grows
+`%DATE%`/`%TIME%`.
 
 Built and tested on macOS via the [Go cmd port](https://github.com/esix/cmd);
 the same `.bat` files run on Windows and Linux.

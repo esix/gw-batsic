@@ -123,6 +123,18 @@ call %test% "stmt.clear.size.arg.ignored"
 call %test% "stmt.clear.comma.forms"
   call :_run "CLEAR ,1000:PRINT 8" " 8"
 
+call %test% "stmt.onkey.trap.parses"
+  @REM KEY(n) ON/OFF/STOP arm function-key trapping; accepted (inert headless).
+  call :_run "KEY(2) ON:KEY(2) OFF:KEY(2) STOP:PRINT 7" " 7"
+
+call %test% "stmt.onkey.gosub.parses"
+  @REM ON KEY(n) GOSUB registers a handler (never fires without key input).
+  call :_run "ON KEY(2) GOSUB 100:PRINT 8" " 8"
+
+call %test% "stmt.key.softkey.still.works"
+  @REM Ensure the KEY n,str$ soft-key form still parses after adding KEY(n).
+  call :_run "KEY 1,A$:PRINT 9" " 9"
+
 
 @REM ============================================================
 @REM  Math built-ins

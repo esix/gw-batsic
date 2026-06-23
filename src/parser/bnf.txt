@@ -179,6 +179,7 @@ GosubStmt     ::= GOSUB NUM @GOSUB
 ;   error then jumps to `line` with ERR/ERL set, and RESUME returns control.
 OnStmt        ::= ON OnTail
 OnTail        ::= ERROR GOTO NUM @ON_ERROR
+OnTail        ::= KEY OPAR Expr CPAR GOSUB NUM @ON_KEY
 OnTail        ::= Expr OnAction NumList @ON_END
 OnAction      ::= GOTO @ON_GOTO
 OnAction      ::= GOSUB @ON_GOSUB
@@ -423,7 +424,15 @@ KeyStmt       ::= KEY KeyWhat
 KeyWhat       ::= ON @KEY_ON
 KeyWhat       ::= OFF @KEY_OFF
 KeyWhat       ::= LIST @KEY_LIST
+; KEY(n) ON/OFF/STOP arms function-key event trapping.  The trap form is
+; listed AFTER the KEY n,str$ soft-key form on purpose: the table builder lets
+; the later rule win a FIRST/FIRST conflict, so `KEY (` resolves to trapping
+; rather than a parenthesised KEY_SET first arg (which the corpus never uses).
 KeyWhat       ::= Expr COMA Expr @KEY_SET
+KeyWhat       ::= OPAR Expr CPAR KeyTrap
+KeyTrap       ::= ON @KEY_TRAP
+KeyTrap       ::= OFF @KEY_TRAP
+KeyTrap       ::= STOP @KEY_TRAP
 
 ; --- SWAP ---
 SwapStmt      ::= SWAP VarRef COMA VarRef @SWAP
