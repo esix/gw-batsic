@@ -113,6 +113,16 @@ call %test% "stmt.defint.truncates"
   @REM _deftypes table does not leak into later :_run tests.
   call :_run "DEFINT X:X=3.7:PRINT X:DEFSNG X" " 3"
 
+call %test% "stmt.clear.resets.numeric"
+  @REM CLEAR zeroes variables but keeps running (whole line is one program).
+  call :_run "A=5:CLEAR:PRINT A" " 0"
+
+call %test% "stmt.clear.size.arg.ignored"
+  call :_run "CLEAR 5000:PRINT 7" " 7"
+
+call %test% "stmt.clear.comma.forms"
+  call :_run "CLEAR ,1000:PRINT 8" " 8"
+
 
 @REM ============================================================
 @REM  Math built-ins

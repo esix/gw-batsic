@@ -77,6 +77,7 @@ Stmt          ::= KILL Expr @KILL
 Stmt          ::= NameStmt
 Stmt          ::= RESET @RESET
 Stmt          ::= WidthStmt
+Stmt          ::= ClearStmt
 Stmt          ::= MidStmt
 Stmt          ::= FieldStmt
 Stmt          ::= GetStmt
@@ -331,6 +332,18 @@ NameStmt      ::= NAME Expr AS Expr @NAME
 WidthStmt     ::= WIDTH @WIDTH_MARK Expr WidthRest @WIDTH
 WidthRest     ::= COMA Expr WidthRest
 WidthRest     ::= e
+
+; --- CLEAR — reset all variables/arrays and close files (program kept).
+;   Optional numeric args are memory/stack sizes; accepted and ignored.
+;   Forms: CLEAR / CLEAR n / CLEAR ,n / CLEAR ,,n / CLEAR n,m .
+ClearStmt     ::= CLEAR @CLEAR_MARK ClearArgs @CLEAR
+ClearArgs     ::= Expr ClearRest
+ClearArgs     ::= COMA ClearOpt ClearRest
+ClearArgs     ::= e
+ClearRest     ::= COMA ClearOpt ClearRest
+ClearRest     ::= e
+ClearOpt      ::= Expr
+ClearOpt      ::= e
 
 ; --- MID$ statement (left-side substring assignment) ---
 ;   MID$(target$, start [, len]) = value  overwrites up to `len` chars of
