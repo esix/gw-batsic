@@ -139,8 +139,10 @@ full sequential **and** random-access file I/O surface is complete.
 **Not implementable in batch** (by nature — see
 [`docs/99-not-implementable.md`](docs/99-not-implementable.md)):
 
-- **Graphics** (`SCREEN` graphics modes, `LINE`, `CIRCLE`, `PSET`, `PAINT`,
-  `DRAW`, `PALETTE`) — a terminal has no framebuffer.
+- **Graphics** (`SCREEN` graphics modes, `LINE (x,y)-`, `CIRCLE`, `PSET`,
+  `PAINT`, `DRAW`, `PALETTE`) — a terminal has no framebuffer. `SCREEN 0`
+  (text mode) is an accepted no-op; entering a graphics mode (`SCREEN n>0`)
+  fails cleanly with *"Advanced Feature"* rather than pretending to draw.
 - **Direct hardware** — `PEEK`/`POKE`, `INP`/`OUT`, `USR`, `WAIT`, `DEF SEG`,
   `VARPTR`, COM/LPT ports, the PC speaker (`SOUND`/`PLAY` as real tones).
 - **Function-key event trapping** (`KEY(n) ON/OFF/STOP`, `ON KEY(n) GOSUB`) —
@@ -156,10 +158,10 @@ behaves correctly as the last statement on a line); `PRINT USING` omits the
 
 ### Corpus status
 
-Against a **207-program** vintage example corpus, the latest headless sweep:
-~**92 programs (44%) now reach their real interactive/compute logic** — up
-from **4** at the start of the project. The remaining wall is mostly the
-`SCREEN`/graphics family and the interactive headless artifacts, not the engine.
+Against the vintage example corpus, the latest headless sweep: **~half the
+programs now reach their real interactive/compute logic** — up from **4** at
+the start of the project. The remaining wall is the long tail of vintage
+syntax plus `DATE$`/`TIME$` (port-gated), not the engine.
 
 ---
 
@@ -237,9 +239,10 @@ docs/              architecture & internals write-ups
 The engine is solid: full expression evaluation, control flow, arrays,
 complete file I/O (sequential + random-access records), and runtime
 error trapping all work and are regression-tested at ~1,000 assertions green.
-The frontier is the **`SCREEN`/graphics family** and a few remaining handlers
+The frontier is the long tail of vintage syntax and a few remaining handlers
 (`POS`, `FRE`, `CSRLIN`) — plus `DATE$`/`TIME$` once the cmd port grows
-`%DATE%`/`%TIME%`.
+`%DATE%`/`%TIME%`. Graphics is intentionally out of scope: a terminal has no
+framebuffer, so entering a graphics mode errors cleanly.
 
 Built and tested on macOS via the [Go cmd port](https://github.com/esix/cmd);
 the same `.bat` files run on Windows and Linux.

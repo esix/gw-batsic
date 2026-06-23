@@ -43,7 +43,7 @@ the "batch interpreter" scope.
 
 | Keyword | What it did |
 |---|---|
-| `SCREEN mode` | Switch between text and graphics modes: 40×25 text, 80×25 text, 320×200 4-colour CGA, 640×200 mono, 640×350 16-colour EGA, 640×480 VGA. |
+| `SCREEN mode` | Switch between text and graphics modes: 40×25 text, 80×25 text, 320×200 4-colour CGA, 640×200 mono, 640×350 16-colour EGA, 640×480 VGA. **`SCREEN 0` (text) is accepted as a no-op; a graphics mode (>0) errors with code 73 (Advanced Feature).** |
 | `LINE (x1,y1)-(x2,y2) [, c [, B[F]]]` | Draw a line, or a hollow/filled rectangle when `B`/`BF` is given. |
 | `CIRCLE (x,y), r [, c [, start, end [, aspect]]]` | Draw a circle, arc, or ellipse. |
 | `DRAW "U10 R10 D10 L10 BM x,y …"` | Turtle-style drawing from a command string. |
