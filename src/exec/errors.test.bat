@@ -101,6 +101,13 @@ call %test% "err.unknown.rtl.is.advanced.feature"
   call :_addLine "10 X = PEEK(0)"
   call :_progErr 73 10
 
+call %test% "err.screen.graphics.mode.advanced.feature"
+  @REM SCREEN 0 = text (no-op); a graphics mode (>0) is not implementable in a
+  @REM terminal, so entering it fails with code 73 (Advanced Feature).
+  call :_clear
+  call :_addLine "10 SCREEN 2"
+  call :_progErr 73 10
+
 
 @REM ============================================================
 @REM  Control flow: IF / ELSE / IF_GOTO

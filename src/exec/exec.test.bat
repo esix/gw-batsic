@@ -164,6 +164,13 @@ call %test% "stmt.width.noop"
 call %test% "stmt.width.device"
   call :_run "WIDTH 80,25:PRINT 9" " 9"
 
+call %test% "stmt.screen.text.noop"
+  @REM SCREEN 0 is text mode -> accepted no-op (SCREEN n>0 errors; see errors.test).
+  call :_run "SCREEN 0:PRINT 7" " 7"
+
+call %test% "stmt.screen.text.extra.args"
+  call :_run "SCREEN 0,0,0:PRINT 8" " 8"
+
 call %test% "stmt.defint.truncates"
   @REM DEFINT X makes X integer; 3.7 -> 3.  Reset with DEFSNG so the shared
   @REM _deftypes table does not leak into later :_run tests.
