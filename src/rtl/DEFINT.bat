@@ -7,7 +7,8 @@ set "_s=%~1"
 call %GWSRC%\stl\vec pop %_s% _end
 call %GWSRC%\stl\vec pop %_s% _start
 @REM Extract letter from VAR_UNK_X
-set "_fl=!_start:~8,1!"
+if not defined _start set "_start=!_end!"
+  set "_fl=!_start:~8,1!"
 set "_tl=!_end:~8,1!"
 if not defined _tl set "_tl=!_fl!"
 call %GWSRC%\exec\_vars defrange !_fl! !_tl! i

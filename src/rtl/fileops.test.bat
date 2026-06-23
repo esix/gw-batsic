@@ -259,6 +259,27 @@ call %test% "stmt.onerror.traps.and.resumes"
   call :_foRunOK
   call :_foLine1 "%GWTEMP%\fo_o.txt" "trapped 53at 20"
 
+@REM --- IF ... :ELSE (colon before ELSE, THEN-line and GOTO-line forms) ---
+call %test% "stmt.if.then.num.colon.else"
+  del /Q "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 IF 1=2 THEN 100:ELSE 200
+  >>"%GWTEMP%\fo.bas" echo 30 END
+  >>"%GWTEMP%\fo.bas" echo 100 PRINT #1,"THEN":CLOSE:END
+  >>"%GWTEMP%\fo.bas" echo 200 PRINT #1,"ELSE":CLOSE:END
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "ELSE"
+
+call %test% "stmt.if.goto.num.colon.else"
+  del /Q "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 IF 1=1 GOTO 100:ELSE 200
+  >>"%GWTEMP%\fo.bas" echo 30 END
+  >>"%GWTEMP%\fo.bas" echo 100 PRINT #1,"THEN":CLOSE:END
+  >>"%GWTEMP%\fo.bas" echo 200 PRINT #1,"ELSE":CLOSE:END
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "THEN"
+
 @REM --- CHAIN: load another program preserving variables ---
 call %test% "stmt.chain.preserves.vars"
   del /Q "%GWTEMP%\fo_o.txt" "%GWTEMP%\fo2.bas" >nul 2>nul
