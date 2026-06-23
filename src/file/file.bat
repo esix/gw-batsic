@@ -30,14 +30,19 @@ goto :%_fn%
   setlocal EnableDelayedExpansion
   set "_path=%~1"
   if not exist "!_path!" (echo File not found: !_path! 1>&2 & endlocal & exit /B 1)
-  @REM Clear existing program; loaded lines replace it.
-  call %GWSRC%\exec\_program init
-  @REM Detect tokenized binary (first byte 0xFF) vs plain ASCII.
-  call %GWSRC%\file\_binary isBinary "!_path!"
-  if not errorlevel 1 (
-    call %GWSRC%\file\_binary detokenize "!_path!"
-    endlocal
-    exit /B 0
+  @REM Replace the current program — unless merging (CHAIN MERGE overlays the
+  @REM file's lines onto the current program; same-numbered lines overwrite).
+  if not defined _mergemode call %GWSRC%\exec\_program init
+  if defined _mergemode if not "!_mergedel!"=="" call :_mergeDelete !_mergedel!
+  @REM Detect tokenized binary (first byte 0xFF) vs plain ASCII.  MERGE requires
+  @REM an ASCII source, so skip the binary path when merging.
+  if not defined _mergemode (
+    call %GWSRC%\file\_binary isBinary "!_path!"
+    if not errorlevel 1 (
+      call %GWSRC%\file\_binary detokenize "!_path!"
+      endlocal
+      exit /B 0
+    )
   )
   @REM ASCII path: encode to hex first, then split on line boundaries.
   set "_hf=%TEMP%\_gwbas_loadasc.hex"
@@ -88,6 +93,33 @@ goto :%_fn%
   goto :_load_line
 :_load_done
   endlocal
+  exit /B 0
+
+
+@REM --- loadmerge PATH [lo hi]: overlay PATH's lines onto the current program
+@REM (CHAIN MERGE), optionally deleting line range lo..hi first.  Same line
+@REM parsing as :load, but additive (no _program init). ---
+:loadmerge
+  setlocal EnableDelayedExpansion
+  set "_mergemode=1"
+  set "_mergedel=%~2"
+  call %GWSRC%\file\file load "%~1"
+  set "_r=!ERRORLEVEL!"
+  endlocal & exit /B %_r%
+
+@REM --- _mergeDelete lo hi: drop program lines whose number is in [lo,hi] ---
+:_mergeDelete
+  set "_dlo=00000%~1" & set "_dlo=!_dlo:~-5!"
+  set "_dhi=00000%~2" & set "_dhi=!_dhi:~-5!"
+  set "_mpf=%GWTEMP%\program.dat"
+  set "_mtmp=%GWTEMP%\_merge.tmp"
+  type nul > "!_mtmp!"
+  for /f "usebackq tokens=1,* delims= " %%a in ("!_mpf!") do (
+    set "_keep=1"
+    if not "%%a" LSS "!_dlo!" if not "%%a" GTR "!_dhi!" set "_keep="
+    if defined _keep echo %%a %%b>> "!_mtmp!"
+  )
+  move /Y "!_mtmp!" "!_mpf!" >nul
   exit /B 0
 
 

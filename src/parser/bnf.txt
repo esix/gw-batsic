@@ -78,6 +78,7 @@ Stmt          ::= NameStmt
 Stmt          ::= RESET @RESET
 Stmt          ::= WidthStmt
 Stmt          ::= ClearStmt
+Stmt          ::= ChainStmt
 Stmt          ::= MidStmt
 Stmt          ::= FieldStmt
 Stmt          ::= GetStmt
@@ -348,6 +349,23 @@ ClearRest     ::= COMA ClearOpt ClearRest
 ClearRest     ::= e
 ClearOpt      ::= Expr
 ClearOpt      ::= e
+
+; --- CHAIN [MERGE] file[, [line][, ALL][, DELETE lo-hi]] ---
+;   Loads/overlays another program, PRESERVING variables (unlike RUN).  The
+;   filename and the optional start line are pushed; ALL is accepted (we always
+;   preserve all variables); @CHAIN_DEL captures a MERGE delete-range; the line
+;   slot defaults to @CHAIN_NOLINE (CHAIN_NIL) so @CHAIN always sees a line.
+ChainStmt     ::= CHAIN ChainKind
+ChainKind     ::= MERGE Expr ChainLine @CHAIN_MERGE
+ChainKind     ::= Expr ChainLine @CHAIN
+ChainLine     ::= COMA ChainLineVal ChainSkip
+ChainLine     ::= @CHAIN_NOLINE
+ChainLineVal  ::= Expr
+ChainLineVal  ::= @CHAIN_NOLINE
+ChainSkip     ::= COMA ChainSkip
+ChainSkip     ::= ALL ChainSkip
+ChainSkip     ::= DELETE NUM MINUS NUM @CHAIN_DEL ChainSkip
+ChainSkip     ::= e
 
 ; --- MID$ statement (left-side substring assignment) ---
 ;   MID$(target$, start [, len]) = value  overwrites up to `len` chars of

@@ -103,6 +103,7 @@ goto :%_fn%
   set "_k_BB=CLOSE"  & set "_c_CLOSE=BB"
   set "_k_BC=LOAD"   & set "_c_LOAD=BC"
   set "_k_BD=MERGE"  & set "_c_MERGE=BD"
+  set "_k_B4=ALL"    & set "_c_ALL=B4"
   set "_k_BE=SAVE"   & set "_c_SAVE=BE"
   set "_k_BF=COLOR"  & set "_c_COLOR=BF"
   set "_k_C0=CLS"    & set "_c_CLS=C0"

@@ -259,6 +259,29 @@ call %test% "stmt.onerror.traps.and.resumes"
   call :_foRunOK
   call :_foLine1 "%GWTEMP%\fo_o.txt" "trapped 53at 20"
 
+@REM --- CHAIN: load another program preserving variables ---
+call %test% "stmt.chain.preserves.vars"
+  del /Q "%GWTEMP%\fo_o.txt" "%GWTEMP%\fo2.bas" >nul 2>nul
+  > "%GWTEMP%\fo2.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo2.bas" echo 20 PRINT #1,X
+  >>"%GWTEMP%\fo2.bas" echo 30 CLOSE #1
+  > "%GWTEMP%\fo.bas" echo 10 X=42
+  >>"%GWTEMP%\fo.bas" echo 20 CHAIN "%GWTEMP%\fo2.bas"
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" " 42"
+
+call %test% "stmt.chain.missing.file.traps"
+  @REM CHAIN to a nonexistent file raises 53, trappable by ON ERROR.
+  del /Q "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 ON ERROR GOTO 100
+  >>"%GWTEMP%\fo.bas" echo 20 CHAIN "%GWTEMP%\nope.bas"
+  >>"%GWTEMP%\fo.bas" echo 30 OPEN "O",#1,"%GWTEMP%\fo_o.txt":PRINT #1,ERR:CLOSE:END
+  >>"%GWTEMP%\fo.bas" echo 100 RESUME 30
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" " 53"
+
+del /Q "%GWTEMP%\fo2.bas" >nul 2>nul
+
 @REM --- DEF FN with string return + string/numeric params ---
 call %test% "fn.deffn.string"
   del "%GWTEMP%\deffns.dat" >nul 2>nul

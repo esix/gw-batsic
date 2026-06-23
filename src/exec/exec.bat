@@ -198,6 +198,9 @@ goto :%_fn%
     & set "_resume_advance=%_resume_advance%" ^
     & set "_run_file=%_run_file%" ^
     & set "_run_line=%_run_line%" ^
+    & set "_chain_keep=%_chain_keep%" ^
+    & set "_chain_merge=%_chain_merge%" ^
+    & set "_chain_del=%_chain_del%" ^
     & set "_err_code=%_err_code%" ^
     & set "_err_line=%_err_line%" ^
     & exit /B %_err%
@@ -319,8 +322,10 @@ goto :%_fn%
 @REM and the pre-parsed line cache (_ppfx_/_pnext_, _runFirst, _runFatal).
 @REM A pending _run_line (RUN <num>) overrides the start line.
 :_runInit
-  call %GWSRC%\exec\_vars init
-  call %GWSRC%\exec\_arrays init
+  @REM CHAIN preserves variables and arrays (GW dummy: we always pass ALL);
+  @REM _chain_keep, set by CHAIN/CHAIN_MERGE, suppresses the usual clearing.
+  if not defined _chain_keep call %GWSRC%\exec\_vars init
+  if not defined _chain_keep call %GWSRC%\exec\_arrays init
   call %GWSRC%\exec\_files init
   if exist "%GWTEMP%\deffns.dat" del "%GWTEMP%\deffns.dat"
   set "_print_path="
@@ -344,6 +349,9 @@ goto :%_fn%
   set "_next_line=!_runFirst!"
   if defined _run_line set "_next_line=!_run_line!"
   set "_run_line="
+  set "_chain_keep="
+  set "_chain_merge="
+  set "_chain_del="
   exit /B 0
 
 
@@ -352,13 +360,24 @@ goto :%_fn%
 @REM _run_line: start there.  Either way variables clear, caches rebuild.
 :_runProg_restart
   if defined _run_file (
-    call %GWSRC%\file\file load "!_run_file!"
+    if defined _chain_merge (
+      @REM CHAIN MERGE: overlay the file's lines onto the current program
+      @REM (optionally deleting a line range first) instead of replacing it.
+      call %GWSRC%\file\file loadmerge "!_run_file!" "!_chain_del!"
+    ) else (
+      call %GWSRC%\file\file load "!_run_file!"
+    )
     if errorlevel 1 (
-      set "_err_code=53"
-      set "_err_line=!_cur_line!"
+      @REM File not found: surface as error 53.  The current program is still
+      @REM loaded (the load failed), so route through the error-trap path so an
+      @REM ON ERROR handler can catch it (e.g. CHAIN to a missing overlay).
       set "_run_file="
       set "_run_line="
-      goto :_runProg_done
+      set "_chain_keep="
+      set "_chain_merge="
+      set "_chain_del="
+      set "_e=53"
+      goto :_runProg_err
     )
   )
   set "_run_file="
