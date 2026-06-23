@@ -259,6 +259,16 @@ call %test% "stmt.onerror.traps.and.resumes"
   call :_foRunOK
   call :_foLine1 "%GWTEMP%\fo_o.txt" "trapped 53at 20"
 
+@REM --- DEF FN with string return + string/numeric params ---
+call %test% "fn.deffn.string"
+  del "%GWTEMP%\deffns.dat" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 DEF FNB$(S$,N)=LEFT$(S$,N)
+  >>"%GWTEMP%\fo.bas" echo 20 OPEN "O",#1,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 30 PRINT #1,FNB$("HELLO",3)
+  >>"%GWTEMP%\fo.bas" echo 40 CLOSE #1
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "HEL"
+
 @REM --- MID$ statement (left-side substring assignment) ---
 call %test% "stmt.mid.assign"
   > "%GWTEMP%\fo.bas" echo 10 A$="HELLO"

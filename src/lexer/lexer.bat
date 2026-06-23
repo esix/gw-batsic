@@ -194,6 +194,17 @@ goto :%_fn%
         set "acc=!acc!."
         goto :_Loop
       )
+      @REM FN function reference: a glued name like FNA / FNFILL$ is the FN
+      @REM keyword followed by the function-name variable (FN alone stays the
+      @REM keyword).  Split it here so `FNA(5)` lexes like `FN A(5)`; the
+      @REM remaining name then goes through the normal suffix/keyword handling.
+      if "!acc:~0,2!"=="FN" if not "!acc!"=="FN" (
+        call %GWSRC%\lexer\keyword isKeyword !acc!
+        if ERRORLEVEL 1 (
+          set "tokens=!tokens! FN"
+          set "acc=!acc:~2!"
+        )
+      )
       @REM $ (0x24) - string type suffix.
       @REM Keyword table is keyed WITH the $ (e.g. _ks_CHR$=1), and the
       @REM parser grammar uses the literal CHR$/STR$/HEX$/... terminals,

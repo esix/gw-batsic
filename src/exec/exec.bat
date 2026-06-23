@@ -37,6 +37,17 @@ goto :%_fn%
     set "_postfix=%%b"
   )
 
+  @REM ---- DEF FN body capture: collect the body postfix verbatim (do NOT
+  @REM execute it) from @DEFFN_CAP up to @DEF_FN, which stores it as a template.
+  if defined _capMode (
+    if "!_tok!"=="DEF_FN" (
+      set "_capMode="
+    ) else (
+      set "_capBuf=!_capBuf! !_tok!"
+      goto :_run_loop
+    )
+  )
+
   @REM ---- Skip mode: scan forward to matching ELSE / ENDIF ----
   if defined _skipMode (
     if "!_tok!"=="IF" (
@@ -109,6 +120,12 @@ goto :%_fn%
     if "!_tt!"=="s" call %GWSRC%\num\sng toDec !_t!
     if "!_tt!"=="d" call %GWSRC%\num\dbl toDec !_t!
     set "_next_line=!__!"
+    goto :_run_loop
+  )
+  if "!_tok!"=="DEFFN_CAP" (
+    @REM Start capturing the DEF FN body (see the capture block above).
+    set "_capMode=1"
+    set "_capBuf="
     goto :_run_loop
   )
 
@@ -200,6 +217,37 @@ goto :%_fn%
   endlocal & set "%~2=%_r%" & exit /B 0
 
 
+@REM --- evalExpr POSTFIX retVar: evaluate a pure-expression postfix stream on
+@REM a private stack and return the single result value.  Used by @CALL_FN to
+@REM run a DEF FN body (which contains only values + operator/function actions,
+@REM no control flow).  Errorlevel is the GW-BASIC error code from any RTL.
+:evalExpr
+  setlocal EnableDelayedExpansion
+  set "_xpf=%~1"
+  set "_xstk="
+  set "_xe=0"
+:_xev_loop
+  if not defined _xpf goto :_xev_end
+  if "!_xpf!"=="" goto :_xev_end
+  if !_xe! neq 0 goto :_xev_end
+  for /f "tokens=1*" %%a in ("!_xpf!") do (set "_xtok=%%a" & set "_xpf=%%b")
+  set "_xtp=!_xtok:~0,4!"
+  if "!_xtp!"=="NUM_" (call %GWSRC%\stl\vec push _xstk !_xtok:~4! & goto :_xev_loop)
+  if "!_xtp!"=="VAR_" (call %GWSRC%\stl\vec push _xstk !_xtok! & goto :_xev_loop)
+  if "!_xtp!"=="STR_" (call %GWSRC%\stl\vec push _xstk !_xtok! & goto :_xev_loop)
+  if exist "%GWSRC%\rtl\!_xtok!.bat" (
+    call %GWSRC%\rtl\!_xtok!.bat _xstk
+    set "_xe=!ERRORLEVEL!"
+    goto :_xev_loop
+  )
+  set "_xe=73"
+  goto :_xev_loop
+:_xev_end
+  set "_xres="
+  call %GWSRC%\stl\vec pop _xstk _xres
+  endlocal & set "%~2=%_xres%" & exit /B %_xe%
+
+
 @REM --- runProgram: execute the stored program from lowest line number ---
 @REM Iterates lines via _next_line; RTLs (GOTO/GOSUB/RETURN) override it.
 :runProgram
@@ -274,6 +322,7 @@ goto :%_fn%
   call %GWSRC%\exec\_vars init
   call %GWSRC%\exec\_arrays init
   call %GWSRC%\exec\_files init
+  if exist "%GWTEMP%\deffns.dat" del "%GWTEMP%\deffns.dat"
   set "_print_path="
   set "_input_fh="
   set "_on_error_line="
@@ -514,6 +563,7 @@ goto :%_fn%
   call %GWSRC%\exec\_vars init
   call %GWSRC%\exec\_arrays init
   call %GWSRC%\exec\_files init
+  if exist "%GWTEMP%\deffns.dat" del "%GWTEMP%\deffns.dat"
   set "_print_path="
   set "_input_fh="
   set "_on_error_line="
@@ -536,6 +586,7 @@ goto :%_fn%
   call %GWSRC%\exec\_vars init
   call %GWSRC%\exec\_arrays init
   call %GWSRC%\exec\_files init
+  if exist "%GWTEMP%\deffns.dat" del "%GWTEMP%\deffns.dat"
   set "_print_path="
   set "_input_fh="
   set "_on_error_line="

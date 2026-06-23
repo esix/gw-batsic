@@ -134,6 +134,26 @@ call %test% "stmt.erase.then.redim"
   call :_run "DIM E(2):E(1)=5:ERASE E:DIM E(3):PRINT E(1)" " 0"
 
 
+@REM --- DEF FN user functions (glued FNname, single/multi-param, save/restore) ---
+
+call %test% "fn.deffn.simple"
+  call :_run "DEF FNA(X)=X*2:PRINT FNA(5)" " 10"
+
+call %test% "fn.deffn.multiparam"
+  call :_run "DEF FNS(A,B)=A+B*2:PRINT FNS(10,5)" " 20"
+
+call %test% "fn.deffn.body.uses.global"
+  call :_run "K=10:DEF FNG(X)=X+K:PRINT FNG(5)" " 15"
+
+call %test% "fn.deffn.restores.param.var"
+  @REM The param shadows the global X only during evaluation (dummy-variable
+  @REM model); X keeps its outer value 99 afterward.
+  call :_run "X=99:DEF FNQ(X)=X*X:Y=FNQ(4):PRINT X" " 99"
+
+call %test% "fn.deffn.nested.call"
+  call :_run "DEF FND(X)=X*2:DEF FNE(X)=FND(X)+1:PRINT FNE(3)" " 7"
+
+
 @REM ============================================================
 @REM  WIDTH (no-op) / DEFINT type-range  (MID$ statement: fileops.test.bat)
 @REM ============================================================

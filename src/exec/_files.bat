@@ -23,6 +23,11 @@ goto :%_ffn%
 :clear
 :closeall
   type nul > "%GWTEMP%\files.dat"
+  @REM Releasing all handles also releases every FIELD live-window registration
+  @REM and its record buffer; a stale fields.dat entry would otherwise make
+  @REM _resolve intercept a later same-named ordinary variable.
+  if exist "%GWTEMP%\fields.dat" del "%GWTEMP%\fields.dat"
+  del "%GWTEMP%\recbuf_*.hex" >nul 2>nul
   exit /B 0
 
 

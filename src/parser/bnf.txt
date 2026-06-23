@@ -253,7 +253,10 @@ EndStmt       ::= END @END
 
 ; --- DEF FN ---
 DefStmt       ::= DEF DefWhat
-DefWhat       ::= FN VAR OPAR VarList CPAR EQ Expr @DEF_FN
+DefWhat       ::= FN VAR @PARAM_MARK OPAR DefParams CPAR EQ @DEFFN_CAP Expr @DEF_FN
+DefParams     ::= VAR DefParamRest
+DefParamRest  ::= COMA VAR DefParamRest
+DefParamRest  ::= e
 DefTypeStmt   ::= DEFINT LetterRange @DEFINT
 DefTypeStmt   ::= DEFSNG LetterRange @DEFSNG
 DefTypeStmt   ::= DEFDBL LetterRange @DEFDBL
@@ -545,7 +548,7 @@ ArrayIndex    ::= @ARR_START OPAR ExprList CPAR @AIDX
 ArrayIndex    ::= e
 
 ; --- FN user function call ---
-FnCall        ::= FN VAR OPAR ExprList CPAR @CALL_FN
+FnCall        ::= FN VAR @ARG_MARK OPAR ExprList CPAR @CALL_FN
 
 ; --- Built-in function calls ---
 BuiltinCall   ::= EofFn

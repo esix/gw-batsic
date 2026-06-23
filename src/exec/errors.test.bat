@@ -94,10 +94,11 @@ call %test% "err.stop.is.not.an.error"
 @REM ============================================================
 
 call %test% "err.unknown.rtl.is.advanced.feature"
-  @REM Pick something the grammar accepts but no RTL implements — DEF FN does.
+  @REM Pick something the grammar accepts but no RTL implements.  PEEK reads
+  @REM physical memory — not implementable in batch, so it stays unimplemented.
   @REM Should surface as code 73 ("Advanced Feature"), not code 1.
   call :_clear
-  call :_addLine "10 DEF FN F(X) = X + 1"
+  call :_addLine "10 X = PEEK(0)"
   call :_progErr 73 10
 
 
