@@ -116,6 +116,7 @@ full sequential **and** random-access file I/O surface is complete.
 | **Strings** | `LEN VAL STR$ ASC CHR$ LEFT$ RIGHT$ MID$ SPACE$ STRING$ INSTR HEX$ OCT$`, `MID$(a$,n)=...` statement form, `TAB( SPC(`, `+` concatenation. |
 | **Control flow** | `IF…THEN…ELSE`, `IF…GOTO`, `FOR/TO/STEP/NEXT` (incl. single-line & `NEXT i,j`), `WHILE/WEND`, `GOTO`, `GOSUB/RETURN`, `ON…GOTO`, `ON…GOSUB`, `END`, `STOP`, `:` separators. |
 | **Arrays** | `DIM` (multi-dimensional, multiple per statement), element read/write, `READ`/`INPUT` into elements, `ERASE`, `SWAP` (scalars & array elements). |
+| **User functions** | `DEF FN` — glued `FNname`, multiple/typed params, string returns, body refs to globals, nested `FN` calls (params save/restore). |
 | **Console** | `PRINT` (zones, `;`/`,`, juxtaposition), `PRINT USING`, `LPRINT`, `?`, `INPUT` (all prompt forms), `LINE INPUT`, `READ/DATA/RESTORE`, `CLS`, `BEEP`, `LOCATE`, `COLOR` (CGA→ANSI), `KEY` on/off/list/set, `INKEY$`, `WIDTH`. |
 | **Files — sequential** | `OPEN` (all three syntaxes), `CLOSE`/`RESET`, `PRINT #`, `WRITE #`, `INPUT #`, `LINE INPUT #`, `EOF`, `LOF`. |
 | **Files — random** | `FIELD … AS` (live-window record buffers), `LSET`/`RSET`, `GET`/`PUT` with byte-seek, `MKI$/MKS$/MKD$` ↔ `CVI/CVS/CVD`. |
@@ -134,7 +135,6 @@ full sequential **and** random-access file I/O surface is complete.
   `~/pro/cmd/issues/006`; once the port exposes them, these are a quick add.
 - **`CHAIN` / `CHAIN MERGE`** — program-to-program chaining (vintage menu
   systems).
-- **`DEF FN`** user-defined functions — parses but the handler is missing.
 - **Cheap missing handlers** — `POS`, `FRE`, `CSRLIN`: the grammar accepts
   them, they just need a small RTL each (currently raise *"Advanced Feature"*).
 
@@ -161,7 +161,7 @@ behaves correctly as the last statement on a line); `PRINT USING` omits the
 Against a **207-program** vintage example corpus, the latest headless sweep:
 ~**92 programs (44%) now reach their real interactive/compute logic** — up
 from **4** at the start of the project. The remaining wall is grammar gaps
-(`CHAIN`, the `SCREEN` function, `DEF FN`), not the engine.
+(`CHAIN`, the `SCREEN` function), not the engine.
 
 ---
 
@@ -240,7 +240,7 @@ The engine is solid: full expression evaluation, control flow, arrays,
 complete file I/O (sequential + random-access records), and runtime
 error trapping all work and are regression-tested at ~1,000 assertions green.
 The frontier is **grammar coverage** of the long tail of vintage statements
-(`CHAIN`, `DEF FN`) and a few remaining function handlers (`POS`, `FRE`,
+(`CHAIN`, the `SCREEN` function) and a few remaining handlers (`POS`, `FRE`,
 `CSRLIN`) — plus `DATE$`/`TIME$` once the cmd port grows `%DATE%`/`%TIME%`.
 
 Built and tested on macOS via the [Go cmd port](https://github.com/esix/cmd);
