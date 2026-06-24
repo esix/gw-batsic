@@ -81,6 +81,19 @@ goto :%_fn%
   exit /B 0
 
 
+@REM --- listRange LO HI: list program lines whose number is in [LO,HI] ---
+:listRange
+  setlocal EnableDelayedExpansion
+  set "_lo=00000%~1" & set "_lo=!_lo:~-5!"
+  set "_hi=00000%~2" & set "_hi=!_hi:~-5!"
+  set "_pf=%GWTEMP%\program.dat"
+  for /f "usebackq tokens=1,* delims= " %%a in (`sort "!_pf!"`) do (
+    if not "%%a" LSS "!_lo!" if not "%%a" GTR "!_hi!" call %GWSRC%\lexer\unlexer print "%%b"
+  )
+  endlocal
+  exit /B 0
+
+
 @REM --- get NUM retVar: return tokens for line NUM (empty if not found) ---
 :get
   setlocal EnableDelayedExpansion

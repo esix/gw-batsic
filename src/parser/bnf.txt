@@ -79,6 +79,7 @@ Stmt          ::= RESET @RESET
 Stmt          ::= WidthStmt
 Stmt          ::= ClearStmt
 Stmt          ::= ChainStmt
+Stmt          ::= ListStmt
 Stmt          ::= MidStmt
 Stmt          ::= FieldStmt
 Stmt          ::= GetStmt
@@ -374,6 +375,18 @@ ChainSkip     ::= COMA ChainSkip
 ChainSkip     ::= ALL ChainSkip
 ChainSkip     ::= DELETE NUM MINUS NUM @CHAIN_DEL ChainSkip
 ChainSkip     ::= e
+
+; --- LIST [n][-][m] : list program lines (n-m / n- / -m / n / all).  Like
+;   GW-BASIC, listing returns to command level, so @LIST halts (flow 99).
+;   Omitted start -> LIST_MIN sentinel (line 0); omitted end -> LIST_MAX.
+ListStmt      ::= LIST ListArgs @LIST
+ListArgs      ::= NUM ListAfterNum
+ListArgs      ::= MINUS @LIST_PUSH0 NUM
+ListArgs      ::= @LIST_AE
+ListAfterNum  ::= MINUS ListEnd
+ListAfterNum  ::= @LIST_DUP
+ListEnd       ::= NUM
+ListEnd       ::= @LIST_MAX
 
 ; --- MID$ statement (left-side substring assignment) ---
 ;   MID$(target$, start [, len]) = value  overwrites up to `len` chars of

@@ -259,6 +259,17 @@ call %test% "stmt.onerror.traps.and.resumes"
   call :_foRunOK
   call :_foLine1 "%GWTEMP%\fo_o.txt" "trapped 53at 20"
 
+@REM --- LIST [n-m] : list lines then halt (GW returns to command level) ---
+call %test% "stmt.list.lists.then.halts"
+  @REM line 10 writes BEFORE; line 20 LISTs and halts; line 30 (would overwrite
+  @REM with AFTER) never runs -> the file still says BEFORE.
+  del /Q "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_o.txt":PRINT #1,"BEFORE":CLOSE
+  >>"%GWTEMP%\fo.bas" echo 20 LIST 10-20
+  >>"%GWTEMP%\fo.bas" echo 30 OPEN "O",#1,"%GWTEMP%\fo_o.txt":PRINT #1,"AFTER":CLOSE
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "BEFORE"
+
 @REM --- IF ... :ELSE (colon before ELSE, THEN-line and GOTO-line forms) ---
 call %test% "stmt.if.then.num.colon.else"
   del /Q "%GWTEMP%\fo_o.txt" >nul 2>nul
