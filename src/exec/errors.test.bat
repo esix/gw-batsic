@@ -72,6 +72,31 @@ call %test% "err.line.reported.is.failing.line"
   call :_addLine "30 PRINT A(99)"
   call :_progErr 9 30
 
+call %test% "arr.optionbase.one.lower.bound"
+  @REM OPTION BASE 1 makes 1 the lowest valid subscript; DIM A(3) is 1..3.
+  call :_clear
+  call :_addLine "10 OPTION BASE 1"
+  call :_addLine "20 DIM A(3)"
+  call :_addLine "30 A(1) = 11 : A(3) = 33"
+  call :_addLine "40 PRINT A(1) + A(3)"
+  call :_progOut " 44"
+
+call %test% "arr.optionbase.one.index.zero.out.of.range"
+  @REM With OPTION BASE 1, index 0 is below the lower bound (Subscript err 9).
+  call :_clear
+  call :_addLine "10 OPTION BASE 1"
+  call :_addLine "20 DIM A(3)"
+  call :_addLine "30 PRINT A(0)"
+  call :_progErr 9 30
+
+call %test% "arr.optionbase.zero.default.keeps.index.zero"
+  @REM No OPTION BASE (default 0): index 0 is still valid.
+  call :_clear
+  call :_addLine "10 DIM A(3)"
+  call :_addLine "20 A(0) = 7"
+  call :_addLine "30 PRINT A(0)"
+  call :_progOut " 7"
+
 
 @REM ============================================================
 @REM  No error

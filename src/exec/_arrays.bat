@@ -6,7 +6,8 @@
 @REM where:
 @REM   ARR_TYPE_NAME  — canonical name (ARR_INT_/ARR_SNG_/ARR_DBL_/ARR_STR_)
 @REM   NDIMS          — number of dimensions (1..3)
-@REM   BOUNDi         — upper bound, OPTION BASE 0 (so count is bound+1)
+@REM   BOUNDi         — upper bound; lower bound is _option_base (0 default, or
+@REM                    1 after OPTION BASE 1), so count is bound-_option_base+1
 @REM   V0..Vm         — flat element values in row-major order
 @REM
 @REM Usage:
@@ -102,14 +103,18 @@ goto :%_fn%
   for /f "usebackq tokens=1 delims= " %%a in ("%GWTEMP%\arrays.dat") do (
     if /I "%%a"=="!_n!" (endlocal & exit /B 10)
   )
-  @REM Count bounds and compute total elements
+  @REM Count bounds and compute total elements.  Lower bound is _option_base
+  @REM (0 default, or 1 after OPTION BASE 1): DIM A(10) is 11 elements at base 0,
+  @REM 10 at base 1.  At base 0 the (bi-_obase+1) terms reduce to (bi+1).
+  set "_obase=0"
+  if defined _option_base set "_obase=%_option_base%"
   set "_b1=%~2"
   set "_b2=%~3"
   set "_b3=%~4"
   set /a "_ndims=1"
-  set /a "_count=_b1+1"
-  if defined _b2 (set /a "_ndims=2" & set /a "_count=_count*(_b2+1)")
-  if defined _b3 (set /a "_ndims=3" & set /a "_count=_count*(_b3+1)")
+  set /a "_count=_b1-_obase+1"
+  if defined _b2 (set /a "_ndims=2" & set /a "_count=_count*(_b2-_obase+1)")
+  if defined _b3 (set /a "_ndims=3" & set /a "_count=_count*(_b3-_obase+1)")
   @REM Pick default value based on type
   call :typeof !_n! _tp
   if "!_tp!"=="i" set "_zero=i0000"
@@ -129,10 +134,14 @@ goto :%_fn%
 
 @REM --- _offset NDIMS BOUNDS... INDICES... retVar ---
 @REM Row-major offset for INDICES given BOUNDS. NDIMS controls how many bounds/indices.
-@REM Validates: index in [0, bound]. Returns errorlevel 5 (neg) or 9 (overflow) if bad.
+@REM Validates: index in [_obase, bound]. Returns errorlevel 5 (neg) or 9 (overflow).
+@REM _obase is the OPTION BASE lower bound (0 default); at base 0 every (i-_obase)
+@REM reduces to i and (b-_obase+1) to (b+1), so the storage offsets are unchanged.
 @REM Call: _offset ND B1 [B2 [B3]] I1 [I2 [I3]] retVar
 :_offset
   setlocal EnableDelayedExpansion
+  set "_obase=0"
+  if defined _option_base set "_obase=%_option_base%"
   set "_nd=%~1"
   set "_b1=%~2"
   set "_off="
@@ -145,8 +154,9 @@ goto :%_fn%
   set "_i1=%~3"
   set "_retV=%~4"
   if !_i1! LSS 0 (endlocal & exit /B 5)
+  if !_i1! LSS !_obase! (endlocal & exit /B 9)
   if !_i1! GTR !_b1! (endlocal & exit /B 9)
-  set "_off=%~3"
+  set /a "_off=_i1-_obase"
   goto :_off_ret
 :_off2
   set "_b2=%~3"
@@ -155,9 +165,11 @@ goto :%_fn%
   set "_retV=%~6"
   if !_i1! LSS 0 (endlocal & exit /B 5)
   if !_i2! LSS 0 (endlocal & exit /B 5)
+  if !_i1! LSS !_obase! (endlocal & exit /B 9)
+  if !_i2! LSS !_obase! (endlocal & exit /B 9)
   if !_i1! GTR !_b1! (endlocal & exit /B 9)
   if !_i2! GTR !_b2! (endlocal & exit /B 9)
-  set /a "_off=_i1*(_b2+1)+_i2"
+  set /a "_off=(_i1-_obase)*(_b2-_obase+1)+(_i2-_obase)"
   goto :_off_ret
 :_off3
   set "_b2=%~3"
@@ -169,10 +181,13 @@ goto :%_fn%
   if !_i1! LSS 0 (endlocal & exit /B 5)
   if !_i2! LSS 0 (endlocal & exit /B 5)
   if !_i3! LSS 0 (endlocal & exit /B 5)
+  if !_i1! LSS !_obase! (endlocal & exit /B 9)
+  if !_i2! LSS !_obase! (endlocal & exit /B 9)
+  if !_i3! LSS !_obase! (endlocal & exit /B 9)
   if !_i1! GTR !_b1! (endlocal & exit /B 9)
   if !_i2! GTR !_b2! (endlocal & exit /B 9)
   if !_i3! GTR !_b3! (endlocal & exit /B 9)
-  set /a "_off=(_i1*(_b2+1)+_i2)*(_b3+1)+_i3"
+  set /a "_off=((_i1-_obase)*(_b2-_obase+1)+(_i2-_obase))*(_b3-_obase+1)+(_i3-_obase)"
   goto :_off_ret
 :_off_ret
   endlocal & set "%_retV%=%_off%" & exit /B 0

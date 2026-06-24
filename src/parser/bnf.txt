@@ -80,9 +80,13 @@ Stmt          ::= WidthStmt
 Stmt          ::= ClearStmt
 Stmt          ::= ChainStmt
 Stmt          ::= ListStmt
+Stmt          ::= OptionStmt
 Stmt          ::= DateTimeSet
 DateTimeSet   ::= DATE$ EQ Expr @DATE_SET
 DateTimeSet   ::= TIME$ EQ Expr @TIME_SET
+
+; --- OPTION BASE n : set the array subscript lower bound (0 default, or 1) ---
+OptionStmt    ::= OPTION VAR NUM @OPTION_BASE
 Stmt          ::= MidStmt
 Stmt          ::= FieldStmt
 Stmt          ::= GetStmt

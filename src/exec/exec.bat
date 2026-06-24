@@ -192,6 +192,7 @@ goto :%_fn%
     & set "_input_prompted=%_input_prompted%" ^
     & set "_data_ptr=%_data_ptr%" ^
     & set "_deftypes=%_deftypes%" ^
+    & set "_option_base=%_option_base%" ^
     & set "_on_error_line=%_on_error_line%" ^
     & set "_gw_err=%_gw_err%" ^
     & set "_gw_erl=%_gw_erl%" ^
@@ -331,6 +332,7 @@ goto :%_fn%
   set "_print_path="
   set "_input_fh="
   set "_on_error_line="
+  set "_option_base=0"
   set "_gw_err=0"
   set "_gw_erl=0"
   set "_resume_advance="
@@ -586,6 +588,7 @@ goto :%_fn%
   set "_print_path="
   set "_input_fh="
   set "_on_error_line="
+  set "_option_base=0"
   set "_gw_err=0"
   set "_gw_erl=0"
   set "_resume_advance="
@@ -609,6 +612,7 @@ goto :%_fn%
   set "_print_path="
   set "_input_fh="
   set "_on_error_line="
+  set "_option_base=0"
   set "_gw_err=0"
   set "_gw_erl=0"
   set "_resume_advance="
