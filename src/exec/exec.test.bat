@@ -190,6 +190,27 @@ call %test% "num.suffix.single.in.comparison"
   @REM the suffix literal must not leak a stray token inside an expression.
   call :_run "PRINT 5 < 1000000!" "-1"
 
+
+@REM --- DATE$ / TIME$ (live host clock; test structure, not the value) ---
+
+call %test% "fn.date.format.length"
+  call :_run "PRINT LEN(DATE$)" " 10"
+
+call %test% "fn.date.format.separators"
+  @REM MM-DD-YYYY : dashes at positions 3 and 6.
+  call :_run "PRINT MID$(DATE$,3,1)+MID$(DATE$,6,1)" "--"
+
+call %test% "fn.time.format.length"
+  call :_run "PRINT LEN(TIME$)" " 8"
+
+call %test% "fn.time.format.separators"
+  @REM HH:MM:SS : colons at positions 3 and 6.
+  call :_run "PRINT MID$(TIME$,3,1)+MID$(TIME$,6,1)" "::"
+
+call %test% "stmt.timeset.is.noop"
+  @REM TIME$ = expr is accepted (cannot set the host clock) and does not error.
+  call :_run "TIME$=A$:PRINT 5" " 5"
+
 call %test% "stmt.defint.truncates"
   @REM DEFINT X makes X integer; 3.7 -> 3.  Reset with DEFSNG so the shared
   @REM _deftypes table does not leak into later :_run tests.

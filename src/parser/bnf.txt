@@ -80,6 +80,9 @@ Stmt          ::= WidthStmt
 Stmt          ::= ClearStmt
 Stmt          ::= ChainStmt
 Stmt          ::= ListStmt
+Stmt          ::= DateTimeSet
+DateTimeSet   ::= DATE$ EQ Expr @DATE_SET
+DateTimeSet   ::= TIME$ EQ Expr @TIME_SET
 Stmt          ::= MidStmt
 Stmt          ::= FieldStmt
 Stmt          ::= GetStmt
@@ -635,6 +638,8 @@ BuiltinCall   ::= VarPtrFn
 BuiltinCall   ::= ERL @FN_ERL
 BuiltinCall   ::= ERR @FN_ERR
 BuiltinCall   ::= CSRLIN @FN_CSRLIN
+BuiltinCall   ::= DATE$ @FN_DATE
+BuiltinCall   ::= TIME$ @FN_TIME
 BuiltinCall   ::= TIMER @FN_TIMER
 
 ; 1-arg numeric functions
