@@ -113,6 +113,7 @@ full sequential **and** random-access file I/O surface is complete.
 | **Numbers** | Integer `%`, single `!`, double `#` — genuine **Microsoft Binary Format** floats (not IEEE 754), built from 4-bit→64-bit hex arithmetic. `+ - * / \ MOD ^`, unary `-`, round-to-nearest. |
 | **Comparisons / logic** | `= < > <= >= <>`, `AND OR NOT XOR EQV IMP`, full precedence ladder. |
 | **Math functions** | `ABS INT FIX SGN SQR SIN COS TAN ATN LOG EXP` (pure-batch Taylor series + range reduction), `RND`, `RANDOMIZE`, `CINT CSNG CDBL`, `TIMER`. |
+| **Date / time** | `DATE$` (`MM-DD-YYYY`), `TIME$` (`HH:MM:SS`) from the host clock; `DATE$=`/`TIME$=` accepted (host clock not settable). |
 | **Strings** | `LEN VAL STR$ ASC CHR$ LEFT$ RIGHT$ MID$ SPACE$ STRING$ INSTR HEX$ OCT$`, `MID$(a$,n)=...` statement form, `TAB( SPC(`, `+` concatenation. |
 | **Control flow** | `IF…THEN…ELSE`, `IF…GOTO`, `FOR/TO/STEP/NEXT` (incl. single-line & `NEXT i,j`), `WHILE/WEND`, `GOTO`, `GOSUB/RETURN`, `ON…GOTO`, `ON…GOSUB`, `END`, `STOP`, `:` separators. |
 | **Arrays** | `DIM` (multi-dimensional, multiple per statement), element read/write, `READ`/`INPUT` into elements, `ERASE`, `SWAP` (scalars & array elements). |
@@ -130,11 +131,10 @@ full sequential **and** random-access file I/O surface is complete.
 
 **Not implemented (planned):**
 
-- **`DATE$` / `TIME$`** — ⛔ *blocked on the cmd port*: the Go port returns
-  empty `%DATE%`/`%TIME%` (real `cmd.exe` populates them). Tracked in
-  `~/pro/cmd/issues/006`; once the port exposes them, these are a quick add.
 - **Cheap missing handlers** — `POS`, `FRE`, `CSRLIN`: the grammar accepts
   them, they just need a small RTL each (currently raise *"Advanced Feature"*).
+- **A few one-off vintage forms** — `INPUT ;"p"` (leading semicolon), `LOC()`,
+  two-word `GO TO`, the `SCREEN()` read-char function (needs a shadow buffer).
 
 **Not implementable in batch** (by nature — see
 [`docs/99-not-implementable.md`](docs/99-not-implementable.md)):
@@ -161,7 +161,7 @@ behaves correctly as the last statement on a line); `PRINT USING` omits the
 Against the vintage example corpus, the latest headless sweep: **~half the
 programs now reach their real interactive/compute logic** — up from **4** at
 the start of the project. The remaining wall is the long tail of vintage
-syntax plus `DATE$`/`TIME$` (port-gated), not the engine.
+syntax (a handful of one-off vintage forms), not the engine.
 
 ---
 
@@ -240,8 +240,8 @@ The engine is solid: full expression evaluation, control flow, arrays,
 complete file I/O (sequential + random-access records), and runtime
 error trapping all work and are regression-tested at ~1,000 assertions green.
 The frontier is the long tail of vintage syntax and a few remaining handlers
-(`POS`, `FRE`, `CSRLIN`) — plus `DATE$`/`TIME$` once the cmd port grows
-`%DATE%`/`%TIME%`. Graphics is intentionally out of scope: a terminal has no
+(`POS`, `FRE`, `CSRLIN`) and a few one-off vintage forms — the engine
+itself is no longer what holds the corpus back. Graphics is intentionally out of scope: a terminal has no
 framebuffer, so entering a graphics mode errors cleanly.
 
 Built and tested on macOS via the [Go cmd port](https://github.com/esix/cmd);
