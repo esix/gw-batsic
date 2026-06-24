@@ -238,12 +238,21 @@ goto :%_fn%
         set acc=
         goto :_Loop
       )
-      @REM # (0x23) - double type suffix
+      @REM # (0x23) - double type suffix, UNLESS the identifier is a keyword:
+      @REM then the # is a file-channel HASH (PRINT#2 / WRITE#1 / INPUT#1), not
+      @REM a type suffix.  Emit the keyword and re-process the # as a HASH.
       if !c!==23 (
-        set "tokens=!tokens! VAR_DBL_!acc!"
-        set state=Normal
+        call %GWSRC%\lexer\keyword isKeyword !acc!
+        if ERRORLEVEL 1 (
+          set "tokens=!tokens! VAR_DBL_!acc!"
+          set acc=
+          set state=Normal
+          goto :_Loop
+        )
+        set "tokens=!tokens! !acc!"
         set acc=
-        goto :_Loop
+        set state=Normal
+        goto :_S_Normal
       )
       @REM End of identifier: check keyword, emit token.
       @REM Two keywords have a literal `(` in their name: TAB( and SPC(.

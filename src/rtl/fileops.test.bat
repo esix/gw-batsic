@@ -259,6 +259,16 @@ call %test% "stmt.onerror.traps.and.resumes"
   call :_foRunOK
   call :_foLine1 "%GWTEMP%\fo_o.txt" "trapped 53at 20"
 
+@REM --- glued PRINT#n / WRITE#n (no space before #) ---
+call %test% "stmt.print.hash.glued"
+  @REM PRINT#2 (glued) must lex as PRINT HASH 2, not a VAR_DBL_PRINT.
+  del /Q "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#2,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 PRINT#2,"glued"
+  >>"%GWTEMP%\fo.bas" echo 30 CLOSE
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "glued"
+
 @REM --- LIST [n-m] : list lines then halt (GW returns to command level) ---
 call %test% "stmt.list.lists.then.halts"
   @REM line 10 writes BEFORE; line 20 LISTs and halts; line 30 (would overwrite
