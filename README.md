@@ -122,7 +122,7 @@ full sequential **and** random-access file I/O surface is complete.
 | **Files — random** | `FIELD … AS` (live-window record buffers), `LSET`/`RSET`, `GET`/`PUT` with byte-seek, `MKI$/MKS$/MKD$` ↔ `CVI/CVS/CVD`. |
 | **Files — disk** | `FILES`, `KILL`, `NAME … AS`. |
 | **Error handling** | `ON ERROR GOTO` / `GOTO 0`, `RESUME` / `RESUME NEXT` / `RESUME` *line*, `ERROR n`, `ERR`, `ERL`, the standard GW error-code table. |
-| **Types & program** | `DEFINT/DEFSNG/DEFDBL/DEFSTR`, `LET`, `REM`/`'`, `CLEAR`, `RUN [line|"file"]`, `CHAIN [MERGE]` (preserves variables), `LOAD`, `SAVE [,A]`, `LIST`, `NEW`, `SYSTEM`. |
+| **Types & program** | `DEFINT/DEFSNG/DEFDBL/DEFSTR`, `LET`, `REM`/`'`, `CLEAR`, `RUN [line|"file"]`, `CHAIN [MERGE]` (preserves variables), `LOAD`, `SAVE [,A]`, `LIST [n-m]`, `NEW`, `SYSTEM`. |
 
 ---
 
