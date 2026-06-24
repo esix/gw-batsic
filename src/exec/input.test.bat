@@ -25,6 +25,20 @@ call %test% "input.prompt.comma.noquestion"
   >>"%GWTEMP%\_input.bas" echo 20 PRINT N$
   call :_inputRun "Alice" "Name: Alice"
 
+call %test% "input.leading.semicolon.comma"
+  @REM Leading ; (suppress-CR) is accepted; the comma form still drops the "? ".
+  call :_clear
+  > "%GWTEMP%\_input.bas" echo 10 INPUT;"Q:",A$
+  >>"%GWTEMP%\_input.bas" echo 20 PRINT A$
+  call :_inputRun "X" "Q:X"
+
+call %test% "input.leading.semicolon.emptyprompt"
+  @REM INPUT ;""; v : empty prompt with the ; separator still prints "? ".
+  call :_clear
+  > "%GWTEMP%\_input.bas" echo 10 INPUT ;"";A$
+  >>"%GWTEMP%\_input.bas" echo 20 PRINT "["A$"]"
+  call :_inputRun "Y" "? [Y]"
+
 call %test% "input.multivar"
   call :_clear
   > "%GWTEMP%\_input.bas" echo 10 INPUT A, B

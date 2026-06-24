@@ -201,8 +201,12 @@ NumListRest   ::= e
 ;   which INPUT.bat reads from instead of the console); the var-list parsing
 ;   and assignment are shared with console INPUT.
 InputStmt     ::= INPUT InputSource
-InputSource   ::= HASH Expr COMA @IFILE_SET @INPUT_MARK VarList @INPUT
-InputSource   ::= InputPrompt @INPUT_MARK VarList @INPUT
+;   A leading `;` (INPUT;"p",v) suppresses the carriage return after the user's
+;   entry — a cursor nuance with no effect on the value, so we just consume it.
+InputSource   ::= SEMICOLON InputBody
+InputSource   ::= InputBody
+InputBody     ::= HASH Expr COMA @IFILE_SET @INPUT_MARK VarList @INPUT
+InputBody     ::= InputPrompt @INPUT_MARK VarList @INPUT
 InputPrompt   ::= STR PromptSep
 PromptSep     ::= SEMICOLON @PROMPT
 PromptSep     ::= COMA @PROMPT_NQ
