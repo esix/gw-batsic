@@ -104,6 +104,9 @@ goto :%_fn%
       set acc=
       set ntype=
       set state=Normal
+      @REM A type suffix (! # %) IS the current char and was already consumed —
+      @REM advance to the next char instead of re-processing the suffix.
+      if defined _numConsume (set "_numConsume=" & goto :_Loop)
       goto :_S_Normal
 
 :_S_Start
@@ -322,12 +325,11 @@ goto :%_fn%
       @REM D/d -> double exponent
       if !c!==44 (set "acc=!acc!D" & set "ntype=d" & set "state=Number3" & goto :_Loop)
       if !c!==64 (set "acc=!acc!D" & set "ntype=d" & set "state=Number3" & goto :_Loop)
-      @REM % -> force integer
-      if !c!==25 (set "ntype=i" & goto :_S_EmitNum)
-      @REM ! -> force single
-      if !c!==21 (set "ntype=s" & goto :_S_EmitNum)
-      @REM # -> force double
-      if !c!==23 (set "ntype=d" & goto :_S_EmitNum)
+      @REM Type suffix (% ! #): set the type AND consume the suffix char
+      @REM (_numConsume tells :_S_EmitNum to advance past it, not re-emit it).
+      if !c!==25 (set "ntype=i" & set "_numConsume=1" & goto :_S_EmitNum)
+      if !c!==21 (set "ntype=s" & set "_numConsume=1" & goto :_S_EmitNum)
+      if !c!==23 (set "ntype=d" & set "_numConsume=1" & goto :_S_EmitNum)
       @REM End of number (no suffix -> auto)
       set "ntype="
       goto :_S_EmitNum
@@ -343,6 +345,10 @@ goto :%_fn%
       @REM D/d -> double exponent
       if !c!==44 (set "acc=!acc!D" & set "ntype=d" & set "state=Number3" & goto :_Loop)
       if !c!==64 (set "acc=!acc!D" & set "ntype=d" & set "state=Number3" & goto :_Loop)
+      @REM Type suffix (! # %) on a decimal literal — consume it.
+      if !c!==21 (set "ntype=s" & set "_numConsume=1" & goto :_S_EmitNum)
+      if !c!==23 (set "ntype=d" & set "_numConsume=1" & goto :_S_EmitNum)
+      if !c!==25 (set "ntype=i" & set "_numConsume=1" & goto :_S_EmitNum)
       @REM End of number (has decimal -> single by default)
       set "ntype=s"
       goto :_S_EmitNum

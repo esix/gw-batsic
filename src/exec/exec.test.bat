@@ -171,6 +171,25 @@ call %test% "stmt.screen.text.noop"
 call %test% "stmt.screen.text.extra.args"
   call :_run "SCREEN 0,0,0:PRINT 8" " 8"
 
+
+@REM --- Numeric type-suffix literals (! single, # double, % integer) ---
+
+call %test% "num.suffix.double.integer.magnitude"
+  @REM 60# is double 60 (was lexed as 60 + a stray HASH).
+  call :_run "PRINT 60#" " 60"
+
+call %test% "num.suffix.double.decimal"
+  @REM the # on a decimal literal makes it double (not single + HASH).
+  call :_run "PRINT 60.0#" " 60"
+
+call %test% "num.suffix.single.large"
+  @REM 1000000! : single literal beyond integer range.
+  call :_run "PRINT 1000000!" " 1000000"
+
+call %test% "num.suffix.single.in.comparison"
+  @REM the suffix literal must not leak a stray token inside an expression.
+  call :_run "PRINT 5 < 1000000!" "-1"
+
 call %test% "stmt.defint.truncates"
   @REM DEFINT X makes X integer; 3.7 -> 3.  Reset with DEFSNG so the shared
   @REM _deftypes table does not leak into later :_run tests.
