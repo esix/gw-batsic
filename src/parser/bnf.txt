@@ -489,7 +489,7 @@ ErrorStmt     ::= ERROR Expr @ERROR
 ResumeStmt    ::= RESUME ResumeTarget
 ResumeTarget  ::= NEXT @RESUME_NEXT
 ResumeTarget  ::= NUM @RESUME_LINE
-ResumeTarget  ::= e @RESUME
+ResumeTarget  ::= @RESUME
 
 ; ============================================================
 ; Expressions (precedence low to high, no left recursion)
