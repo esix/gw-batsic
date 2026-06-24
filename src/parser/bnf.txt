@@ -290,10 +290,10 @@ RangeRest     ::= e
 ;   The ,R/,A/,P option letters arrive on the stack as VAR_ tokens; the
 ;   RTLs discard them.
 RunStmt       ::= RUN RunArg
+RunArg        ::= Expr RunROpt @RUN_FILE
 RunArg        ::= NUM @RUN_LINE
-RunArg        ::= STR RunROpt @RUN_FILE
 RunArg        ::= @RUN
-RunROpt       ::= COMA VAR
+RunROpt       ::= COMA VAR @RUN_ROPT
 RunROpt       ::= e
 SaveStmt      ::= SAVE Expr SaveOpt @SAVE
 SaveOpt       ::= COMA VAR

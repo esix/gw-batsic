@@ -301,6 +301,15 @@ call %test% "stmt.if.goto.num.colon.else"
   call :_foRunOK
   call :_foLine1 "%GWTEMP%\fo_o.txt" "THEN"
 
+@REM --- RUN <variable filename> (not just a string literal) ---
+call %test% "stmt.run.variable.filename"
+  del /Q "%GWTEMP%\fo_o.txt" "%GWTEMP%\fo2.bas" >nul 2>nul
+  > "%GWTEMP%\fo2.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_o.txt":PRINT #1,"RAN2":CLOSE
+  > "%GWTEMP%\fo.bas" echo 10 P$="%GWTEMP%\fo2.bas":RUN P$
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "RAN2"
+  del /Q "%GWTEMP%\fo2.bas" >nul 2>nul
+
 @REM --- CHAIN: load another program preserving variables ---
 call %test% "stmt.chain.preserves.vars"
   del /Q "%GWTEMP%\fo_o.txt" "%GWTEMP%\fo2.bas" >nul 2>nul

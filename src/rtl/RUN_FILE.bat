@@ -1,11 +1,11 @@
 @echo off
-@REM RUN_FILE: RUN "file"[,R] - pop the optional ,R flag (arrives as a
-@REM raw VAR_ token) and the filename, then signal restart-with-load
-@REM (flow code 98).  The run loop / REPL performs the actual load.
+@REM RUN_FILE: RUN <file-expr>[,R] - the filename is any string expression
+@REM (literal, variable, array element, concatenation); the optional ,R flag is
+@REM already popped+discarded by @RUN_ROPT, so we just pop and resolve the
+@REM filename, then signal restart-with-load (flow code 98).
 setlocal EnableDelayedExpansion
 set "_s=%~1"
 call %GWSRC%\stl\vec pop %_s% _a
-if "!_a:~0,4!"=="VAR_" call %GWSRC%\stl\vec pop %_s% _a
 call %GWSRC%\exec\_resolve !_a! _a
 if not "!_a:~0,4!"=="STR_" goto :_rf_err
 set "_path="
