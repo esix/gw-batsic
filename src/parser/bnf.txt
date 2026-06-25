@@ -357,8 +357,13 @@ FilesArg      ::= @FILES_ALL
 NameStmt      ::= NAME Expr AS Expr @NAME
 
 ; --- WIDTH (screen/device column width) — accepted, no-op (we don't model a
-;   fixed terminal width).  Forms: WIDTH n / WIDTH n,m / WIDTH "dev",n .
-WidthStmt     ::= WIDTH @WIDTH_MARK Expr WidthRest @WIDTH
+;   fixed terminal width).  Forms: WIDTH n / WIDTH n,m / WIDTH "dev",n /
+;   WIDTH #file,n (set the print width of an open file channel).  Every value
+;   is pushed and discarded down to the mark; the leading HASH is consumed by
+;   the grammar (it pushes nothing), so the file form needs no special action.
+WidthStmt     ::= WIDTH @WIDTH_MARK WidthTarget @WIDTH
+WidthTarget   ::= HASH Expr COMA Expr
+WidthTarget   ::= Expr WidthRest
 WidthRest     ::= COMA Expr WidthRest
 WidthRest     ::= e
 

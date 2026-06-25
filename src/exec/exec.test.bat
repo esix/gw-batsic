@@ -171,6 +171,10 @@ call %test% "stmt.screen.text.noop"
 call %test% "stmt.screen.text.extra.args"
   call :_run "SCREEN 0,0,0:PRINT 8" " 8"
 
+call %test% "stmt.width.file.channel.noop"
+  @REM WIDTH #f,n (set a file channel's print width) is accepted as a no-op.
+  call :_run "WIDTH #1,255:PRINT 8" " 8"
+
 call %test% "stmt.screen.elided.mode.noop"
   @REM SCREEN ,,0 : the mode is elided, so it keeps the current mode (no-op).
   call :_run "SCREEN ,,0:PRINT 8" " 8"
