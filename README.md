@@ -104,8 +104,8 @@ EOF
 
 ## What works
 
-The interpreter is well past "toy." Roughly **160 statement/operator/function
-handlers** are implemented and covered by **~1,000 passing unit tests**. The
+The interpreter is well past "toy." Nearly **200 statement/operator/function
+handlers** are implemented and covered by **1,080+ passing unit tests**. The
 full sequential **and** random-access file I/O surface is complete.
 
 | Area | Supported |
@@ -116,7 +116,7 @@ full sequential **and** random-access file I/O surface is complete.
 | **Date / time** | `DATE$` (`MM-DD-YYYY`), `TIME$` (`HH:MM:SS`) from the host clock; `DATE$=`/`TIME$=` accepted (host clock not settable). |
 | **Strings** | `LEN VAL STR$ ASC CHR$ LEFT$ RIGHT$ MID$ SPACE$ STRING$ INSTR HEX$ OCT$`, `MID$(a$,n)=...` statement form, `TAB( SPC(`, `+` concatenation. |
 | **Control flow** | `IF…THEN…ELSE`, `IF…GOTO`, `FOR/TO/STEP/NEXT` (incl. single-line & `NEXT i,j`), `WHILE/WEND`, `GOTO`, `GOSUB/RETURN`, `ON…GOTO`, `ON…GOSUB`, `END`, `STOP`, `:` separators. |
-| **Arrays** | `DIM` (multi-dimensional, multiple per statement), element read/write, `READ`/`INPUT` into elements, `ERASE`, `SWAP` (scalars & array elements). |
+| **Arrays** | `DIM` (multi-dimensional, multiple per statement), `OPTION BASE 0/1`, element read/write, `READ`/`INPUT` into elements, `ERASE`, `SWAP` (scalars & array elements). |
 | **User functions** | `DEF FN` — glued `FNname`, multiple/typed params, string returns, body refs to globals, nested `FN` calls (params save/restore). |
 | **Console** | `PRINT` (zones, `;`/`,`, juxtaposition), `PRINT USING`, `LPRINT`, `?`, `INPUT` (all prompt forms), `LINE INPUT`, `READ/DATA/RESTORE`, `CLS`, `BEEP`, `LOCATE`, `COLOR` (CGA→ANSI), `KEY` on/off/list/set, `INKEY$`, `WIDTH`. |
 | **Files — sequential** | `OPEN` (all three syntaxes), `CLOSE`/`RESET`, `PRINT #`, `WRITE #`, `INPUT #`, `LINE INPUT #`, `INPUT$(n,#f)` (raw-byte read), `EOF`, `LOF`, `LOC`. |
@@ -160,11 +160,12 @@ behaves correctly as the last statement on a line); `PRINT USING` omits the
 
 ### Corpus status
 
-Against the vintage example corpus, the latest headless sweep: **~80% of the
-programs now reach their real interactive/compute logic** — up from **4** at
-the start of the project. What remains is no longer the engine but a short
-tail of one-off vintage forms and a few genuinely-out-of-scope features (the
-`SCREEN()` read-char function, hardware/graphics).
+Against the 202-program vintage example corpus, the latest headless sweep:
+**~84% of the programs now reach their real interactive/compute logic** — up
+from **4** at the start of the project. Only 7 programs still fail to parse,
+and every one is either malformed source, invalid GW-BASIC, or a genuinely
+out-of-scope feature (the `SCREEN()` read-char function). The engine itself is
+no longer what holds the corpus back.
 
 ---
 
@@ -198,7 +199,7 @@ hex/string layer, the lexer, the parser, and the BNF.
 
 ## Running the tests
 
-A ~1,000-assertion suite drives every module. Run it through the cmd port
+A 1,080+-assertion suite drives every module. Run it through the cmd port
 from the repo root:
 
 ```sh
@@ -227,11 +228,11 @@ src/
   lexer/           tokenizer + keyword table + .BAS binary load/save
   parser/          LL(1) grammar (bnf.txt), table generator, parser
   exec/            the run loop, stack machine, variables, arrays, files
-  rtl/             ~160 action handlers — one .bat per statement/op/function
+  rtl/             ~190 action handlers — one .bat per statement/op/function
   num/             int / single / double facades + MBF & hex-arithmetic codecs
   str/             hex string layer
   stl/             vec / set data-structure helpers
-examples/          207 vintage GW-BASIC programs
+examples/          202 vintage GW-BASIC programs
 docs/              architecture & internals write-ups
 ```
 
@@ -239,13 +240,16 @@ docs/              architecture & internals write-ups
 
 ## Status
 
-The engine is solid: full expression evaluation, control flow, arrays,
-complete file I/O (sequential + random-access records), and runtime
-error trapping all work and are regression-tested at ~1,000 assertions green.
-The frontier is the long tail of vintage syntax and a few remaining handlers
-(`POS`, `FRE`, `CSRLIN`) and a few one-off vintage forms — the engine
-itself is no longer what holds the corpus back. Graphics is intentionally out of scope: a terminal has no
-framebuffer, so entering a graphics mode errors cleanly.
+The engine is effectively complete: full expression evaluation, control flow,
+arrays (incl. `OPTION BASE`), `DEF FN`, `CHAIN`, the whole file-I/O surface
+(sequential + random-access records + raw-byte reads), date/time, and runtime
+error trapping all work and are regression-tested at 1,080+ assertions green.
+About 84% of the vintage corpus reaches its real logic; what little remains
+unparsed is malformed source or a deliberately out-of-scope feature, not an
+engine gap. A few cheap handlers (`POS`, `FRE`, `CSRLIN`) are the only "planned"
+items left. Graphics and the `SCREEN()` read-char function are intentionally out
+of scope: a terminal has no framebuffer or readable shadow buffer, so those
+fail cleanly rather than pretending.
 
 Built and tested on macOS via the [Go cmd port](https://github.com/esix/cmd);
 the same `.bat` files run on Windows and Linux.

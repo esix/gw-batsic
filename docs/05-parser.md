@@ -207,13 +207,14 @@ queries against the in-memory snapshot.
 ## Conflicts
 
 `_rebuild.bat` warns when the table tries to set two different rules for
-the same `(nonterminal, terminal)` cell. There are currently **six** such
+the same `(nonterminal, terminal)` cell. There are currently **seven** such
 warnings (rule numbers shift as the grammar grows; the cells are what
 matter):
 
 ```
 CONFLICT: table.StmtRest.COLON   = ... [FOLLOW]
 CONFLICT: table.ElseClause.ELSE  = ... [FOLLOW]
+CONFLICT: table.RunArg.NUM       = ...
 CONFLICT: table.KeyWhat.OPAR     = ...
 CONFLICT: table.AddRest.MINUS    = ... [FOLLOW]
 CONFLICT: table.ArrayIndex.OPAR  = ... [FOLLOW]
@@ -242,18 +243,23 @@ overwrite a FIRST entry, so the FIRST rule wins):
   rather than treating `RND` as a bare function followed by `(x)`. The
   with-argument rule wins.
 
-The sixth, **`KeyWhat.OPAR`**, is a FIRST/FIRST conflict (no `[FOLLOW]`
-tag): after `KEY`, an open paren could begin `KEY(n) ON/OFF/STOP` (event
-trapping) or a parenthesised first argument of `KEY n, str$` (soft-key
-definition). GW programs only ever parenthesise the trap form, so the trap
-rule must win. Unlike the FOLLOW cases, two FIRST entries *do* overwrite —
-the builder keeps whichever is processed **last** — so here the grammar
-lists the trap production *after* `KEY n, str$` on purpose.
+Two are FIRST/FIRST conflicts (no `[FOLLOW]` tag), where two FIRST entries
+*do* overwrite each other — the builder keeps whichever is processed
+**last** — so the grammar lists the winning rule last on purpose:
+
+- **`KeyWhat.OPAR`**: after `KEY`, an open paren could begin `KEY(n)
+  ON/OFF/STOP` (event trapping) or a parenthesised first argument of
+  `KEY n, str$` (soft-key definition). GW programs only ever parenthesise
+  the trap form, so the trap production is listed *after* `KEY n, str$`.
+- **`RunArg.NUM`**: after `RUN`, a number could be a restart line
+  (`RUN 100`) or the start of an expression filename (`RUN` is also
+  `RUN <file-expr>`). A bare number is the line form, so `NUM @RUN_LINE`
+  is listed *after* the `Expr` filename rule and wins the cell.
 
 For the five FOLLOW cases the build keeps whichever rule was inserted
-**first**; for `KeyWhat.OPAR` the **last**-listed (trap) rule wins. Either
-way the result is the branch GW-BASIC intends, so we accept the warnings
-rather than rewrite the grammar.
+**first**; for the two FIRST/FIRST cases the **last**-listed rule wins.
+Either way the result is the branch GW-BASIC intends, so we accept the
+warnings rather than rewrite the grammar.
 
 ## The parse loop
 

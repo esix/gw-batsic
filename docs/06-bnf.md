@@ -212,12 +212,13 @@ InkeyFn       ::= INKEY$ @FN_INKEY
 
 ## Known LL(1) conflicts
 
-`_rebuild.bat` reports six warnings every time it runs. All are
+`_rebuild.bat` reports seven warnings every time it runs. All are
 intentional:
 
 ```
 CONFLICT: table.StmtRest.COLON   = ... [FOLLOW]
 CONFLICT: table.ElseClause.ELSE  = ... [FOLLOW]
+CONFLICT: table.RunArg.NUM       = ...
 CONFLICT: table.KeyWhat.OPAR     = ...
 CONFLICT: table.AddRest.MINUS    = ... [FOLLOW]
 CONFLICT: table.ArrayIndex.OPAR  = ... [FOLLOW]

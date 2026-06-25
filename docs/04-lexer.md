@@ -149,7 +149,7 @@ accumulated name up against the keyword table. If matched, it emits the
 keyword as the token (e.g. `acc=PRINT` → tokens `… PRINT`). If not, it
 prefixes with `VAR_UNK_` and emits.
 
-Two minor wrinkles:
+A few wrinkles:
 
 - The `$` suffix on a known keyword turns it into a different keyword
   (e.g. `LEFT$`, `MID$`). That's handled by `keyword isKeywordStr`,
@@ -162,6 +162,20 @@ Two minor wrinkles:
   comment ends up as `REM REM_<hex>` in the stream — `REM` the keyword,
   then `REM_…` the body. The unlexer prints them together as
   `REM HELLO`.
+- **Glued-keyword splits.** Vintage code crams a keyword against the next
+  token with no space, and the tokenizer un-glues two such cases. `FNxxx`
+  (a `DEF FN` reference like `FNA`) splits into the `FN` keyword + the
+  function-name variable. The dense `FIELD` form `5ASO1$` splits the `AS`
+  keyword off the field var (`5 AS O1$`) — but **only** when the
+  identifier began immediately after a number, so an ordinary variable
+  that merely starts with `AS` (`ASSETS`, `ASK$`) is never broken. The
+  two-word `GO TO` is likewise folded into a single `GOTO` token after
+  lexing.
+- **Whitespace.** Both space (`0x20`) and tab (`0x09`) separate tokens;
+  a tab inside a string literal is preserved (the `Quote` state copies the
+  raw byte regardless of its whitespace class). `PRINT#2` / `WRITE#1` /
+  `INPUT#1` lex the `#` as a file-channel marker rather than a `double`
+  type suffix when the name in front of it is a keyword.
 
 ## The keyword table
 
