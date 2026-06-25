@@ -316,10 +316,21 @@ call %test% "fn.cdbl"
 @REM Padding via certutil is preserved, so comma-zones still align.
 
 call %test% "print.tab.padding"
-  @REM PRINT 1, 2 — comma-separator pads to next 14-col tab stop.  Inline
-  @REM PTAB strips its own leading space (set/p quirk), pads 12 chars,
-  @REM then PEND prints " 2" via echo.  Result: "1" + 13 chars + "2".
-  call :_run "PRINT 1, 2" "1             2"
+  @REM PRINT 1, 2 — comma-separator pads to the next 14-col tab stop.  The first
+  @REM number keeps its leading sign-space (" 1"); PTAB pads to column 14, then
+  @REM PEND prints " 2".  Result: " 1" + 12 pad + " 2" => " 1" + 13 cols + "2".
+  call :_run "PRINT 1, 2" " 1             2"
+
+call %test% "print.semicolon.numbers.separate"
+  @REM PRINT 1;2;3 — each number prints as " <n> " (leading sign-space, trailing
+  @REM space) so consecutive numbers never jam.  Final value drops the trailing
+  @REM space (PEND).  Result: " 1  2  3" (was "12 3" when the leading space got
+  @REM stripped by set/p).
+  call :_run "PRINT 1;2;3" " 1  2  3"
+
+call %test% "print.semicolon.negative.signs"
+  @REM Negatives take the sign position (no extra leading space): "-1  2 -3".
+  call :_run "PRINT -1;2;-3" "-1  2 -3"
 
 call %test% "print.tab.function"
   @REM TAB(10) goes to column 10 (1-based, so 9 chars before).  PSEMI on

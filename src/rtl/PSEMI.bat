@@ -20,17 +20,31 @@ if "!_a:~0,4!"=="STR_" (
   )
 ) else (
   set "_tp=!_a:~0,1!"
-  if "!_tp!"=="i" (call %GWSRC%\num\int toDec !_a! & set "_txt= !__!")
-  if "!_tp!"=="s" (call %GWSRC%\num\sng toDec !_a! & set "_txt= !__!")
-  if "!_tp!"=="d" (call %GWSRC%\num\dbl toDec !_a! & set "_txt= !__!")
+  set "_d="
+  if "!_tp!"=="i" (call %GWSRC%\num\int toDec !_a! & set "_d=!__!")
+  if "!_tp!"=="s" (call %GWSRC%\num\sng toDec !_a! & set "_d=!__!")
+  if "!_tp!"=="d" (call %GWSRC%\num\dbl toDec !_a! & set "_d=!__!")
+  @REM GW numeric form: a leading space for non-negative (the sign position),
+  @REM the `-` for negative, and ALWAYS a trailing space so consecutive numbers
+  @REM separate (PRINT 1;2;3 -> " 1  2  3", PRINT -1;2 -> "-1  2").  This is the
+  @REM mid-list form; @PEND drops the trailing space on the final value.
+  if defined _d if "!_d:~0,1!"=="-" (set "_txt=!_d! ") else (set "_txt= !_d! ")
 )
 if defined _isStr (
   if defined _hex call %GWSRC%\str\str decodePrint !_hex! NONL
 ) else (
-  @REM Numeric: `_txt` is safe (digits/space/sign).  Sacrificial var name `_`
-  @REM so a leading `=` would not break `set /p` (defensive — numbers won't
-  @REM produce one in practice).
-  if defined _txt if defined _print_path (call %GWSRC%\exec\_pemit "!_txt!" NONL) else (<nul set /p "_=!_txt!")
+  @REM Numeric: `_txt` is ` <digits>` (leading sign-space) or `-<digits>`.  The
+  @REM console no-newline print must NOT use `set /p`, which strips the leading
+  @REM space — that jams consecutive numbers (PRINT 1;2;3 -> "12 3" not " 1 2 3").
+  @REM Route through decodePrint (leading spaces survive), like the string path.
+  if defined _txt (
+    if defined _print_path (
+      call %GWSRC%\exec\_pemit "!_txt!" NONL
+    ) else (
+      call %GWSRC%\str\str encode "!_txt!" _nhex
+      call %GWSRC%\str\str decodePrint !_nhex! NONL
+    )
+  )
 )
 if not defined _print_col set "_print_col=0"
 if defined _isStr (

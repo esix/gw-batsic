@@ -334,7 +334,9 @@ call %test% "stmt.onerror.traps.and.resumes"
   >>"%GWTEMP%\fo.bas" echo 50 CLOSE #2:END
   >>"%GWTEMP%\fo.bas" echo 100 RESUME NEXT
   call :_foRunOK
-  call :_foLine1 "%GWTEMP%\fo_o.txt" "trapped 53at 20"
+  @REM ERR/ERL print as " 53 " / " 20" (leading sign-space, trailing space on
+  @REM the mid-list value): "trapped" + " 53 " + "at" + " 20".
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "trapped 53 at 20"
 
 @REM --- glued PRINT#n / WRITE#n (no space before #) ---
 call %test% "stmt.print.hash.glued"

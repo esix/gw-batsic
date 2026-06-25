@@ -95,7 +95,8 @@ call %test% "read.mixed.numeric.string"
   > "%GWTEMP%\_rd.bas" echo 10 DATA 7, "seven"
   >>"%GWTEMP%\_rd.bas" echo 20 READ N, S$
   >>"%GWTEMP%\_rd.bas" echo 30 PRINT N; S$
-  call :_rdRun "7seven"
+  @REM " 7 " (leading sign-space + trailing space) then "seven": " 7 seven".
+  call :_rdRun " 7 seven"
 
 
 exit /B
