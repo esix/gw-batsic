@@ -17,26 +17,27 @@ feature matrix (what works / what doesn't), see the
 
 ## Implemented features
 
-The GW-BASIC surface area below is **implemented and regression-tested**
-(1,080+ assertions, see the `*.test.bat` files). The numbered deep-dive
-articles are still to be written — until then, the live reference is the
-[feature matrix in the top-level README](../README.md#what-works) plus the
-code itself (one `src/rtl/*.bat` per statement/operator/function). Article
-numbers 07–98 are reserved so the "not implementable" page keeps a stable URL.
+Every item below is **implemented and regression-tested** (1,080+ assertions,
+see the `*.test.bat` files). Several now have a written deep-dive (linked, with
+the implementation story and the war stories); the rest are still to come — for
+those the live reference is the [feature matrix in the top-level
+README](../README.md#what-works) plus the code itself (one `src/rtl/*.bat` per
+statement/operator/function). Article numbers 07–98 are reserved so the "not
+implementable" page keeps a stable URL.
 
-- 07 — Executor & RTL — stack machine, filesystem dispatch, propagation idioms. ✅ *implemented*
+- [07 — Built-in functions & the RTL handler pattern](07-builtin-handlers.md) — the calling convention: the postfix stack machine, tagged values, `_resolve`, action handlers, and cross-line state propagation. 📄 *written*
 - 08 — Program storage, the RUN loop, control flow (`GOTO`, `GOSUB`/`RETURN`, `IF`/`THEN`/`ELSE`, `FOR`/`NEXT` incl. single-line, `WHILE`/`WEND`, `ON…GOTO/GOSUB`, `END`, `STOP`). ✅ *implemented*
 - 09 — Variables, types, and `DEFINT` / `DEFSNG` / `DEFDBL` / `DEFSTR`. ✅ *implemented*
 - 10 — Arrays (`DIM`, indexing, multi-dim, read/write & `READ`/`INPUT` into elements, `OPTION BASE 0/1`, `ERASE`, `SWAP`). ✅ *implemented*
 - 11 — Operators (`+ - * / ^`, integer `\` and `MOD`, comparisons, boolean `AND`/`OR`/`NOT`/`XOR`/`EQV`/`IMP`). ✅ *implemented*
-- 12 — Numeric built-ins (`ABS`/`INT`/`SGN`/`FIX`/`SQR`/`SIN`/`COS`/`TAN`/`ATN`/`LOG`/`EXP`/`RND`/`CINT`/`CSNG`/`CDBL`/`TIMER`). ✅ *implemented*
-- 13 — String built-ins (`LEN`/`CHR$`/`STR$`/`VAL`/`ASC`/`LEFT$`/`RIGHT$`/`MID$` func & statement/`SPACE$`/`STRING$`/`INSTR`/`HEX$`/`OCT$`). ✅ *implemented*
-- 14 — `PRINT` formatting (`PEND`/`PSEMI`/`PTAB`/`PZONE`, `TAB(`/`SPC(`), `PRINT USING` (incl. after-item & variable values), `LPRINT`. ✅ *implemented*
+- [12 — Numeric built-ins](12-numeric-builtins.md) — `ABS`/`INT`/`SGN`/`FIX`/`SQR`/`SIN`/`COS`/`TAN`/`ATN`/`LOG`/`EXP`/`RND`/`CINT`/`CSNG`/`CDBL`/`TIMER`: pure-batch Taylor series, range reduction, and the MBF quirks. 📄 *written*
+- [13 — String built-ins](13-string-builtins.md) — `LEN`/`CHR$`/`STR$`/`VAL`/`ASC`/`LEFT$`/`RIGHT$`/`MID$` func & statement/`SPACE$`/`STRING$`/`INSTR`/`HEX$`/`OCT$`: hex-slice arithmetic and the sentinel-disambiguated arg forms. 📄 *written*
+- [14 — `PRINT`, `PRINT USING`, and `WRITE` formatting](14-print-formatting.md) — `PEND`/`PSEMI`/`PTAB`/`PZONE`, `TAB(`/`SPC(`, comma zones, the sign-space convention, and the `set /p` leading-space saga. 📄 *written*
 - 14b — `DEF FN` user functions, `CHAIN`/`COMMON`, `DATE$`/`TIME$`, `CLEAR`, `LIST`. ✅ *implemented*
 - 15 — `INPUT` (interactive read, prompt forms, type coercion), `LINE INPUT`, `READ`/`DATA`/`RESTORE`. ✅ *implemented*
-- 16 — Errors: `ERR` / `ERL`, the canonical message table, `_printErr`, **plus `ON ERROR GOTO` / `RESUME` / `ERROR n` runtime trapping**. ✅ *implemented*
+- [16 — Error trapping](16-error-trapping.md) — `ON ERROR GOTO` / `RESUME` / `RESUME NEXT` / `ERROR n`, `ERR`/`ERL`, and the 97/98/99 flow-code protocol. 📄 *written*
 - 17 — Batch quirks encountered along the way (`set /p` whitespace, `^` escaping, parenthesised-block `%var%` parse time, CRLF requirement, …).
-- 18 — **File I/O** — handle table, sequential `OPEN`/`CLOSE`/`PRINT #`/`WRITE #`/`INPUT #`/`INPUT$(n,#f)`/`EOF`/`LOF`/`LOC`, random-access `FIELD` (incl. the dense `5ASO1$` form)/`LSET`/`RSET`/`GET`/`PUT` live-window records, `MKI$`…`CVD` codecs, `FILES`/`KILL`/`NAME`. ✅ *implemented*
+- [18 — File I/O](18-file-io.md) — handle table, sequential streams, `INPUT$`/`LOC`, random-access `FIELD`/`LSET`/`RSET`/`GET`/`PUT` live-window records (incl. the dense `5ASO1$` form), and the `MKI$`…`CVD` codecs. 📄 *written*
 
 ## What we won't be implementing
 
