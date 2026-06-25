@@ -142,6 +142,7 @@ PrintAfter    ::= @PEND
 PrintAfter    ::= SEMICOLON PrintSemi
 PrintAfter    ::= COMA PrintComa
 PrintAfter    ::= @PSEMI PrintItem PrintAfter
+PrintAfter    ::= USING Expr SEMICOLON @PU_MARK PuList
 PrintSemi     ::= @PSEMI PrintItem PrintAfter
 PrintSemi     ::= @PSEMI_END
 PrintComa     ::= @PTAB PrintItem PrintAfter

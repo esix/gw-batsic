@@ -16,6 +16,10 @@ set "_rev="
   call %GWSRC%\stl\vec pop %_s% _v
   if not defined _v goto :_popdone
   if "!_v!"=="PU_MARK" goto :_popdone
+  @REM Resolve each value: a bare variable reaches here as its VAR_ token, which
+  @REM _renderNum/_strBody would otherwise treat as 0 (or empty).  Literals and
+  @REM pre-evaluated expressions pass through _resolve unchanged.
+  call %GWSRC%\exec\_resolve !_v! _v
   set "_rev=!_rev! !_v!"
   goto :_pop
 :_popdone

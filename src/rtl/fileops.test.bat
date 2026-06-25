@@ -108,6 +108,32 @@ call %test% "fileops.print.file.number"
   call :_foRunOK
   call :_foLine1 "%GWTEMP%\fo_pn.txt" "X= 42"
 
+call %test% "fileops.printusing.variable.value"
+  @REM PRINT USING must resolve a bare variable value (was rendering it as 0).
+  del /Q "%GWTEMP%\fo_pu.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_pu.txt":X=42
+  >>"%GWTEMP%\fo.bas" echo 20 PRINT #1,USING "###";X
+  >>"%GWTEMP%\fo.bas" echo 30 CLOSE #1
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_pu.txt" " 42"
+
+call %test% "fileops.printusing.string.variable"
+  del /Q "%GWTEMP%\fo_pu.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_pu.txt":N$="Bob"
+  >>"%GWTEMP%\fo.bas" echo 20 PRINT #1,USING "\   \";N$
+  >>"%GWTEMP%\fo.bas" echo 30 CLOSE #1
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_pu.txt" "Bob  "
+
+call %test% "fileops.printusing.after.tab.item"
+  @REM PRINT TAB(n) USING fmt;v : a print item (TAB) followed by USING.
+  del /Q "%GWTEMP%\fo_pu.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_pu.txt"
+  >>"%GWTEMP%\fo.bas" echo 20 PRINT #1,TAB(4) USING "##";7
+  >>"%GWTEMP%\fo.bas" echo 30 CLOSE #1
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_pu.txt" "    7"
+
 call %test% "fileops.print.file.append.continues"
   del /Q "%GWTEMP%\fo_pc.txt" >nul 2>nul
   > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_pc.txt"
