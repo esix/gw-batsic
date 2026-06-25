@@ -119,7 +119,7 @@ full sequential **and** random-access file I/O surface is complete.
 | **Arrays** | `DIM` (multi-dimensional, multiple per statement), element read/write, `READ`/`INPUT` into elements, `ERASE`, `SWAP` (scalars & array elements). |
 | **User functions** | `DEF FN` — glued `FNname`, multiple/typed params, string returns, body refs to globals, nested `FN` calls (params save/restore). |
 | **Console** | `PRINT` (zones, `;`/`,`, juxtaposition), `PRINT USING`, `LPRINT`, `?`, `INPUT` (all prompt forms), `LINE INPUT`, `READ/DATA/RESTORE`, `CLS`, `BEEP`, `LOCATE`, `COLOR` (CGA→ANSI), `KEY` on/off/list/set, `INKEY$`, `WIDTH`. |
-| **Files — sequential** | `OPEN` (all three syntaxes), `CLOSE`/`RESET`, `PRINT #`, `WRITE #`, `INPUT #`, `LINE INPUT #`, `EOF`, `LOF`. |
+| **Files — sequential** | `OPEN` (all three syntaxes), `CLOSE`/`RESET`, `PRINT #`, `WRITE #`, `INPUT #`, `LINE INPUT #`, `INPUT$(n,#f)` (raw-byte read), `EOF`, `LOF`, `LOC`. |
 | **Files — random** | `FIELD … AS` (live-window record buffers), `LSET`/`RSET`, `GET`/`PUT` with byte-seek, `MKI$/MKS$/MKD$` ↔ `CVI/CVS/CVD`. |
 | **Files — disk** | `FILES`, `KILL`, `NAME … AS`. |
 | **Error handling** | `ON ERROR GOTO` / `GOTO 0`, `RESUME` / `RESUME NEXT` / `RESUME` *line*, `ERROR n`, `ERR`, `ERL`, the standard GW error-code table. |
@@ -133,8 +133,8 @@ full sequential **and** random-access file I/O surface is complete.
 
 - **Cheap missing handlers** — `POS`, `FRE`, `CSRLIN`: the grammar accepts
   them, they just need a small RTL each (currently raise *"Advanced Feature"*).
-- **A few one-off vintage forms** — `INPUT ;"p"` (leading semicolon), `LOC()`,
-  two-word `GO TO`, the `SCREEN()` read-char function (needs a shadow buffer).
+- **A few one-off vintage forms** — two-word `GO TO`, bare `RANDOMIZE`, the `SCREEN()` read-char function
+  (needs a shadow buffer), the `FIELD` dense form.
 
 **Not implementable in batch** (by nature — see
 [`docs/99-not-implementable.md`](docs/99-not-implementable.md)):
