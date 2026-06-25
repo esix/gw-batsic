@@ -700,6 +700,10 @@ goto :%_fn%
 
   set "tokens=!tokens! EOL"
 
+  @REM `GO TO` (two words) is an accepted spelling of GOTO.  GO is not a keyword
+  @REM (it lexes as VAR_UNK_GO), so fold the adjacent GO TO pair into one GOTO.
+  set "tokens=!tokens: VAR_UNK_GO TO = GOTO !"
+
   endlocal && if "%~2"=="" (
     echo %tokens:~1%
   ) else (

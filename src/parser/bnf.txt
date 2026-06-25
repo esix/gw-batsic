@@ -67,8 +67,9 @@ Stmt          ::= ErrorStmt
 Stmt          ::= ResumeStmt
 Stmt          ::= CLS @CLS
 Stmt          ::= BEEP @BEEP
-Stmt          ::= RANDOMIZE Expr @RANDOMIZE
+Stmt          ::= RANDOMIZE RandTail
 Stmt          ::= RunStmt
+Stmt          ::= CommonStmt
 Stmt          ::= SaveStmt
 Stmt          ::= SYSTEM @SYSTEM
 Stmt          ::= NEW @NEW
@@ -134,6 +135,9 @@ PuTail        ::= @PRINT_USING
 PrintBody     ::= @PEND
 PrintBody     ::= PrintItem PrintAfter
 PrintBody     ::= COMA @PZONE PrintZone
+PrintBody     ::= SEMICOLON PrintSemiStart
+PrintSemiStart ::= @PEND_NONL
+PrintSemiStart ::= PrintItem PrintAfter
 PrintAfter    ::= @PEND
 PrintAfter    ::= SEMICOLON PrintSemi
 PrintAfter    ::= COMA PrintComa
@@ -461,16 +465,29 @@ ColMore       ::= COMA ColArg ColMore
 ColMore       ::= e
 
 ; --- SCREEN ---
-ScreenStmt    ::= SCREEN Expr ScreenRest @SCREEN
-ScreenRest    ::= COMA Expr ScreenRest2
-ScreenRest    ::= e
-ScreenRest2   ::= COMA Expr ScreenRest3
-ScreenRest2   ::= e
-ScreenRest3   ::= COMA Expr
-ScreenRest3   ::= e
+ScreenStmt    ::= SCREEN @SCR_MARK ScrArgs @SCREEN
+ScrArgs       ::= ScrArg ScrMore
+ScrArg        ::= Expr
+ScrArg        ::= @SCR_NIL
+ScrMore       ::= COMA ScrArg ScrMore
+ScrMore       ::= e
 
 ; --- SOUND ---
 SoundStmt     ::= SOUND Expr COMA Expr @SOUND
+
+; --- RANDOMIZE [seed] : bare form reseeds without a seed value ---
+RandTail      ::= Expr @RANDOMIZE
+RandTail      ::= @RANDOMIZE_NOSEED
+
+; --- COMMON var[(}][, ...] : declare CHAIN-shared vars.  We preserve every
+;   variable across CHAIN already, so this only needs to parse: each name is
+;   pushed by the executor and immediately discarded by @COMMON_POP. ---
+CommonStmt    ::= COMMON CommonVar CommonRest
+CommonVar     ::= VAR @COMMON_POP CommonArr
+CommonArr     ::= OPAR CPAR
+CommonArr     ::= e
+CommonRest    ::= COMA CommonVar CommonRest
+CommonRest    ::= e
 
 ; --- KEY ---
 KeyStmt       ::= KEY KeyWhat

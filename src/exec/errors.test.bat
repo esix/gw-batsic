@@ -160,6 +160,14 @@ call %test% "ctrl.if.then.line.jumps"
   call :_addLine "30 PRINT 200"
   call :_progOut " 200"
 
+call %test% "ctrl.go.to.two.words"
+  @REM `GO TO` (two words) is an accepted spelling of GOTO.
+  call :_clear
+  call :_addLine "10 IF 1 = 1 THEN GO TO 30"
+  call :_addLine "20 PRINT 100"
+  call :_addLine "30 PRINT 200"
+  call :_progOut " 200"
+
 
 @REM ============================================================
 @REM  Control flow: FOR / NEXT

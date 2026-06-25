@@ -171,6 +171,22 @@ call %test% "stmt.screen.text.noop"
 call %test% "stmt.screen.text.extra.args"
   call :_run "SCREEN 0,0,0:PRINT 8" " 8"
 
+call %test% "stmt.screen.elided.mode.noop"
+  @REM SCREEN ,,0 : the mode is elided, so it keeps the current mode (no-op).
+  call :_run "SCREEN ,,0:PRINT 8" " 8"
+
+call %test% "stmt.randomize.no.seed"
+  @REM Bare RANDOMIZE (no seed) is accepted and does not error.
+  call :_run "RANDOMIZE:PRINT 7" " 7"
+
+call %test% "stmt.print.bare.semicolon"
+  @REM PRINT; prints nothing and no newline; the next PRINT supplies the output.
+  call :_run "PRINT;:PRINT 5" " 5"
+
+call %test% "stmt.common.is.noop"
+  @REM COMMON declares CHAIN-shared vars (we preserve all of them) — parse no-op.
+  call :_run "COMMON A,B$,C():PRINT 3" " 3"
+
 
 @REM --- Numeric type-suffix literals (! single, # double, % integer) ---
 

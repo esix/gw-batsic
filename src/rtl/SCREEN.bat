@@ -1,20 +1,22 @@
 @echo off
-@REM SCREEN mode[,colorswitch[,apage[,vpage]]] : text mode 0 is accepted as a
-@REM no-op (we ARE a text terminal); any graphics mode (>0) is not implementable
-@REM here, so it raises error 73 ("Advanced Feature") — a program that tries to
-@REM enter graphics mode fails cleanly at the SCREEN statement.  The mode is the
-@REM first argument (bottom of the pushed args); pop them all, keep the mode.
+@REM SCREEN [mode][,colorswitch][,apage][,vpage] : text mode 0 is accepted as a
+@REM no-op (we ARE a text terminal); a graphics mode (>0) is not implementable
+@REM here, so it raises error 73.  Args use the LOCATE-style elided protocol:
+@REM @SCR_MARK then each slot is a value or SCR_NIL.  The mode is the first arg
+@REM (last popped before the mark); an elided mode (SCR_NIL) leaves it unchanged.
 setlocal EnableDelayedExpansion
 set "_s=%~1"
 set "_mode="
 :_loop
   call %GWSRC%\stl\vec pop %_s% _v
   if not defined _v goto :_done
+  if "!_v!"=="SCR_MARK" goto :_done
   set "_mode=!_v!"
   goto :_loop
 :_done
 set "_final=!%_s%!"
 if not defined _mode (endlocal & set "%~1=%_final%" & exit /B 0)
+if "!_mode!"=="SCR_NIL" (endlocal & set "%~1=%_final%" & exit /B 0)
 call %GWSRC%\exec\_resolve !_mode! _mode
 call :_toInt !_mode! _m
 if not "!_m!"=="0" (endlocal & set "%~1=%_final%" & exit /B 73)
