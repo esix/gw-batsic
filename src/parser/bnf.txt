@@ -603,6 +603,7 @@ FnCall        ::= FN VAR @ARG_MARK OPAR ExprList CPAR @CALL_FN
 ; --- Built-in function calls ---
 BuiltinCall   ::= EofFn
 BuiltinCall   ::= LofFn
+BuiltinCall   ::= LocFn
 BuiltinCall   ::= AbsFn
 BuiltinCall   ::= IntFn
 BuiltinCall   ::= SgnFn
@@ -636,6 +637,7 @@ BuiltinCall   ::= StrFn
 BuiltinCall   ::= SpaceFn
 BuiltinCall   ::= StringFn
 BuiltinCall   ::= HexFn
+BuiltinCall   ::= InputDollarFn
 BuiltinCall   ::= OctFn
 BuiltinCall   ::= LeftFn
 BuiltinCall   ::= RightFn
@@ -653,6 +655,7 @@ BuiltinCall   ::= TIMER @FN_TIMER
 ; 1-arg numeric functions
 EofFn         ::= EOF OPAR Expr CPAR @FN_EOF
 LofFn         ::= LOF OPAR Expr CPAR @FN_LOF
+LocFn         ::= LOC OPAR Expr CPAR @FN_LOC
 AbsFn         ::= ABS OPAR Expr CPAR @FN_ABS
 IntFn         ::= INT OPAR Expr CPAR @FN_INT
 SgnFn         ::= SGN OPAR Expr CPAR @FN_SGN
@@ -697,6 +700,15 @@ RndArgs       ::= @RND_NOARG
 LeftFn        ::= LEFT$ OPAR Expr COMA Expr CPAR @FN_LEFT
 RightFn       ::= RIGHT$ OPAR Expr COMA Expr CPAR @FN_RIGHT
 StringFn      ::= STRING$ OPAR Expr COMA Expr CPAR @FN_STRING
+
+; --- INPUT$(n [, [#]filenum]) : read exactly n characters ---
+;   With a channel, read n raw bytes from that file; without one, read n
+;   characters from the console.  @ID_NIL marks the no-channel (console) case.
+InputDollarFn ::= INPUT$ OPAR Expr InputDollarSrc CPAR @FN_INPUTDOLLAR
+InputDollarSrc ::= COMA InputDollarCh
+InputDollarSrc ::= @ID_NIL
+InputDollarCh ::= HASH Expr
+InputDollarCh ::= Expr
 
 ; 2-3 arg
 ;   @MID_DEFAULT_LEN pushes a sentinel large length so @FN_MID always sees

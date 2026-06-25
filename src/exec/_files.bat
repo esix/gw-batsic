@@ -28,6 +28,7 @@ goto :%_ffn%
   @REM _resolve intercept a later same-named ordinary variable.
   if exist "%GWTEMP%\fields.dat" del "%GWTEMP%\fields.dat"
   del "%GWTEMP%\recbuf_*.hex" >nul 2>nul
+  del "%GWTEMP%\bpos_*.dat" >nul 2>nul
   exit /B 0
 
 
@@ -48,6 +49,24 @@ goto :%_ffn%
   if /I "!_mode!"=="A" if not exist "!_path!" type nul > "!_path!"
   if /I "!_mode!"=="R" if not exist "!_path!" type nul > "!_path!"
   echo !_n!=!_mode! 0 !_rl! !_hp!>> "!_ff!"
+  del "%GWTEMP%\bpos_!_n!.dat" >nul 2>nul
+  endlocal & exit /B 0
+
+
+@REM binpos N retVar  -> byte cursor for INPUT$ reads (0 if never read)
+:binpos
+  setlocal EnableDelayedExpansion
+  set "_n=%~1"
+  set "_bp=0"
+  if exist "%GWTEMP%\bpos_!_n!.dat" set /p "_bp=" < "%GWTEMP%\bpos_!_n!.dat"
+  if "!_bp!"=="" set "_bp=0"
+  endlocal & set "%~2=%_bp%" & exit /B 0
+
+@REM setbinpos N OFF  -> store the byte cursor for handle N
+:setbinpos
+  setlocal EnableDelayedExpansion
+  set "_n=%~1" & set "_off=%~2"
+  > "%GWTEMP%\bpos_!_n!.dat" echo !_off!
   endlocal & exit /B 0
 
 
@@ -61,6 +80,7 @@ goto :%_ffn%
   type nul > "!_tmp!"
   for /f "usebackq tokens=1* delims==" %%a in ("!_ff!") do if "%%a" neq "!_n!" echo %%a=%%b>> "!_tmp!"
   move /Y "!_tmp!" "!_ff!" >nul
+  del "%GWTEMP%\bpos_!_n!.dat" >nul 2>nul
   endlocal & exit /B 0
 
 
@@ -156,10 +176,18 @@ goto :%_ffn%
   endlocal & set "%~2=%_lh%" & set "%~3=0" & exit /B 0
 
 
-@REM atEof N RETBOOL — RETBOOL=-1 if no more lines to read, else 0.
+@REM atEof N RETBOOL — RETBOOL=-1 if no more data, else 0.
 :atEof
   setlocal EnableDelayedExpansion
   set "_n=%~1"
+  @REM If INPUT$ has been reading this handle byte-by-byte, EOF is byte-based:
+  @REM true once the byte cursor has reached the file size.
+  if exist "%GWTEMP%\bpos_!_n!.dat" (
+    call %GWSRC%\exec\_files binpos !_n! _bp
+    call %GWSRC%\exec\_files lof !_n! _sz
+    if !_bp! GEQ !_sz! (endlocal & set "%~2=-1" & exit /B 0)
+    endlocal & set "%~2=0" & exit /B 0
+  )
   call %GWSRC%\exec\_files readseq !_n! _peek _eof
   if "!_eof!"=="1" (endlocal & set "%~2=-1" & exit /B 0)
   @REM readseq advanced POS; undo it (peek only).

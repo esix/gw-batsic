@@ -255,13 +255,14 @@ goto :%_fn%
   set "_k_FFA4=LOC"   & set "_c_LOC=FFA4"
   set "_k_FFA5=LOF"   & set "_c_LOF=FFA5"
   set "_k_FFA6=VARPTR$"& set "_c_VARPTR$=FFA6"
+  set "_k_FFA7=INPUT$"& set "_c_INPUT$=FFA7"
 
   @REM --- String function keywords ---
   set "_ks_STRING$=1"& set "_ks_INKEY$=1"& set "_ks_MKI$=1"& set "_ks_MKS$=1"
   set "_ks_MKD$=1"& set "_ks_LEFT$=1"& set "_ks_RIGHT$=1"& set "_ks_MID$=1"
   set "_ks_STR$=1"& set "_ks_CHR$=1"& set "_ks_SPACE$=1"& set "_ks_OCT$=1"
   set "_ks_HEX$=1"& set "_ks_DATE$=1"& set "_ks_TIME$=1"& set "_ks_VARPTR$=1"
-  set "_ks_ENVIRON=1"& set "_ks_IOCTL=1"
+  set "_ks_ENVIRON=1"& set "_ks_IOCTL=1"& set "_ks_INPUT$=1"
 
   exit /B 0
 

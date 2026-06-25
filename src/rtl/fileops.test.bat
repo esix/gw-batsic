@@ -179,6 +179,41 @@ call %test% "fileops.lineinput.file"
   call :_foRunOK
   call :_foLine1 "%GWTEMP%\fo_o.txt" "a,b,c"
 
+@REM --- LOC(n): file position (last GET/PUT record, or lines read) ---
+call %test% "fn.loc.random.last.record"
+  @REM GET #1,5 makes LOC(1) report 5 (the last accessed record).
+  del /Q "%GWTEMP%\fo_r.dat" "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "R",#1,"%GWTEMP%\fo_r.dat",16
+  >>"%GWTEMP%\fo.bas" echo 20 FIELD #1,16 AS NM$
+  >>"%GWTEMP%\fo.bas" echo 30 LSET NM$="x":PUT #1,8
+  >>"%GWTEMP%\fo.bas" echo 40 GET #1,5
+  >>"%GWTEMP%\fo.bas" echo 50 OPEN "O",#2,"%GWTEMP%\fo_o.txt":PRINT #2,LOC(1):CLOSE
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" " 5"
+
+@REM --- INPUT$(n,#f): read exactly n raw bytes, advancing a byte cursor ---
+call %test% "fn.inputdollar.file.exact.bytes"
+  del /Q "%GWTEMP%\fo_d.txt" "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_d.txt":PRINT #1,"HELLOWORLD";:CLOSE
+  >>"%GWTEMP%\fo.bas" echo 20 OPEN "I",#1,"%GWTEMP%\fo_d.txt"
+  >>"%GWTEMP%\fo.bas" echo 30 A$=INPUT$(5,#1):B$=INPUT$(3,#1):CLOSE
+  >>"%GWTEMP%\fo.bas" echo 40 OPEN "O",#2,"%GWTEMP%\fo_o.txt":PRINT #2,A$;"-";B$:CLOSE
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "HELLO-WOR"
+
+call %test% "fn.inputdollar.eof.copies.all.bytes"
+  @REM Byte-by-byte copy driven by EOF (the KILLNULL idiom) — byte-aware EOF.
+  del /Q "%GWTEMP%\fo_d.txt" "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "O",#1,"%GWTEMP%\fo_d.txt":PRINT #1,"ABCDEFG";:CLOSE
+  >>"%GWTEMP%\fo.bas" echo 20 OPEN "I",#1,"%GWTEMP%\fo_d.txt":OPEN "O",#2,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 30 IF EOF(1) THEN 70
+  >>"%GWTEMP%\fo.bas" echo 40 C$=INPUT$(1,#1)
+  >>"%GWTEMP%\fo.bas" echo 50 PRINT #2,C$;
+  >>"%GWTEMP%\fo.bas" echo 60 GOTO 30
+  >>"%GWTEMP%\fo.bas" echo 70 CLOSE
+  call :_foRunOK
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "ABCDEFG"
+
 @REM --- Random-access records: FIELD / LSET / RSET / GET / PUT (M5/M6) ---
 del /Q "%GWTEMP%\fo_r.dat" >nul 2>nul
 del "%GWTEMP%\fields.dat" "%GWTEMP%\recbuf_*.hex" >nul 2>nul
