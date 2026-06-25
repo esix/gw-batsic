@@ -69,6 +69,8 @@ goto :%_fn%
 
     set "isSpace="& set "isNumber="& set "isLetter="& set "isEol="
     if !c!==20 set "isSpace=T"
+    @REM TAB (0x09) is whitespace too — vintage listings indent with tabs.
+    if !c!==09 set "isSpace=T"
     if !c! GEQ 30 if !c! LEQ 39 set "isNumber=T"
     if !c! GEQ 41 if !c! LEQ 5A set "isLetter=T"
     if !c! GEQ 61 if !c! LEQ 7A set "isLetter=T"

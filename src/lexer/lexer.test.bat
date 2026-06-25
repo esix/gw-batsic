@@ -29,6 +29,13 @@ call %test% "lexer.delimiters"
   call :_t "10 A;B"             "LN__10 VAR_UNK_A SEMICOLON VAR_UNK_B EOL"
   call :_t "10 A:B"             "LN__10 VAR_UNK_A COLON VAR_UNK_B EOL"
 
+call %test% "lexer.tab.is.whitespace"
+  @REM TAB (0x09) is whitespace, like a space.  Fed as raw hex so the literal
+  @REM tab is not mangled by cmd's own argument parsing.  "10<TAB>PRINT 5".
+  call expect "lexer ParseTxt 3130095052494E542035 __" "LN__10 PRINT NUM_i0005 EOL"
+  @REM A tab between two operands also just separates them: "10 1<TAB>+2".
+  call expect "lexer ParseTxt 31302031092B32 __" "LN__10 NUM_i0001 PLUS NUM_i0002 EOL"
+
 call %test% "lexer.keywords"
   call :_t "10 PRINT"           "LN__10 PRINT EOL"
   call :_t "10 GOTO 20"         "LN__10 GOTO NUM_i0014 EOL"
