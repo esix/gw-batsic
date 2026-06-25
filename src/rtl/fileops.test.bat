@@ -235,6 +235,22 @@ call %test% "fileops.record.numeric.roundtrip"
   call :_foRunOK
   call :_foLine1 "%GWTEMP%\fo_o.txt" " 95.5"
 
+call %test% "fileops.field.dense.form"
+  @REM Dense FIELD `5ASO1$` (width glued to AS glued to the var, no spaces) must
+  @REM declare the same live windows as the spaced `5 AS O1$` form.
+  del /Q "%GWTEMP%\fo_r.dat" "%GWTEMP%\fo_o.txt" >nul 2>nul
+  > "%GWTEMP%\fo.bas" echo 10 OPEN "R",#1,"%GWTEMP%\fo_r.dat",16
+  >>"%GWTEMP%\fo.bas" echo 20 FIELD 1,5ASO1$,11ASO2$
+  >>"%GWTEMP%\fo.bas" echo 30 LSET O1$="HELLO":LSET O2$="WORLD":PUT #1,1
+  >>"%GWTEMP%\fo.bas" echo 40 GET #1,1
+  >>"%GWTEMP%\fo.bas" echo 50 CLOSE #1
+  >>"%GWTEMP%\fo.bas" echo 60 OPEN "O",#2,"%GWTEMP%\fo_o.txt"
+  >>"%GWTEMP%\fo.bas" echo 70 PRINT #2,O1$;"-";O2$
+  >>"%GWTEMP%\fo.bas" echo 80 CLOSE #2
+  call :_foRunOK
+  @REM O1$ is width 5 ("HELLO"); O2$ is width 11 ("WORLD" + 6 spaces).
+  call :_foLine1 "%GWTEMP%\fo_o.txt" "HELLO-WORLD      "
+
 call %test% "fileops.record.getmodifyput"
   @REM GET, change ONLY field 2, PUT; re-GET must keep fields 1 and 3 intact.
   del /Q "%GWTEMP%\fo_r.dat" "%GWTEMP%\fo_o.txt" >nul 2>nul

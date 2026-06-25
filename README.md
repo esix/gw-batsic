@@ -133,8 +133,9 @@ full sequential **and** random-access file I/O surface is complete.
 
 - **Cheap missing handlers** — `POS`, `FRE`, `CSRLIN`: the grammar accepts
   them, they just need a small RTL each (currently raise *"Advanced Feature"*).
-- **A few one-off vintage forms** — two-word `GO TO`, bare `RANDOMIZE`, the `SCREEN()` read-char function
-  (needs a shadow buffer), the `FIELD` dense form.
+- **`SCREEN(row,col)` read-char function** — reads a character back off the
+  screen; needs a shadow text buffer that any external console output would
+  invalidate. The `SCREEN` *statement* (mode set) is fully handled.
 
 **Not implementable in batch** (by nature — see
 [`docs/99-not-implementable.md`](docs/99-not-implementable.md)):

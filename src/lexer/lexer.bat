@@ -77,6 +77,12 @@ goto :%_fn%
     goto :_S_!state!
 
 :_S_EmitNum
+      @REM Record whether this number is immediately followed by a letter (no
+      @REM separator): that is the only context where an identifier abuts a
+      @REM number, and it is exactly the dense FIELD form `5ASO1$` (width glued
+      @REM to AS glued to the field var).  Used by the AS-split below.
+      set "_afterNum="
+      if defined isLetter set "_afterNum=1"
       @REM Convert acc to tagged binary number
       if "!ntype!"=="" (
         call %GWSRC%\num\int fromDec !acc!
@@ -208,6 +214,17 @@ goto :%_fn%
           set "acc=!acc:~2!"
         )
       )
+      @REM Dense FIELD form: a width glued to `AS` glued to the field var, e.g.
+      @REM `5ASO1$` -> `5 AS O1$`.  Only split when this identifier began right
+      @REM after a number (_afterNum) so an ordinary variable that merely starts
+      @REM with AS (ASSETS, ASK$) is never broken.  AS alone stays an identifier.
+      if defined _afterNum (
+        if "!acc:~0,2!"=="AS" if not "!acc!"=="AS" (
+          set "tokens=!tokens! AS"
+          set "acc=!acc:~2!"
+        )
+      )
+      set "_afterNum="
       @REM $ (0x24) - string type suffix.
       @REM Keyword table is keyed WITH the $ (e.g. _ks_CHR$=1), and the
       @REM parser grammar uses the literal CHR$/STR$/HEX$/... terminals,
