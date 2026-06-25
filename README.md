@@ -133,9 +133,6 @@ full sequential **and** random-access file I/O surface is complete.
 
 - **Cheap missing handlers** — `POS`, `FRE`, `CSRLIN`: the grammar accepts
   them, they just need a small RTL each (currently raise *"Advanced Feature"*).
-- **`SCREEN(row,col)` read-char function** — reads a character back off the
-  screen; needs a shadow text buffer that any external console output would
-  invalidate. The `SCREEN` *statement* (mode set) is fully handled.
 
 **Not implementable in batch** (by nature — see
 [`docs/99-not-implementable.md`](docs/99-not-implementable.md)):
@@ -144,6 +141,10 @@ full sequential **and** random-access file I/O surface is complete.
   `PAINT`, `DRAW`, `PALETTE`) — a terminal has no framebuffer. `SCREEN 0`
   (text mode) is an accepted no-op; entering a graphics mode (`SCREEN n>0`)
   fails cleanly with *"Advanced Feature"* rather than pretending to draw.
+- **`SCREEN(row,col)` read-char function** — reads a character back *off the
+  screen*, which would need a shadow text buffer that any external console
+  output (errors, our own ANSI) would silently invalidate. The `SCREEN`
+  *statement* (mode set) is fully handled; only the read-back function is out.
 - **Direct hardware** — `PEEK`/`POKE`, `INP`/`OUT`, `USR`, `WAIT`, `DEF SEG`,
   `VARPTR`, COM/LPT ports, the PC speaker (`SOUND`/`PLAY` as real tones).
 - **Function-key event trapping** (`KEY(n) ON/OFF/STOP`, `ON KEY(n) GOSUB`) —
@@ -159,10 +160,11 @@ behaves correctly as the last statement on a line); `PRINT USING` omits the
 
 ### Corpus status
 
-Against the vintage example corpus, the latest headless sweep: **~half the
+Against the vintage example corpus, the latest headless sweep: **~80% of the
 programs now reach their real interactive/compute logic** — up from **4** at
-the start of the project. The remaining wall is the long tail of vintage
-syntax (a handful of one-off vintage forms), not the engine.
+the start of the project. What remains is no longer the engine but a short
+tail of one-off vintage forms and a few genuinely-out-of-scope features (the
+`SCREEN()` read-char function, hardware/graphics).
 
 ---
 
