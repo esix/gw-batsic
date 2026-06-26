@@ -2,6 +2,8 @@
 
 **A working GW-BASIC interpreter written entirely in Windows `.bat` batch files.**
 
+https://github.com/user-attachments/assets/a3213918-e3cd-4e81-9125-d0c3d176d406
+
 No C, no Python, no executables we compiled — just `cmd.exe` batch scripts
 parsing and running 1980s BASIC. The lexer, the LL(1) parser, the Microsoft
 Binary Format floating-point math, the file system, the random-access record
